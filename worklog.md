@@ -330,3 +330,49 @@ Stage Summary:
 - Seed script created for PostgreSQL deployment
 - Signature interactions implemented: sliding scenario pill, cross-fading figures, animated threshold bars
 - All changes verified end-to-end via Agent Browser
+---
+Task ID: MASTER-IMPLEMENTATION
+Agent: main
+Task: Complete 6-phase Viableo transformation per Master Implementation Prompt
+
+Work Log:
+- Read and analyzed the full Master Implementation Prompt (9 sections, 6 phases)
+- Phase 1.1: Wired NextAuth v4 with GitHub OAuth + dev credentials, created User/Membership/Account/Session models, tenant-scoped data access layer, killed DEMO_ORG_ID
+- Phase 1.2: Removed setDemoTier(), added server-side assertEntitlement() guard on all gated routes
+- Phase 1.3: Deepened decision colors (WCAG AA), added borders, established 3 color roles (Verdict/UI Accent/Brand)
+- Phase 1.4: Upstash Redis rate limiting with in-memory fallback, fail-open on Redis failure
+- Phase 1.5: Created env.ts validation, updated .env.example
+- Phase 2.1: ShareEvent model, engagement tracking (views, scroll, time-on-page), decisionState transitions
+- Phase 2.2: ShareApproval model, Approve/Request changes actions (frictionless for clients)
+- Phase 2.3: Next steps in PDF (verdict-driven: BUILD/CONSIDER/DON'T BUILD specific guidance)
+- Phase 2.4: Top 3 drivers callout in web results + PDF
+- Phase 2.5: Expanded stress-test to 64 genuine permutations, updated marketing copy
+- Phase 3.1: BreakingPointSlider — 60fps, keyboard, ARIA live, binary search breaking point
+- Phase 3.2: ConfidenceExplained — qualitative bands, interactive input upgrade, rationale sentence
+- Phase 3.3: VerdictReveal — count-up on confidence/ROI, prefers-reduced-motion
+- Phase 3.4: RecurringEconomicsView — monthly recurring benefit vs cost, first-class section
+- Phase 3.5: Platform/API cost as distinct confidence-rated input
+- Phase 3.6: ClientHistoryReuse — auto-populate from prior projects
+- Phase 4.1: AI risks summary — grounded in stress-test data, editable, 10s timeout
+- Phase 4.2: AI input estimation — industry/role ranges, auto-tagged as assumption
+- Phase 4.3: AI narrative draft — templated, editable, banned-buzzword scrubbed
+- Phase 4.4: Explicitly excluded chatbot and AI confidence score
+- Phase 5.1: Job-oriented wizard labels (Describe the automation, What would it earn?, etc.)
+- Phase 5.2: Single dominant CTA, sharpened problem, decision-first hierarchy, comparison table update
+- Phase 5.3: Typography enforcement, editorial surfaces, brand signatures, motion discipline
+- Phase 5.4: Mobile sticky verdict bar, progressive disclosure, 44px touch targets, thumb-reachable share
+- Phase 5.5: ARIA live regions, role=status, full prefers-reduced-motion, DecisionBadge role=img
+- Phase 6: Case-based hybrid pricing, free keeps analytical rigor, checkCaseLimit()
+- Created DECISIONS.md, MIGRATION.md, CHANGELOG.md
+- Lint passes, dev server compiles, page renders correctly
+- Pushed to GitHub: d499c48
+
+Stage Summary:
+- 89 files changed across 6 phases
+- Full multi-tenancy with real auth (NextAuth + GitHub OAuth)
+- Client engagement loop closed (tracking → approval → notification)
+- 3 signature interactions built (BreakingPointSlider, ConfidenceExplained, VerdictReveal)
+- 3 narrow AI features (risks, estimation, narrative) with trust-preserving design
+- Decision-color authority restored (DON'T BUILD = BUILD visual weight)
+- Case-based pricing model with free analytical rigor boundary
+- Production-ready for Vercel deployment
