@@ -1,5 +1,5 @@
 /**
- * NextAuth configuration — Auth.js v4 with Prisma adapter.
+ * NextAuth configuration — v4 with Prisma adapter.
  *
  * Providers:
  *   - GitHub OAuth (production + dev)
@@ -11,21 +11,15 @@
  *   the user's active organizationId and role.
  */
 import NextAuth from 'next-auth';
-import GitHub from 'next-auth/providers/github';
-import Credentials from 'next-auth/providers/credentials';
+import GitHubProvider from 'next-auth/providers/github';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from '@/lib/db';
-import type { Membership } from '@prisma/client';
 
-export const {
-  handlers,
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+export const authOptions = {
   adapter: PrismaAdapter(db),
   providers: [
-    GitHub({
+    GitHubProvider({
       clientId: process.env.GITHUB_ID ?? '',
       clientSecret: process.env.GITHUB_SECRET ?? '',
     }),
@@ -33,7 +27,7 @@ export const {
     // when GITHUB_ID is not configured. Disabled in production.
     ...(process.env.NODE_ENV !== 'production'
       ? [
-          Credentials({
+          CredentialsProvider({
             name: 'dev-login',
             credentials: {
               email: { label: 'Email', type: 'email' },
@@ -50,12 +44,12 @@ export const {
       : []),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: Record<string, unknown>; user?: { id?: string } }) {
       // On first sign-in, `user` is populated. After that, only `token`.
-      if (user) {
+      if (user?.id) {
         token.sub = user.id;
         // Load the user's first membership (active org).
         const membership = await db.membership.findFirst({
@@ -69,9 +63,9 @@ export const {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Record<string, unknown>; token: Record<string, unknown> }) {
       if (session.user && token.sub) {
-        session.user.id = token.sub;
+        (session.user as Record<string, unknown>).id = token.sub;
       }
       // Extend session with org context.
       (session as SessionWithOrg).organizationId =
@@ -84,7 +78,14 @@ export const {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
-});
+};
+
+// v4 API: NextAuth returns a single handler function
+const handler = NextAuth(authOptions);
+export default handler;
+
+// Re-export for use in route files
+export { handler };
 
 // ── Extended session type ─────────────────────────────────────────
 
@@ -112,12 +113,17 @@ declare module 'next-auth/jwt' {
 }
 
 // ── Server-side session helpers ───────────────────────────────────
+// These use `getServerSession` from next-auth v4
+
+import { getServerSession } from 'next-auth/next';
 
 /**
  * Get the current server-side session. Returns null if unauthenticated.
  */
 export async function getAuthSession() {
-  return auth();
+  const req = undefined; // App Router: no req/res needed
+  const res = undefined;
+  return getServerSession(authOptions);
 }
 
 /**
@@ -125,7 +131,7 @@ export async function getAuthSession() {
  * Returns null if unauthenticated or no membership.
  */
 export async function getOrgId(): Promise<string | null> {
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   return (session as SessionWithOrg | null)?.organizationId ?? null;
 }
 
@@ -138,7 +144,7 @@ export async function requireAuth(): Promise<{
   organizationId: string;
   role: string;
 }> {
-  const session = await auth();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new AuthError('Authentication required', 401);
   }

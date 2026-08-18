@@ -1,6 +1,7 @@
 /**
  * NextAuth API route handler — catches all /api/auth/* requests.
+ * NextAuth v4 pattern: export GET and POST from the default handler.
  */
-import { handlers } from '@/lib/auth';
+import handler from '@/lib/auth';
 
-export const { GET, POST } = handlers;
+export { handler as GET, handler as POST };
