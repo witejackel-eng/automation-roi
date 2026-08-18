@@ -64,7 +64,13 @@ export async function POST(
     );
   }
 
-  // Look up the organizationId via the project for the share event record.
+  // Phase 6 (F-6 fix): PUBLIC route — opaque shareId is the access
+  // credential. The project lookup here is to resolve the owning
+  // organizationId so the ShareEvent record can be org-scoped (the
+  // ShareEvent table has a direct organizationId column). This is
+  // NOT a tenant bypass — the shareId was validated above (24-hex
+  // regex), and the share was loaded by its opaque shareId. The
+  // project.organizationId is then propagated to the ShareEvent.create.
   const project = await db.project.findUnique({
     where: { id: share.projectId },
     select: { organizationId: true },
@@ -74,7 +80,7 @@ export async function POST(
     return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
   }
 
-  // Create the ShareEvent record.
+  // Create the ShareEvent record — org-scoped via project.organizationId.
   const event = await db.shareEvent.create({
     data: {
       shareId: share.id,
@@ -86,7 +92,9 @@ export async function POST(
     },
   });
 
-  // On the first 'view' event, transition the Share's decisionState from 'sent' → 'viewed'.
+  // On the first 'view' event, transition the Share's decisionState.
+  // share.update by share.id is the sanctioned exception — the share
+  // was already loaded via the opaque shareId credential above.
   if (eventType === 'view' && share.decisionState === 'sent') {
     await db.share.update({
       where: { id: share.id },

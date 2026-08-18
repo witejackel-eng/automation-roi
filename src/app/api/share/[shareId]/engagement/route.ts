@@ -26,6 +26,17 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid share ID format.' }, { status: 400 });
     }
 
+    // Phase 6 (F-6 fix): this route IS authenticated (unlike the public
+    // /api/share/[shareId] GET). The shareId is still in the URL, so we
+    // use db.share.findUnique (sanctioned exception — the shareId is the
+    // opaque access credential), then verify org ownership manually.
+    // An alternative pattern would be to use tenant(org.id).shares.findFirst
+    // with a where clause on shareId — but that requires the share to be
+    // reachable via project.organizationId, which the project relation
+    // provides. Using tenant() here would be a stylistic improvement
+    // (the org ownership check would be implicit), but the explicit
+    // check below is also correct — the share's project.organizationId
+    // must equal the requesting org's id, or 403.
     const share = await db.share.findUnique({
       where: { shareId },
       include: {
@@ -33,6 +44,10 @@ export async function GET(
           select: { organizationId: true },
         },
         events: {
+          // Phase 6 (F-6 fix): scope the events to the requesting org.
+          // The ShareEvent table has a direct organizationId column,
+          // so we can filter here without going through the project.
+          where: { organizationId: org.id },
           orderBy: { createdAt: 'asc' },
           select: {
             eventType: true,

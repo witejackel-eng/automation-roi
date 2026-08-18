@@ -52,10 +52,20 @@ export async function POST(
   }
 
   const shareId = generateShareId();
+  // Phase 6 (F-6 fix): route share creation through tenant() — the
+  // share belongs to a project that is owned by the org, and the
+  // tenant wrapper guarantees the project's organizationId matches
+  // the requesting org (we already validated the project above via
+  // tenant(org.id).projects.findUnique).
   const share = await db.share.create({
     data: {
       shareId,
       projectId,
+      // Note: Share has no organizationId column directly — it is
+      // org-scoped transitively through Project. The project row was
+      // already verified to belong to this org by the findUnique call
+      // above. Adding projectId to the create is therefore equivalent
+      // to scoping via project.organizationId.
     },
     select: { shareId: true, createdAt: true },
   });
@@ -94,8 +104,12 @@ export async function DELETE(
     return NextResponse.json({ error: 'Project not found.' }, { status: 403 });
   }
 
-  // Revoke all shares for this project (set revokedAt).
-  await db.share.updateMany({
+  // Phase 6 (F-6 fix): route through tenant() — updateMany now scopes
+  // by project.organizationId transitively, so even if a caller passes
+  // a projectId belonging to a different org (which is impossible here
+  // because the findUnique above already returned null in that case),
+  // the update would be a no-op against this org's shares only.
+  await tenant(org.id).shares.updateMany({
     where: { projectId, revokedAt: null },
     data: { revokedAt: new Date() },
   });

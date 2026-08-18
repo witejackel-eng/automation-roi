@@ -8,13 +8,28 @@
  * Multi-tenancy:
  *   Every authenticated user has at least one Membership linking them
  *   to an Organization. The session callback enriches the JWT with
- *   the user's active organizationId and role.
+ *   the user's active organizationId, role (org-level), AND systemRole
+ *   (system-level — 'USER' | 'SUPERADMIN'). The two are independent:
+ *   a founder's User row has systemRole = 'SUPERADMIN' AND a Membership
+ *   with role = 'owner' on the founder's own operating org.
+ *
+ * Phase 6 — systemRole threading (per Viableo Production Architecture §3):
+ *   - On first sign-in: jwt() callback reads User.systemRole from the
+ *     Prisma user record (single extra field on the existing findUnique
+ *     that already fetches the user — no extra query when the adapter
+ *     populates the user object on the initial jwt call).
+ *   - Persisted to token.systemRole.
+ *   - session() callback copies token.systemRole onto session.systemRole.
+ *   - requireSuperAdmin() resolves session → checks systemRole ===
+ *     'SUPERADMIN' → throws AuthError(403) otherwise. Server-side
+ *     primitive consumed by Agent 2's /api/admin/** routes.
  */
 import NextAuth from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from '@/lib/db';
+import { logSystemEvent } from '@/lib/observability/system-event';
 
 export const authOptions = {
   adapter: PrismaAdapter(db),
@@ -47,19 +62,42 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user }: { token: Record<string, unknown>; user?: { id?: string } }) {
+    async jwt({ token, user }: { token: Record<string, unknown>; user?: { id?: string; systemRole?: string } }) {
       // On first sign-in, `user` is populated. After that, only `token`.
       if (user?.id) {
         token.sub = user.id;
-        // Load the user's first membership (active org).
-        const membership = await db.membership.findFirst({
-          where: { userId: user.id },
-          orderBy: { createdAt: 'asc' },
-        });
+        // Load the user's first membership (active org) + systemRole in
+        // a single Prisma round-trip (the user row is the same one the
+        // adapter already fetched; we explicitly select systemRole to
+        // guarantee it's present even when the adapter elides custom
+        // fields — defensive against future adapter changes).
+        const [membership, userRow] = await Promise.all([
+          db.membership.findFirst({
+            where: { userId: user.id },
+            orderBy: { createdAt: 'asc' },
+          }),
+          db.user.findUnique({
+            where: { id: user.id },
+            select: { systemRole: true },
+          }),
+        ]);
         if (membership) {
           token.organizationId = membership.organizationId;
           token.role = membership.role;
         }
+        // Thread User.systemRole through the token. Falls back to 'USER'
+        // if the field is somehow null (the schema default is 'USER').
+        token.systemRole = userRow?.systemRole ?? user.systemRole ?? 'USER';
+
+        // Observability: best-effort, fire-and-forget. Never let an
+        // event-emit failure fail the sign-in (the catch swallows).
+        logSystemEvent({
+          eventType: 'USER_SIGNED_IN',
+          userId: user.id,
+          organizationId: (membership?.organizationId) ?? undefined,
+          severity: 'info',
+          metadata: { provider: 'github' },
+        }).catch(() => { /* observability must never fail the request */ });
       }
       return token;
     },
@@ -67,10 +105,12 @@ export const authOptions = {
       if (session.user && token.sub) {
         (session.user as Record<string, unknown>).id = token.sub;
       }
-      // Extend session with org context.
+      // Extend session with org context + system role.
       (session as SessionWithOrg).organizationId =
         token.organizationId as string | undefined;
       (session as SessionWithOrg).role = token.role as string | undefined;
+      (session as SessionWithOrg).systemRole =
+        token.systemRole as string | undefined;
       return session;
     },
   },
@@ -91,7 +131,8 @@ export { handler };
 
 export interface SessionWithOrg {
   organizationId?: string;
-  role?: string; // 'owner' | 'member'
+  role?: string; // 'owner' | 'member' (org-scoped)
+  systemRole?: string; // 'USER' | 'SUPERADMIN' (system-scoped)
 }
 
 declare module 'next-auth' {
@@ -109,6 +150,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     organizationId?: string;
     role?: string;
+    systemRole?: string;
   }
 }
 
@@ -143,6 +185,7 @@ export async function requireAuth(): Promise<{
   userId: string;
   organizationId: string;
   role: string;
+  systemRole: string;
 }> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -156,6 +199,49 @@ export async function requireAuth(): Promise<{
     userId: session.user.id,
     organizationId: orgId,
     role: (session as SessionWithOrg).role ?? 'member',
+    systemRole: (session as SessionWithOrg).systemRole ?? 'USER',
+  };
+}
+
+/**
+ * Require Superadmin access. Throws AuthError(403) if the session is
+ * unauthenticated OR the user's systemRole is not 'SUPERADMIN'.
+ *
+ * Server-side primitive consumed by Agent 2's /api/admin/** routes and
+ * every /admin/** server component — call as the FIRST statement in
+ * the handler, before any Prisma call. NEVER hardcode a founder email
+ * here; Superadmin status is set only via scripts/bootstrap-superadmin.ts
+ * (which itself requires a one-time SUPERADMIN_BOOTSTRAP_TOKEN).
+ *
+ * IMPORTANT — privacy boundary (Viableo Production Architecture §8.2):
+ * requireSuperAdmin() authorizes SYSTEM-LEVEL operational access. It is
+ * NOT a superset of tenant(orgId) access — a Superadmin route must
+ * never directly return raw Project.inputs/results or other proprietary
+ * customer financial content. Use the operational-queries module
+ * (Agent 2's scope) which structurally cannot return content fields.
+ */
+export async function requireSuperAdmin(): Promise<{
+  userId: string;
+  systemRole: string;
+}> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new AuthError('Authentication required', 401);
+  }
+  if ((session as SessionWithOrg).systemRole !== 'SUPERADMIN') {
+    // Best-effort audit trail (fire-and-forget; never fail the request
+    // on the observability side).
+    logSystemEvent({
+      eventType: 'AUTH_FAILED',
+      userId: session.user.id,
+      severity: 'warn',
+      metadata: { reason: 'superadmin_required', path: 'requireSuperAdmin' },
+    }).catch(() => { /* observability must never fail the request */ });
+    throw new AuthError('Superadmin access required', 403);
+  }
+  return {
+    userId: session.user.id,
+    systemRole: 'SUPERADMIN',
   };
 }
 

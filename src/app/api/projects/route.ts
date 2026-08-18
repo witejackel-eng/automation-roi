@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, AuthError } from '@/lib/session';
 import { tenant, getOrgEntitlement } from '@/lib/tenant';
 import { has } from '@/lib/entitlement';
-import { db } from '@/lib/db';
+// db import removed — all access now via tenant() per Phase 6 F-6 fix.
 import { calculatorInputsSchema } from '@/lib/validation/schema';
 import { calculateAllScenarios } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
@@ -85,8 +85,12 @@ export async function GET() {
     );
   }
 
-  const projects = await db.project.findMany({
-    where: { organizationId: org.id },
+  // Phase 6 (F-6 fix): route through tenant(org.id) so organizationId is
+  // baked into the WHERE clause by the wrapper, not by caller discipline.
+  // The tenant delegate's findMany accepts the full Prisma args object —
+  // it just overrides where.organizationId. The nested shares/events
+  // includes are unchanged; they're scoped to each project's row.
+  const projects = await tenant(org.id).projects.findMany({
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,

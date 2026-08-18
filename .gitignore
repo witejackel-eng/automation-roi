@@ -72,3 +72,13 @@ db/*.db-journal
 
 # Vercel
 .vercel
+
+# ── Sandbox / non-product files (Phase 8 cleanup — F-8) ───────────────
+.zscripts/
+agent-ctx/
+download/
+upload/
+tool-results/
+tmp-shadow.db*
+postinstall.log
+*.local

@@ -11,6 +11,7 @@
  *   would gate the analysis itself.
  */
 import { db } from '@/lib/db';
+import { tenant } from '@/lib/tenant';
 
 export type Tier = 'free' | 'pro' | 'agency' | 'agency_pro';
 
@@ -107,8 +108,15 @@ export function has(entitlement: Entitlement, capability: Capability): boolean {
 export async function getActiveEntitlement(
   organizationId: string
 ): Promise<Entitlement> {
-  const license = await db.license.findFirst({
-    where: { organizationId },
+  // Phase 6 (F-6 fix): route through tenant() so organizationId is
+  // baked into the WHERE clause by the wrapper. License.tier is the
+  // derived cache; the Whop webhook handler keeps it in sync with
+  // Subscription.tier (the source of truth) — see src/app/api/webhooks/whop/route.ts.
+  // If a future pass moves the source of truth fully to Subscription,
+  // this read path becomes a Subscription.findFirst instead — but the
+  // tier value is the same string either way, so the entitlement logic
+  // is unchanged.
+  const license = await tenant(organizationId).licenses.findFirst({
     orderBy: { createdAt: 'desc' },
   });
   const tier = (license?.tier as Tier) ?? 'free';
@@ -134,9 +142,10 @@ export async function checkCaseLimit(
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const caseCount = await db.project.count({
+  // Phase 6 (F-6 fix): route through tenant() — defense-in-depth
+  // even though the where.organizationId was already correct here.
+  const caseCount = await tenant(organizationId).projects.count({
     where: {
-      organizationId,
       createdAt: { gte: startOfMonth },
     },
   });

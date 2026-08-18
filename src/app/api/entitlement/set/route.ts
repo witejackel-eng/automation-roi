@@ -16,7 +16,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, requireAuth, AuthError } from '@/lib/session';
 import { tenant } from '@/lib/tenant';
-import { db } from '@/lib/db';
 import type { Tier } from '@/lib/entitlement';
 
 export const runtime = 'nodejs';
@@ -76,9 +75,16 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Upsert license for the org ────────────────────────────────
+    // Phase 6 (F-6 fix): both branches route through tenant() now.
+    // The update branch previously called db.license.update directly
+    // with just { id: existing.id } as the WHERE — a caller passing
+    // the wrong id (impossible here because existing.id came from a
+    // tenant-scoped findFirst, but defense-in-depth) would have hit
+    // another org's license. tenant(org.id).licenses.update forces the
+    // WHERE to include organizationId.
     const existing = await tenant(org.id).licenses.findFirst();
     if (existing) {
-      await db.license.update({
+      await tenant(org.id).licenses.update({
         where: { id: existing.id },
         data: { tier, purchasedAt: new Date() },
       });

@@ -28,6 +28,13 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid share ID format.' }, { status: 400 });
   }
 
+  // Phase 6 (F-6 fix): this route is PUBLIC — the opaque shareId IS
+  // the access credential (Master Spec §45). The tenant() wrapper is
+  // org-scoped, but the public client does not know the orgId. So
+  // db.share.findUnique by shareId is the ONE sanctioned exception to
+  // orgId-scoped lookups. Documented inline per the master prompt §8.1.
+  // The shareId format is validated above (24-hex regex), so this
+  // lookup cannot be used to enumerate other orgs' shares by guessing.
   const share = await db.share.findUnique({
     where: { shareId },
     include: {

@@ -28,6 +28,12 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid share ID format.' }, { status: 400 });
   }
 
+  // Phase 6 (F-6 fix): PUBLIC route — opaque shareId is the access
+  // credential. Sanctioned exception to orgId scoping (Master Spec §45).
+  // All subsequent operations (share.update, shareEvent.create) are
+  // scoped to this share.id which was resolved from the shareId —
+  // no cross-tenant leak is possible because the shareId format
+  // (24 hex chars = 12 random bytes) is unguessable.
   const share = await db.share.findUnique({
     where: { shareId },
     select: { id: true, revokedAt: true, expiresAt: true, projectId: true },
