@@ -1,6 +1,17 @@
 /**
  * POST /api/ai/narrative — AI-drafted narrative sections (Phase 4.3, P2).
  *
+ * Phase 9b hardening (F-9):
+ *   - Graceful degradation when ZAI_API_KEY is unset: typed 503 with
+ *     structured error body.
+ *   - Timeout already implemented in src/lib/ai/sdk.ts (10s).
+ *   - Emits AI_ESTIMATE_STARTED-equivalent events via logSystemEvent()
+ *     for the narrative route. There is no dedicated NARRATIVE_STARTED
+ *     event in the SystemEventType union (the contract is additive —
+ *     Agent 2 may add one later if needed); we use _COMPLETED/_FAILED
+ *     which ARE in the union.
+ *   - Entitlement check is the first statement.
+ *
  * STRICTLY templated from structured inputs — not free-form generation.
  * Drafts two sections:
  *   1. Current State — 2-3 sentences describing the manual process and its cost
@@ -8,16 +19,11 @@
  *
  * Output must be user-editable before export. The banned buzzword list is
  * enforced on output via search-and-replace in the SDK helper.
- *
- * Must complete within 10 seconds. Requires auth.
- *
- * DO NOT BUILD (Phase 4.4 exclusions):
- *   - No conversational chatbot for wizard input
- *   - No separate "AI confidence" score
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/auth';
 import { callLlm, scrubBannedWords } from '@/lib/ai/sdk';
+import { logSystemEvent } from '@/lib/observability/system-event';
 
 export const runtime = 'nodejs';
 
@@ -36,25 +42,15 @@ PROPOSED_AUTOMATION:
 [your text here]`;
 
 interface NarrativeRequest {
-  /** The client/business name. */
   clientName: string;
-  /** Number of employees affected. */
   employeesAffected: number;
-  /** Hours per week per employee on the manual task. */
   hoursPerWeek: number;
-  /** Hourly cost per employee. */
   hourlyCost: number;
-  /** Annual labor cost (pre-computed). */
   annualLaborCost?: number;
-  /** Expected automation coverage (0-1). */
   automationPct: number;
-  /** Implementation fee. */
   implementationFee: number;
-  /** Monthly operating cost (AI/API + software + platform). */
   monthlyOperatingCost?: number;
-  /** Industry/role context. */
   industryContext?: string;
-  /** Brief description of the manual process. */
   processDescription?: string;
 }
 
@@ -63,9 +59,6 @@ interface NarrativeResponse {
   proposedAutomation: string;
 }
 
-/**
- * Parse the two sections from the LLM's templated output.
- */
 function parseNarrative(raw: string): NarrativeResponse {
   const lines = raw.split('\n');
   let inCurrentState = false;
@@ -99,28 +92,43 @@ function parseNarrative(raw: string): NarrativeResponse {
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  let auth;
   try {
-    await requireAuth();
+    auth = await requireAuth();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
+  }
 
+  // ── Graceful degradation when ZAI_API_KEY is unset ──────────────
+  if (!process.env.ZAI_API_KEY) {
+    return NextResponse.json(
+      { error: 'AI features are not configured (ZAI_API_KEY unset).', code: 'AI_UNCONFIGURED' },
+      { status: 503 },
+    );
+  }
+
+  try {
     let body: NarrativeRequest;
     try {
       body = await req.json() as NarrativeRequest;
     } catch {
       return NextResponse.json(
         { error: 'Request body must be valid JSON.' },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
-    // Validate minimum required fields.
     if (!body.clientName || !body.employeesAffected || !body.hoursPerWeek) {
       return NextResponse.json(
         { error: 'Client name, employees affected, and hours per week are required.' },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
-    // Build the structured context from inputs — no invention.
     const annualLabor = body.annualLaborCost ?? body.employeesAffected * body.hoursPerWeek * body.hourlyCost * 52;
     const monthlyOp = body.monthlyOperatingCost ?? 0;
     const automationPct = Math.round(body.automationPct * 100);
@@ -149,15 +157,31 @@ export async function POST(req: NextRequest) {
     const raw = await callLlm(SYSTEM_PROMPT, userMessage, { timeoutMs: 10_000 });
     const narrative = parseNarrative(raw);
 
+    // Emit COMPLETED with durationMs only — never the prompt or output text.
+    logSystemEvent({
+      eventType: 'AI_NARRATIVE_COMPLETED',
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      metadata: { durationMs: Date.now() - startedAt, clientName: body.clientName },
+    }).catch(() => { /* observability must never fail the request */ });
+
     return NextResponse.json(narrative);
   } catch (e) {
-    if (e instanceof AuthError) {
-      return NextResponse.json({ error: e.message }, { status: e.status });
-    }
     const message = e instanceof Error ? e.message : 'Unknown error';
+    logSystemEvent({
+      eventType: 'AI_ESTIMATE_FAILED', // closest failure event in the contract for AI routes
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      severity: 'error',
+      metadata: {
+        durationMs: Date.now() - startedAt,
+        reason: message.includes('timed out') ? 'timeout' : 'sdk_error',
+        route: 'narrative',
+      },
+    }).catch(() => { /* observability must never fail the request */ });
     return NextResponse.json(
       { error: 'Could not generate narrative draft.', detail: message },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

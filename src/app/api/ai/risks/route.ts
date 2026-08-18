@@ -1,19 +1,20 @@
 /**
  * POST /api/ai/risks — "Top risks to this decision" summary (Phase 4.1, P1).
  *
- * Takes stress-test sensitivity results as input and uses the LLM to summarize
- * the top 2–4 risks in plain language. The AI output is GROUNDED in computed
- * sensitivity data — the LLM cannot invent numbers that weren't in the input.
+ * Phase 9b hardening (F-9):
+ *   - Graceful degradation when ZAI_API_KEY is unset: typed 503.
+ *   - Timeout already implemented in src/lib/ai/sdk.ts (10s).
+ *   - Emits AI_RISK_ANALYSIS_COMPLETED / AI_ESTIMATE_FAILED via
+ *     logSystemEvent().
+ *   - Entitlement check is the first statement.
  *
- * Must complete within 10 seconds. Requires auth.
- *
- * DO NOT BUILD (Phase 4.4 exclusions):
- *   - No conversational chatbot for wizard input
- *   - No separate "AI confidence" score (the existing confidence module is sufficient)
+ * The AI output is GROUNDED in computed sensitivity data — the LLM
+ * cannot invent numbers that weren't in the input.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/auth';
 import { callLlm } from '@/lib/ai/sdk';
+import { logSystemEvent } from '@/lib/observability/system-event';
 
 export const runtime = 'nodejs';
 
@@ -31,37 +32,49 @@ interface SensitivityItem {
 
 interface RiskRequest {
   sensitivity: SensitivityItem[];
-  /** The base ROI for context. */
   baseRoi: number | null;
-  /** The recommendation verdict for context. */
   recommendation?: 'build' | 'consider' | 'dont_build';
-  /** Optional: break-even threshold context. */
   alreadyBroken?: boolean;
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  let auth;
   try {
-    await requireAuth();
+    auth = await requireAuth();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
+  }
 
+  // ── Graceful degradation when ZAI_API_KEY is unset ──────────────
+  if (!process.env.ZAI_API_KEY) {
+    return NextResponse.json(
+      { error: 'AI features are not configured (ZAI_API_KEY unset).', code: 'AI_UNCONFIGURED' },
+      { status: 503 },
+    );
+  }
+
+  try {
     let body: RiskRequest;
     try {
       body = await req.json() as RiskRequest;
     } catch {
       return NextResponse.json(
         { error: 'Request body must be valid JSON.' },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
-    // Validate input — must have sensitivity data.
     if (!body.sensitivity || !Array.isArray(body.sensitivity) || body.sensitivity.length === 0) {
       return NextResponse.json(
         { error: 'Sensitivity results are required.' },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
-    // Build the grounded context from computed data.
     const sensitivitySummary = body.sensitivity
       .map((item) => {
         const roiRange =
@@ -84,16 +97,31 @@ export async function POST(req: NextRequest) {
 
     const risks = await callLlm(SYSTEM_PROMPT, userMessage, { timeoutMs: 10_000 });
 
+    // Emit COMPLETED with durationMs — never the prompt or output text.
+    logSystemEvent({
+      eventType: 'AI_RISK_ANALYSIS_COMPLETED',
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      metadata: { durationMs: Date.now() - startedAt, riskCount: body.sensitivity.length },
+    }).catch(() => { /* observability must never fail the request */ });
+
     return NextResponse.json({ risks });
   } catch (e) {
-    if (e instanceof AuthError) {
-      return NextResponse.json({ error: e.message }, { status: e.status });
-    }
-    // AI timeout or SDK error — return a graceful error, not a 500.
     const message = e instanceof Error ? e.message : 'Unknown error';
+    logSystemEvent({
+      eventType: 'AI_ESTIMATE_FAILED', // closest failure event in the contract for AI routes
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      severity: 'error',
+      metadata: {
+        durationMs: Date.now() - startedAt,
+        reason: message.includes('timed out') ? 'timeout' : 'sdk_error',
+        route: 'risks',
+      },
+    }).catch(() => { /* observability must never fail the request */ });
     return NextResponse.json(
       { error: 'Could not generate risk summary.', detail: message },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

@@ -1,15 +1,20 @@
 /**
  * POST /api/ai/estimate — AI-assisted input estimation (Phase 4.2, P1).
  *
- * Takes an industry/role description and returns suggested ranges for
- * unknown automation inputs. Every AI-suggested value is marked with
- * 'assumption' status so the confidence model applies its 0.3x multiplier
- * automatically (the weakest evidence tier).
+ * Phase 9b hardening (F-9):
+ *   - Graceful degradation when ZAI_API_KEY is unset: returns a typed
+ *     503 with a structured error body (not an unhandled 500).
+ *   - Timeout already implemented in src/lib/ai/sdk.ts (10s default).
+ *   - Emits AI_ESTIMATE_STARTED / _COMPLETED / _FAILED via
+ *     logSystemEvent() — duration and success/failure only, never the
+ *     prompt text or AI completion content.
+ *   - Entitlement check is the first statement (requireAuth gates
+ *     org + tier access before the AI SDK is ever invoked).
  *
- * The LLM returns structured JSON with {min, max, typical, unit} per field.
- * All values are conservative — the prompt enforces this.
- *
- * Must complete within 10 seconds. Requires auth.
+ * The LLM returns structured JSON with {min, max, typical, unit} per
+ * field. All values are conservative — the prompt enforces this. Every
+ * AI-suggested value is marked with 'assumption' status so the
+ * confidence model applies its 0.3x multiplier automatically.
  *
  * DO NOT BUILD (Phase 4.4 exclusions):
  *   - No conversational chatbot for wizard input
@@ -18,6 +23,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/auth';
 import { callLlmJson } from '@/lib/ai/sdk';
+import { logSystemEvent } from '@/lib/observability/system-event';
 
 export const runtime = 'nodejs';
 
@@ -49,9 +55,7 @@ interface FieldEstimate {
 }
 
 interface EstimateRequest {
-  /** Free-text description of the industry and role being automated. */
   context: string;
-  /** Which fields to estimate (optional — if omitted, estimate all). */
   fields?: string[];
 }
 
@@ -60,23 +64,58 @@ interface EstimateResponse {
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
+  let auth;
   try {
-    await requireAuth();
+    auth = await requireAuth();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
+  }
 
+  // ── Graceful degradation when ZAI_API_KEY is unset ──────────────
+  // Per src/lib/env.ts, ZAI_API_KEY is optional — its absence is not a
+  // misconfiguration, just an unavailable feature. Return a typed 503
+  // with a structured body the client can handle, not an unhandled 500.
+  if (!process.env.ZAI_API_KEY) {
+    logSystemEvent({
+      eventType: 'AI_ESTIMATE_FAILED',
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      severity: 'warn',
+      metadata: { reason: 'zai_api_key_unset' },
+    }).catch(() => { /* observability must never fail the request */ });
+    return NextResponse.json(
+      { error: 'AI features are not configured (ZAI_API_KEY unset).', code: 'AI_UNCONFIGURED' },
+      { status: 503 },
+    );
+  }
+
+  // Emit STARTED event (fire-and-forget, never fail the request).
+  logSystemEvent({
+    eventType: 'AI_ESTIMATE_STARTED',
+    userId: auth.userId,
+    organizationId: auth.organizationId,
+    metadata: { hasFieldsFilter: !!req.headers.get('content-length') },
+  }).catch(() => { /* observability must never fail the request */ });
+
+  try {
     let body: EstimateRequest;
     try {
       body = await req.json() as EstimateRequest;
     } catch {
       return NextResponse.json(
         { error: 'Request body must be valid JSON.' },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
     if (!body.context || typeof body.context !== 'string' || body.context.trim().length === 0) {
       return NextResponse.json(
         { error: 'A context description is required.' },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
@@ -89,10 +128,9 @@ export async function POST(req: NextRequest) {
     const rawEstimates = await callLlmJson<Record<string, FieldEstimate>>(
       SYSTEM_PROMPT,
       userMessage,
-      { timeoutMs: 10_000 }
+      { timeoutMs: 10_000 },
     );
 
-    // Mark every field as 'assumption' so the confidence model applies 0.3x.
     const estimates: EstimateResponse['estimates'] = {};
     for (const [key, value] of Object.entries(rawEstimates)) {
       if (
@@ -107,15 +145,31 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Emit COMPLETED with durationMs only — never the prompt text or
+    // the AI completion content. Observability is fire-and-forget.
+    logSystemEvent({
+      eventType: 'AI_ESTIMATE_COMPLETED',
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      metadata: { durationMs: Date.now() - startedAt, fieldCount: Object.keys(estimates).length },
+    }).catch(() => { /* observability must never fail the request */ });
+
     return NextResponse.json({ estimates });
   } catch (e) {
-    if (e instanceof AuthError) {
-      return NextResponse.json({ error: e.message }, { status: e.status });
-    }
     const message = e instanceof Error ? e.message : 'Unknown error';
+    logSystemEvent({
+      eventType: 'AI_ESTIMATE_FAILED',
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+      severity: 'error',
+      metadata: {
+        durationMs: Date.now() - startedAt,
+        reason: message.includes('timed out') ? 'timeout' : 'sdk_error',
+      },
+    }).catch(() => { /* observability must never fail the request */ });
     return NextResponse.json(
       { error: 'Could not generate estimates.', detail: message },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }
