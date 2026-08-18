@@ -44,9 +44,12 @@ export async function POST(req: NextRequest) {
   }
   const inputs = parsed.data;
 
-  const results = body.results ?? calculateAllScenarios(inputs);
-  const recommendation =
-    body.recommendation ?? recommend(results.expected);
+  // ── Server-side re-derivation (Section 33 — engine hardening) ────────
+  // Always re-derive results and recommendation from validated inputs.
+  // Client-provided results/recommendation are NEVER trusted — they could
+  // be manipulated. This guarantees data integrity in the persistence layer.
+  const results = calculateAllScenarios(inputs);
+  const recommendation = recommend(results.expected);
 
   const project = await db.project.create({
     data: {

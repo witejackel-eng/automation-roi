@@ -9,8 +9,10 @@
  *      • In production: reject with 500 (misconfiguration).
  *  - Idempotency: If a License with the same whopEventId already exists,
  *    return 200 without creating a duplicate.
+ *  - Body is validated with Zod — malformed payloads are rejected (Section 12).
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { db } from '@/lib/db';
 import { DEMO_ORG_ID } from '@/lib/session';
 import type { Tier } from '@/lib/entitlement';
@@ -24,6 +26,14 @@ const TIER_BY_PRODUCT: Record<string, Tier> = {
   agency_pro: 'agency_pro',
   'agency-pro': 'agency_pro',
 };
+
+/** Zod schema for Whop webhook body (Section 12 — schema validation). */
+const whopWebhookSchema = z.object({
+  tier: z.string().optional(),
+  product: z.string().optional(),
+  order_id: z.string().optional(),
+  event_id: z.string().optional(),
+}).passthrough(); // allow additional Whop fields we don't use
 
 /**
  * Verify the Whop webhook signature using HMAC-SHA256.
@@ -71,17 +81,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Parse body ──────────────────────────────────────────────────
-  let body: { tier?: string; product?: string; order_id?: string; event_id?: string };
+  // ── Parse + validate body with Zod ─────────────────────────────
+  let parsed: z.infer<typeof whopWebhookSchema>;
   try {
-    body = JSON.parse(rawBody) as { tier?: string; product?: string; order_id?: string; event_id?: string };
+    const raw = JSON.parse(rawBody);
+    parsed = whopWebhookSchema.parse(raw);
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 422 });
   }
 
   const tier =
-    (body.tier && TIER_BY_PRODUCT[body.tier]) ??
-    (body.product && TIER_BY_PRODUCT[body.product]) ??
+    (parsed.tier && TIER_BY_PRODUCT[parsed.tier]) ??
+    (parsed.product && TIER_BY_PRODUCT[parsed.product]) ??
     null;
 
   if (!tier) {
@@ -89,7 +100,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Idempotency: skip if we already processed this event ───────
-  const whopEventId = body.event_id ?? null;
+  const whopEventId = parsed.event_id ?? null;
   if (whopEventId) {
     const existingByEvent = await db.license.findFirst({
       where: { whopEventId },
@@ -106,7 +117,7 @@ export async function POST(req: NextRequest) {
       where: { id: existing.id },
       data: {
         tier,
-        whopOrderId: body.order_id ?? null,
+        whopOrderId: parsed.order_id ?? null,
         whopEventId,
         purchasedAt: new Date(),
       },
@@ -116,7 +127,7 @@ export async function POST(req: NextRequest) {
       data: {
         organizationId: DEMO_ORG_ID,
         tier,
-        whopOrderId: body.order_id ?? null,
+        whopOrderId: parsed.order_id ?? null,
         whopEventId,
         purchasedAt: new Date(),
       },

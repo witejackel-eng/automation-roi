@@ -22,6 +22,12 @@ export async function GET(
 ) {
   const { shareId } = await params;
 
+  // Validate shareId format — 24 hex chars (12 random bytes). Prevents
+  // arbitrary string queries against the database (Section 10).
+  if (!/^[0-9a-f]{24}$/.test(shareId)) {
+    return NextResponse.json({ error: 'Invalid share ID format.' }, { status: 400 });
+  }
+
   const share = await db.share.findUnique({
     where: { shareId },
     include: {

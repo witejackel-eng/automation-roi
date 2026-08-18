@@ -4,9 +4,12 @@
  * checkout). In production this write would be performed by
  * /api/webhooks/whop after a verified purchase.
  *
- * SECURITY: In production, this route is disabled — entitlement changes must
- * go through the Whop payment flow. In development, it is allowed for testing
- * but logs a warning.
+ * SECURITY (Section 11):
+ *  - In production: completely disabled — 403.
+ *  - In development: requires either:
+ *      a) DEV_ENTITLEMENT_SECRET env var set and x-dev-secret header matching it, OR
+ *      b) No DEV_ENTITLEMENT_SECRET set (legacy behavior — allowed with warning).
+ *    This prevents accidental exposure if the dev server is network-accessible.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { setDemoTier } from '@/lib/session';
@@ -25,7 +28,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Development only — log warning so it's clear this is a backdoor.
+  // ── Dev guard: optional bearer token ─────────────────────────
+  const devSecret = process.env.DEV_ENTITLEMENT_SECRET;
+  if (devSecret) {
+    const provided = req.headers.get('x-dev-secret');
+    if (provided !== devSecret) {
+      return NextResponse.json(
+        { error: 'Invalid dev secret. Set x-dev-secret header.' },
+        { status: 403 }
+      );
+    }
+  } else {
+    console.warn(
+      '[entitlement/set] ⚠️  No DEV_ENTITLEMENT_SECRET set. Anyone with network access can set any tier. Set DEV_ENTITLEMENT_SECRET for defense-in-depth.'
+    );
+  }
+
   console.warn(
     '[entitlement/set] ⚠️  Development backdoor: setting tier directly. This is disabled in production.'
   );

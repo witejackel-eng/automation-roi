@@ -1,24 +1,22 @@
 /**
  * POST /api/projects/[id]/proposal — render + store the proposal PDF.
  *
- * @react-pdf/renderer is dynamically imported inside the handler so the heavy
- * dependency tree is never loaded into dev-server memory unless a proposal is
- * actually being generated.
+ * Stores via the storage abstraction (Vercel Blob in production, local FS in
+ * dev). @react-pdf/renderer is dynamically imported inside the handler so the
+ * heavy dependency tree is never loaded into dev-server memory unless a
+ * proposal is actually being generated.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import React from 'react';
 import { db } from '@/lib/db';
 import { getDemoOrganization } from '@/lib/session';
 import { getActiveEntitlement, has } from '@/lib/entitlement';
 import { recommend } from '@/lib/calculations/recommendation';
+import { storePdf } from '@/lib/storage';
 import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
 
 export const runtime = 'nodejs';
-
-const REPORTS_DIR = path.join(process.cwd(), 'public', 'reports');
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -88,16 +86,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     return NextResponse.json({ error: 'Could not render the proposal.' }, { status: 500 });
   }
 
-  await fs.mkdir(REPORTS_DIR, { recursive: true });
   const fileName = `${id}-proposal-${Date.now()}.pdf`;
-  const filePath = path.join(REPORTS_DIR, fileName);
-  await fs.writeFile(filePath, pdfBuffer);
+  const stored = await storePdf(fileName, pdfBuffer);
 
   const report = await db.report.create({
     data: {
       projectId: id,
       reportType: 'proposal',
-      pdfUrl: `/reports/${fileName}`,
+      pdfUrl: stored.url,
     },
   });
 

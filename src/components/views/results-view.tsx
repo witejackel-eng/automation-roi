@@ -26,6 +26,7 @@
  */
 import * as React from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { motion, AnimatePresence } from 'motion/react';
 import { Save, FileText, FileSignature, ArrowLeft, Share2, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/store';
@@ -347,7 +348,15 @@ export function ResultsView() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeScenario}
+            initial={{ opacity: 0.6, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0.6, y: -4 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8"
+          >
           {/* Annual Opportunity ($) */}
           <HeroFigure
             label="Annual opportunity"
@@ -399,7 +408,8 @@ export function ResultsView() {
               />
             )}
           </HeroFigure>
-        </div>
+        </motion.div>
+        </AnimatePresence>
       </section>
 
       {/* Verdict Stamp — the detailed sign-off (kept per Task 4-b). */}

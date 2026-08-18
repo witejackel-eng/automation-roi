@@ -12,6 +12,7 @@
  * stops making sense."
  */
 import * as React from 'react';
+import { motion } from 'motion/react';
 import {
   computeBreakEven,
   computeSensitivity,
@@ -128,7 +129,7 @@ export function StressTestSection({ inputs, activeScenario }: StressTestSectionP
         </p>
 
         <div className="mt-4 space-y-3">
-          {sensitivity.map((item) => {
+          {sensitivity.map((item, i) => {
             const maxImpact = Math.max(...sensitivity.map((s) => s.impact), 1);
             const widthPct = (item.impact / maxImpact) * 100;
             return (
@@ -137,16 +138,18 @@ export function StressTestSection({ inputs, activeScenario }: StressTestSectionP
                   {item.label}
                 </div>
                 <div className="relative h-7 flex-1 overflow-hidden rounded-sm bg-surface">
-                  <div
+                  <motion.div
                     className={cn(
-                      'h-full rounded-sm transition-all duration-500',
+                      'h-full rounded-sm',
                       item.level === 'high'
                         ? 'bg-dont-build'
                         : item.level === 'medium'
                           ? 'bg-consider'
                           : 'bg-build'
                     )}
-                    style={{ width: `${Math.max(widthPct, 3)}%` }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(widthPct, 3)}%` }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 }}
                     aria-hidden="true"
                   />
                   <span className="absolute inset-y-0 left-2 flex items-center text-[11px] font-medium text-white mix-blend-difference">
@@ -244,23 +247,33 @@ function ThresholdCardWithBar({
       </div>
       <div className="mt-1 text-[11px] text-ink-faint">{context}</div>
 
-      {/* Threshold visualization bar */}
+      {/* Threshold visualization bar — SIGNATURE INTERACTION (Section 7.6b):
+          The bar animates from 0 to its fill width on mount and on scenario
+          change, creating a "variable moving toward break-even" feel. */}
       <div className="mt-3">
         <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.04em]">
-          <span className={isViable ? 'text-build' : 'text-dont-build'}>
+          <motion.span
+            key={isViable ? 'viable' : 'breaks'}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className={isViable ? 'text-build' : 'text-dont-build'}
+          >
             {isViable ? 'STILL VIABLE' : 'DECISION BREAKS'}
-          </span>
+          </motion.span>
           <span className="font-mono tnum text-ink-muted">
             {formatValue(thresholdValue)}
           </span>
         </div>
         <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface">
-          <div
+          <motion.div
             className={cn(
-              'h-full rounded-full transition-all duration-500',
+              'h-full rounded-full',
               isViable ? 'bg-build' : 'bg-dont-build'
             )}
-            style={{ width: `${barPct}%` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${barPct}%` }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           />
         </div>
       </div>

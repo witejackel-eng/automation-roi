@@ -1,0 +1,729 @@
+     1→     1→'use client';
+     2→     2→
+     3→     3→/**
+     4→     4→ * Results dashboard (Section 13) — Viableo voice.
+     5→     5→ *
+     6→     6→ * Layout, top to bottom:
+     7→     7→ *   1. Back + "Prepared for {client}" row
+     8→     8→ *   2. Page header — "Viableo Analysis" + the Viableo Decision subhead
+     9→     9→ *   3. Hero summary card — ScenarioSlider + DecisionBadge (cross-fades on
+    10→    10→ *      scenario change) + 3 big figures (Annual Opportunity, ROI ×, Payback)
+    11→    11→ *      driven by the active scenario, animated via CountUp
+    12→    12→ *   4. Verdict Stamp — the detailed sign-off, also driven by the active
+    13→    13→ *      scenario (kept per Task 4-b: the signature double-rule element)
+    14→    14→ *   5. Recommendation copy (active scenario)
+    15→    15→ *   6. Three secondary KPI cards (savings, profit/revenue, first-year cost)
+    16→    16→ *   7. Exhibit 1 — ROI Bridge waterfall (active scenario)
+    17→    17→ *   8. Exhibit 2 — Scenario Comparison (all three scenarios)
+    18→    18→ *   9. Scenario detail table (all three, with the active column highlighted)
+    19→    19→ *  10. Assumptions
+    20→    20→ *  11. Sticky actions: Save, Generate Client Report, Generate Proposal
+    21→    21→ *      (last two gated behind entitlement — show lock + "Included in Pro")
+    22→    22→ *
+    23→    23→ * The store's `recommendation` (project-level, Expected scenario) is preserved
+    24→    24→ * for save / report / proposal persistence. Display figures use the active
+    25→    25→ * scenario, computed client-side via `recommend()`.
+    26→    26→ */
+    27→    27→import * as React from 'react';
+    28→    28→import { useShallow } from 'zustand/react/shallow';
+    29→    29→import { Save, FileText, FileSignature, ArrowLeft, Share2, ArrowUp } from 'lucide-react';
+    30→    30→import { Button } from '@/components/ui/button';
+    31→    31→import { useApp } from '@/lib/store';
+    32→    32→import { useToast } from '@/hooks/use-toast';
+    33→    33→import { has } from '@/lib/entitlement';
+    34→    34→import { VerdictStamp } from '@/components/verdict-stamp';
+    35→    35→import { KpiCard } from '@/components/kpi-card';
+    36→    36→import { RoiBridge } from '@/components/charts/roi-bridge';
+    37→    37→import { ScenarioComparison } from '@/components/charts/scenario-comparison';
+    38→    38→import { AssumptionsTable } from '@/components/assumptions-table';
+    39→    39→import { EntitlementButton } from '@/components/entitlement-button';
+    40→    40→import {
+    41→    41→  DecisionBadge,
+    42→    42→  ScenarioSlider,
+    43→    43→  CountUp,
+    44→    44→  LoadingDot,
+    45→    45→  WhyRecommendation,
+    46→    46→  StressTestSection,
+    47→    47→} from '@/components/viableo';
+    48→    48→import { TERM, DECISION_LABELS, type DecisionKey } from '@/lib/brand';
+    49→    49→import { recommend } from '@/lib/calculations/recommendation';
+    50→    50→import {
+    51→    51→  formatCurrency,
+    52→    52→  formatPayback,
+    53→    53→  formatRatioAsPercent,
+    54→    54→  formatRoi,
+    55→    55→} from '@/lib/format';
+    56→    56→import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/calculations/scenarios';
+    57→    57→import type { ScenarioName } from '@/lib/calculations/scenarios';
+    58→    58→import type { ScenarioResult } from '@/lib/calculations/engine';
+    59→    59→
+    60→    60→export function ResultsView() {
+    61→    61→  const {
+    62→    62→    inputs,
+    63→    63→    results,
+    64→    64→    recommendation,
+    65→    65→    entitlement,
+    66→    66→    go,
+    67→    67→    activeScenario,
+    68→    68→    setActiveScenario,
+    69→    69→  } = useApp(
+    70→    70→    useShallow((s) => ({
+    71→    71→      inputs: s.inputs,
+    72→    72→      results: s.results,
+    73→    73→      recommendation: s.recommendation,
+    74→    74→      entitlement: s.entitlement,
+    75→    75→      go: s.go,
+    76→    76→      activeScenario: s.activeScenario,
+    77→    77→      setActiveScenario: s.setActiveScenario,
+    78→    78→    }))
+    79→    79→  );
+    80→    80→
+    81→    81→  const { toast } = useToast();
+    82→    82→  const [saving, setSaving] = React.useState(false);
+    83→    83→  const [reportLoading, setReportLoading] = React.useState(false);
+    84→    84→  const [proposalLoading, setProposalLoading] = React.useState(false);
+    85→    85→  const [shareLoading, setShareLoading] = React.useState(false);
+    86→    86→  // Mirror the store's savedProjectId locally so the existing handlers keep
+    87→    87→  // working unchanged, but ALSO sync it back to the store on save so that
+    88→    88→  // the reopen flow (which sets the store's savedProjectId before navigating
+    89→    89→  // here) is respected — re-saving after a reopen updates the same project
+    90→    90→  // rather than creating a duplicate.
+    91→    91→  const storeSavedProjectId = useApp((s) => s.savedProjectId);
+    92→    92→  const setStoreSavedProjectId = useApp((s) => s.setSavedProjectId);
+    93→    93→  const [savedProjectId, setSavedProjectId] = React.useState<string | null>(
+    94→    94→    storeSavedProjectId
+    95→    95→  );
+    96→    96→  // If the store's savedProjectId changes (e.g. user reopened a project),
+    97→    97→  // sync the local state.
+    98→    98→  React.useEffect(() => {
+    99→    99→    setSavedProjectId(storeSavedProjectId);
+   100→   100→  }, [storeSavedProjectId]);
+   101→   101→
+   102→   102→  if (!inputs || !results || !recommendation) {
+   103→   103→    return (
+   104→   104→      <div className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-6">
+   105→   105→        <EmptyResults onBack={() => go('calculator')} />
+   106→   106→      </div>
+   107→   107→    );
+   108→   108→  }
+   109→   109→
+   110→   110→  // Active scenario drives every displayed figure. The store's
+   111→   111→  // `recommendation` (Expected) is preserved for the saved-project record.
+   112→   112→  const active: ScenarioResult = results[activeScenario];
+   113→   113→  const activeRec = recommend(active);
+   114→   114→  const activeDecision = activeRec.recommendation as DecisionKey;
+   115→   115→  const ent = entitlement;
+   116→   116→  const canSave = !!ent && has(ent, 'save_project');
+   117→   117→  const canReport = !!ent && has(ent, 'client_report');
+   118→   118→  const canProposal = !!ent && has(ent, 'proposal');
+   119→   119→  const canShare = !!ent && has(ent, 'share_links');
+   120→   120→
+   121→   121→  // ROI as a multiplier (499% → "5.0×"). Null when totalFirstYearCost = 0.
+   122→   122→  const roiMultiple =
+   123→   123→    active.roiPct == null ? null : active.roiPct / 100;
+   124→   124→
+   125→   125→  const handleSave = async () => {
+   126→   126→    if (!canSave) {
+   127→   127→      go('pricing');
+   128→   128→      return;
+   129→   129→    }
+   130→   130→    setSaving(true);
+   131→   131→    try {
+   132→   132→      const res = await fetch('/api/projects', {
+   133→   133→        method: 'POST',
+   134→   134→        headers: { 'Content-Type': 'application/json' },
+   135→   135→        body: JSON.stringify({
+   136→   136→          inputs,
+   137→   137→          results,
+   138→   138→          recommendation,
+   139→   139→          clientName: inputs.clientName,
+   140→   140→        }),
+   141→   141→      });
+   142→   142→      if (res.status === 403) {
+   143→   143→        toast({ title: 'Saving projects requires Pro.', variant: 'destructive' });
+   144→   144→        go('pricing');
+   145→   145→        return;
+   146→   146→      }
+   147→   147→      if (!res.ok) {
+   148→   148→        toast({ title: 'Could not save the project.', variant: 'destructive' });
+   149→   149→        return;
+   150→   150→      }
+   151→   151→      const data = (await res.json()) as { id: string };
+   152→   152→      setSavedProjectId(data.id);
+   153→   153→      toast({ title: 'Project saved.' });
+   154→   154→    } catch {
+   155→   155→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   156→   156→    } finally {
+   157→   157→      setSaving(false);
+   158→   158→    }
+   159→   159→  };
+   160→   160→
+   161→   161→  const handleReport = async () => {
+   162→   162→    if (!canReport) {
+   163→   163→      go('pricing');
+   164→   164→      return;
+   165→   165→    }
+   166→   166→    if (!savedProjectId) {
+   167→   167→      await handleSave();
+   168→   168→    }
+   169→   169→    const projectId = savedProjectId;
+   170→   170→    if (!projectId) {
+   171→   171→      toast({ title: 'Save the project first.', description: 'Then generate the report.' });
+   172→   172→      return;
+   173→   173→    }
+   174→   174→    setReportLoading(true);
+   175→   175→    try {
+   176→   176→      const res = await fetch(`/api/projects/${projectId}/report`, {
+   177→   177→        method: 'POST',
+   178→   178→        headers: { 'Content-Type': 'application/json' },
+   179→   179→        body: JSON.stringify({}),
+   180→   180→      });
+   181→   181→      if (res.status === 403) {
+   182→   182→        toast({ title: 'Client report requires Pro.', variant: 'destructive' });
+   183→   183→        go('pricing');
+   184→   184→        return;
+   185→   185→      }
+   186→   186→      if (!res.ok) {
+   187→   187→        toast({ title: 'Could not generate the report.', variant: 'destructive' });
+   188→   188→        return;
+   189→   189→      }
+   190→   190→      const data = (await res.json()) as { pdfUrl: string };
+   191→   191→      toast({ title: 'Report generated.' });
+   192→   192→      window.open(data.pdfUrl, '_blank', 'noopener,noreferrer');
+   193→   193→    } catch {
+   194→   194→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   195→   195→    } finally {
+   196→   196→      setReportLoading(false);
+   197→   197→    }
+   198→   198→  };
+   199→   199→
+   200→   200→  const handleProposal = async () => {
+   201→   201→    if (!canProposal) {
+   202→   202→      go('pricing');
+   203→   203→      return;
+   204→   204→    }
+   205→   205→    if (!savedProjectId) {
+   206→   206→      await handleSave();
+   207→   207→    }
+   208→   208→    const projectId = savedProjectId;
+   209→   209→    if (!projectId) {
+   210→   210→      toast({ title: 'Save the project first.', description: 'Then generate the proposal.' });
+   211→   211→      return;
+   212→   212→    }
+   213→   213→    setProposalLoading(true);
+   214→   214→    try {
+   215→   215→      const res = await fetch(`/api/projects/${projectId}/proposal`, {
+   216→   216→        method: 'POST',
+   217→   217→        headers: { 'Content-Type': 'application/json' },
+   218→   218→        body: JSON.stringify({}),
+   219→   219→      });
+   220→   220→      if (res.status === 403) {
+   221→   221→        toast({ title: 'Proposal generation requires Pro.', variant: 'destructive' });
+   222→   222→        go('pricing');
+   223→   223→        return;
+   224→   224→      }
+   225→   225→      if (!res.ok) {
+   226→   226→        toast({ title: 'Could not generate the proposal.', variant: 'destructive' });
+   227→   227→        return;
+   228→   228→      }
+   229→   229→      const data = (await res.json()) as { pdfUrl: string };
+   230→   230→      toast({ title: 'Proposal generated.' });
+   231→   231→      window.open(data.pdfUrl, '_blank', 'noopener,noreferrer');
+   232→   232→    } catch {
+   233→   233→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   234→   234→    } finally {
+   235→   235→      setProposalLoading(false);
+   236→   236→    }
+   237→   237→  };
+   238→   238→
+   239→   239→  const handleShare = async () => {
+   240→   240→    if (!canShare) {
+   241→   241→      go('pricing');
+   242→   242→      return;
+   243→   243→    }
+   244→   244→    if (!savedProjectId) {
+   245→   245→      await handleSave();
+   246→   246→    }
+   247→   247→    const projectId = savedProjectId;
+   248→   248→    if (!projectId) {
+   249→   249→      toast({ title: 'Save the project first.', description: 'Then create a share link.' });
+   250→   250→      return;
+   251→   251→    }
+   252→   252→    setShareLoading(true);
+   253→   253→    try {
+   254→   254→      const res = await fetch(`/api/projects/${projectId}/share`, {
+   255→   255→        method: 'POST',
+   256→   256→        headers: { 'Content-Type': 'application/json' },
+   257→   257→        body: JSON.stringify({}),
+   258→   258→      });
+   259→   259→      if (res.status === 403) {
+   260→   260→        toast({ title: 'Share links require Agency Pro.', variant: 'destructive' });
+   261→   261→        go('pricing');
+   262→   262→        return;
+   263→   263→      }
+   264→   264→      if (!res.ok) {
+   265→   265→        toast({ title: 'Could not create the share link.', variant: 'destructive' });
+   266→   266→        return;
+   267→   267→      }
+   268→   268→      const data = (await res.json()) as { shareId: string; url: string };
+   269→   269→      // Copy to clipboard + use Web Share API where supported (Master Spec §46).
+   270→   270→      const fullUrl = `${window.location.origin}${data.url}`;
+   271→   271→      if (navigator.share) {
+   272→   272→        try {
+   273→   273→          await navigator.share({
+   274→   274→            title: 'Viableo — Shared analysis',
+   275→   275→            text: 'A shared automation business case.',
+   276→   276→            url: fullUrl,
+   277→   277→          });
+   278→   278→        } catch {
+   279→   279→          /* user dismissed — still copy below */
+   280→   280→        }
+   281→   281→      }
+   282→   282→      try {
+   283→   283→        await navigator.clipboard.writeText(fullUrl);
+   284→   284→        toast({
+   285→   285→          title: 'Link copied.',
+   286→   286→          description: 'Share it with your client.',
+   287→   287→        });
+   288→   288→      } catch {
+   289→   289→        toast({
+   290→   290→          title: 'Share link created.',
+   291→   291→          description: fullUrl,
+   292→   292→        });
+   293→   293→      }
+   294→   294→    } catch {
+   295→   295→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   296→   296→    } finally {
+   297→   297→      setShareLoading(false);
+   298→   298→    }
+   299→   299→  };
+   300→   300→
+   301→   301→  return (
+   302→   302→    <div className="mx-auto w-full max-w-[1200px] px-4 py-8 md:px-6 md:py-12">
+   303→   303→      <ScrollToTop />
+   304→   304→      {/* Back + prepared-for row */}
+   305→   305→      <div className="mb-6 flex items-center justify-between">
+   306→   306→        <Button
+   307→   307→          variant="ghost"
+   308→   308→          size="sm"
+   309→   309→          onClick={() => go('calculator')}
+   310→   310→          className="min-h-[44px] gap-1.5 text-ink-muted hover:text-ink"
+   311→   311→        >
+   312→   312→          <ArrowLeft className="size-4" strokeWidth={1.75} aria-hidden="true" />
+   313→   313→          Edit assumptions
+   314→   314→        </Button>
+   315→   315→        <p className="text-[13px] text-ink-muted">
+   316→   316→          Prepared for <span className="font-medium text-ink">{inputs.clientName}</span>
+   317→   317→        </p>
+   318→   318→      </div>
+   319→   319→
+   320→   320→      {/* Page header — references TERM.analysis + TERM.decision */}
+   321→   321→      <header className="mb-8">
+   322→   322→        <h1 className="font-display text-[32px] font-bold leading-[1.02] tracking-[-0.02em] text-ink md:text-[40px]">
+   323→   323→          {TERM.analysis}
+   324→   324→        </h1>
+   325→   325→        <p className="mt-2 max-w-[640px] text-[15px] leading-[1.55] text-ink-muted">
+   326→   326→          The {TERM.decision} and the figures that justify it. Switch scenarios to see how the
+   327→   327→          numbers hold up under conservative and upside assumptions.
+   328→   328→        </p>
+   329→   329→      </header>
+   330→   330→
+   331→   331→      {/* Hero summary card — ScenarioSlider + DecisionBadge + 3 headline figures */}
+   332→   332→      <section
+   333→   333→        aria-label="Viableo Decision summary"
+   334→   334→        className="mb-10 rounded-lg border border-border bg-surface-raised p-5 md:p-6"
+   335→   335→      >
+   336→   336→        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   337→   337→          <ScenarioSlider value={activeScenario} onChange={setActiveScenario} />
+   338→   338→          {/* Cross-fade on decision change via key + reveal-on-enter animation. */}
+   339→   339→          <div
+   340→   340→            key={activeDecision}
+   341→   341→            className="reveal-on-enter flex items-center gap-2"
+   342→   342→          >
+   343→   343→            <span className="text-[11px] uppercase tracking-wide text-ink-muted">
+   344→   344→              {TERM.decision}
+   345→   345→            </span>
+   346→   346→            <DecisionBadge decision={activeDecision} size="lg" animate />
+   347→   347→          </div>
+   348→   348→        </div>
+   349→   349→
+   350→   350→        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
+   351→   351→          {/* Annual Opportunity ($) */}
+   352→   352→          <HeroFigure
+   353→   353→            label="Annual opportunity"
+   354→   354→            sublabel={
+   355→   355→              active.isRevenueOpportunityOnly
+   356→   356→                ? 'Revenue opportunity, net of first-year cost'
+   357→   357→                : 'Net annual benefit, net of first-year cost'
+   358→   358→            }
+   359→   359→          >
+   360→   360→            <CountUp
+   361→   361→              value={active.netAnnualBenefit}
+   362→   362→              prefix="$"
+   363→   363→              decimals={0}
+   364→   364→              retriggerOnValueChange
+   365→   365→              className="text-[40px] font-medium leading-none text-ink"
+   366→   366→            />
+   367→   367→          </HeroFigure>
+   368→   368→
+   369→   369→          {/* ROI (×) */}
+   370→   370→          <HeroFigure label="ROI" sublabel="Return on first-year cost">
+   371→   371→            {roiMultiple == null ? (
+   372→   372→              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted">
+   373→   373→                N/A
+   374→   374→              </span>
+   375→   375→            ) : (
+   376→   376→              <CountUp
+   377→   377→                value={roiMultiple}
+   378→   378→                suffix="×"
+   379→   379→                decimals={1}
+   380→   380→                retriggerOnValueChange
+   381→   381→                className="text-[40px] font-medium leading-none text-ink"
+   382→   382→              />
+   383→   383→            )}
+   384→   384→          </HeroFigure>
+   385→   385→
+   386→   386→          {/* Payback (months) */}
+   387→   387→          <HeroFigure label="Payback" sublabel="Months to recoup first-year cost">
+   388→   388→            {active.paybackMonths == null ? (
+   389→   389→              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted">
+   390→   390→                Never
+   391→   391→              </span>
+   392→   392→            ) : (
+   393→   393→              <CountUp
+   394→   394→                value={active.paybackMonths}
+   395→   395→                suffix=" mo"
+   396→   396→                decimals={active.paybackMonths >= 10 ? 0 : 1}
+   397→   397→                retriggerOnValueChange
+   398→   398→                className="text-[40px] font-medium leading-none text-ink"
+   399→   399→              />
+   400→   400→            )}
+   401→   401→          </HeroFigure>
+   402→   402→        </div>
+   403→   403→      </section>
+   404→   404→
+   405→   405→      {/* Verdict Stamp — the detailed sign-off (kept per Task 4-b). */}
+   406→   406→      <div className="mb-8 flex justify-center md:justify-start">
+   407→   407→        <VerdictStamp
+   408→   408→          recommendation={activeRec.recommendation}
+   409→   409→          paybackMonths={active.paybackMonths}
+   410→   410→          roiPct={active.roiPct}
+   411→   411→          netAnnualBenefit={active.netAnnualBenefit}
+   412→   412→          size="lg"
+   413→   413→        />
+   414→   414→      </div>
+   415→   415→
+   416→   416→      {/* Why this recommendation? (Section 6.9) — expandable bullet rationale,
+   417→   417→          each reason backed by a real number from the active scenario. */}
+   418→   418→      <WhyRecommendation
+   419→   419→        inputs={inputs}
+   420→   420→        results={results}
+   421→   421→        recommendation={activeRec}
+   422→   422→        className="mb-8"
+   423→   423→      />
+   424→   424→
+   425→   425→      {/* Recommendation copy (active scenario) */}
+   426→   426→      <p className="mb-10 max-w-[760px] text-[15px] leading-[1.55] text-ink-muted">
+   427→   427→        {activeRec.copy}
+   428→   428→      </p>
+   429→   429→
+   430→   430→      {/* Secondary KPI row */}
+   431→   431→      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   432→   432→        <KpiCard
+   433→   433→          label="Annual labor savings"
+   434→   434→          value={formatCurrency(active.annualLaborSavings)}
+   435→   435→          variant="secondary"
+   436→   436→        />
+   437→   437→        <KpiCard
+   438→   438→          label={
+   439→   439→            active.isRevenueOpportunityOnly
+   440→   440→              ? 'Additional revenue opportunity'
+   441→   441→              : 'Additional gross profit'
+   442→   442→          }
+   443→   443→          value={formatCurrency(active.additionalGrossProfit)}
+   444→   444→          variant="secondary"
+   445→   445→        />
+   446→   446→        <KpiCard
+   447→   447→          label="First-year cost"
+   448→   448→          value={formatCurrency(active.totalFirstYearCost)}
+   449→   449→          variant="secondary"
+   450→   450→        />
+   451→   451→      </div>
+   452→   452→
+   453→   453→      {/* Stress test + break-even thresholds (Master Spec §29, §30, §31).
+   454→   454→          Placed after the key financials and before the exhibits, per the
+   455→   455→          §33 results-page section order: decision → financials → why →
+   456→   456→          confidence → stress test → break-even → ROI bridge → comparison →
+   457→   457→          assumptions → actions. */}
+   458→   458→      <StressTestSection inputs={inputs} activeScenario={activeScenario} />
+   459→   459→
+   460→   460→      {/* Exhibit 1 — ROI Bridge (active scenario) */}
+   461→   461→      <React.Suspense
+   462→   462→        fallback={
+   463→   463→          <ChartSkeleton title="Exhibit 1 — Labor savings drive the first-year benefit" />
+   464→   464→        }
+   465→   465→      >
+   466→   466→        <div className="mb-10">
+   467→   467→          <RoiBridge
+   468→   468→            result={active}
+   469→   469→            isRevenueOpportunityOnly={active.isRevenueOpportunityOnly}
+   470→   470→          />
+   471→   471→        </div>
+   472→   472→      </React.Suspense>
+   473→   473→
+   474→   474→      {/* Exhibit 2 — Scenario Comparison (all three) */}
+   475→   475→      <React.Suspense
+   476→   476→        fallback={
+   477→   477→          <ChartSkeleton title="Exhibit 2 — Expected scenario carries the strongest benefit" />
+   478→   478→        }
+   479→   479→      >
+   480→   480→        <div className="mb-10">
+   481→   481→          <ScenarioComparison
+   482→   482→            results={results}
+   483→   483→            isRevenueOpportunityOnly={active.isRevenueOpportunityOnly}
+   484→   484→          />
+   485→   485→        </div>
+   486→   486→      </React.Suspense>
+   487→   487→
+   488→   488→      {/* Scenario detail table (numeric, for the audit trail) */}
+   489→   489→      <ScenarioTable
+   490→   490→        results={results}
+   491→   491→        activeScenario={activeScenario}
+   492→   492→        onSelect={setActiveScenario}
+   493→   493→      />
+   494→   494→
+   495→   495→      {/* Assumptions */}
+   496→   496→      <div className="mb-10 mt-12">
+   497→   497→        <h2 className="mb-4 font-display text-[22px] font-semibold tracking-[-0.02em] text-ink">
+   498→   498→          Assumptions
+   499→   499→        </h2>
+   500→   500→        <p className="mb-4 text-[14px] text-ink-muted">
+   501→   501→          Every input that feeds the calculation. Fields tagged &quot;context&quot; do not
+   502→   502→          affect the dollar math.
+   503→   503→        </p>
+   504→   504→        <AssumptionsTable inputs={inputs} />
+   505→   505→      </div>
+   506→   506→
+   507→   507→      {/* Sticky secondary actions */}
+   508→   508→      <div className="sticky bottom-0 -mx-4 mt-8 border-t border-border bg-canvas/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-canvas/80 md:static md:mx-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+   509→   509→        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+   510→   510→          <EntitlementButton
+   511→   511→            allowed={canSave}
+   512→   512→            requiredTierLabel="Pro"
+   513→   513→            onClick={handleSave}
+   514→   514→            loading={saving}
+   515→   515→            variant="secondary"
+   516→   516→            icon={<Save className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   517→   517→          >
+   518→   518→            Save project
+   519→   519→          </EntitlementButton>
+   520→   520→          <EntitlementButton
+   521→   521→            allowed={canReport}
+   522→   522→            requiredTierLabel="Pro"
+   523→   523→            onClick={handleReport}
+   524→   524→            loading={reportLoading}
+   525→   525→            icon={<FileText className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   526→   526→          >
+   527→   527→            Generate Client Report
+   528→   528→          </EntitlementButton>
+   529→   529→          <EntitlementButton
+   530→   530→            allowed={canProposal}
+   531→   531→            requiredTierLabel="Pro"
+   532→   532→            onClick={handleProposal}
+   533→   533→            loading={proposalLoading}
+   534→   534→            icon={<FileSignature className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   535→   535→          >
+   536→   536→            Generate Proposal
+   537→   537→          </EntitlementButton>
+   538→   538→          <EntitlementButton
+   539→   539→            allowed={canShare}
+   540→   540→            requiredTierLabel="Agency Pro"
+   541→   541→            onClick={handleShare}
+   542→   542→            loading={shareLoading}
+   543→   543→            icon={<Share2 className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   544→   544→          >
+   545→   545→            Create share link
+   546→   546→          </EntitlementButton>
+   547→   547→        </div>
+   548→   548→      </div>
+   549→   549→    </div>
+   550→   550→  );
+   551→   551→}
+   552→   552→
+   553→   553→// ── Hero figure cell ───────────────────────────────────────────────────────
+   554→   554→
+   555→   555→function HeroFigure({
+   556→   556→  label,
+   557→   557→  sublabel,
+   558→   558→  children,
+   559→   559→}: {
+   560→   560→  label: string;
+   561→   561→  sublabel: string;
+   562→   562→  children: React.ReactNode;
+   563→   563→}) {
+   564→   564→  return (
+   565→   565→    <div className="flex flex-col gap-2">
+   566→   566→      <span className="text-[12px] uppercase tracking-wide text-ink-muted">
+   567→   567→        {label}
+   568→   568→      </span>
+   569→   569→      <div className="font-mono tnum">{children}</div>
+   570→   570→      <span className="text-[12px] text-ink-muted">{sublabel}</span>
+   571→   571→    </div>
+   572→   572→  );
+   573→   573→}
+   574→   574→
+   575→   575→// Small helper: derive the DecisionKey from a scenario result, so the table's
+   576→   576→// last row uses the canonical DECISION_LABELS instead of a hardcoded string.
+   577→   577→function scenarioDecisionKey(r: ScenarioResult): DecisionKey {
+   578→   578→  return recommend(r).recommendation as DecisionKey;
+   579→   579→}
+   580→   580→
+   581→   581→// ── Scenario detail table ──────────────────────────────────────────────────
+   582→   582→
+   583→   583→function ScenarioTable({
+   584→   584→  results,
+   585→   585→  activeScenario,
+   586→   586→  onSelect,
+   587→   587→}: {
+   588→   588→  results: Record<ScenarioName, ScenarioResult>;
+   589→   589→  activeScenario: ScenarioName;
+   590→   590→  onSelect: (s: ScenarioName) => void;
+   591→   591→}) {
+   592→   592→  // Build rows by reading known fields off the ScenarioResult type.
+   593→   593→  const rows: Array<[string, (r: ScenarioResult) => string]> = [
+   594→   594→    ['Automation % used', (r) => formatRatioAsPercent(r.automationPct, 1)],
+   595→   595→    ['Conversion improvement used', (r) => `${(r.conversionImprovementPct * 100).toFixed(1)}pp`],
+   596→   596→    ['Annual labor cost', (r) => formatCurrency(r.annualLaborCost)],
+   597→   597→    ['Annual labor savings', (r) => formatCurrency(r.annualLaborSavings)],
+   598→   598→    ['Total first-year cost', (r) => formatCurrency(r.totalFirstYearCost)],
+   599→   599→    ['Additional customers', (r) => r.additionalCustomers.toLocaleString('en-US', { maximumFractionDigits: 0 })],
+   600→   600→    ['Additional annual revenue', (r) => formatCurrency(r.additionalAnnualRevenue)],
+   601→   601→    ['Additional gross profit', (r) => formatCurrency(r.additionalGrossProfit)],
+   602→   602→    ['Total annual benefit', (r) => formatCurrency(r.totalAnnualBenefit)],
+   603→   603→    ['Net annual benefit', (r) => formatCurrency(r.netAnnualBenefit)],
+   604→   604→    ['ROI', (r) => formatRoi(r.roiPct)],
+   605→   605→    ['Payback', (r) => formatPayback(r.paybackMonths)],
+   606→   606→    ['Viableo Decision', (r) => DECISION_LABELS[scenarioDecisionKey(r)]],
+   607→   607→  ];
+   608→   608→
+   609→   609→  return (
+   610→   610→    <div className="rounded-lg border border-border bg-surface-raised">
+   611→   611→      <div className="border-b border-border px-5 py-4">
+   612→   612→        <h3 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink">
+   613→   613→          Scenario detail
+   614→   614→        </h3>
+   615→   615→        <p className="text-[12px] text-ink-muted">
+   616→   616→          Costs held constant across all scenarios; only benefit assumptions vary.
+   617→   617→        </p>
+   618→   618→      </div>
+   619→   619→      <div className="overflow-x-auto">
+   620→   620→        <table className="w-full text-[13px]">
+   621→   621→          <thead>
+   622→   622→            <tr className="border-b border-border bg-surface">
+   623→   623→              <th className="px-5 py-2.5 text-left font-medium text-ink-muted">Metric</th>
+   624→   624→              {SCENARIO_ORDER.map((s) => (
+   625→   625→                <th
+   626→   626→                  key={s}
+   627→   627→                  className={`px-5 py-2.5 text-right font-medium ${
+   628→   628→                    s === activeScenario ? 'text-ink' : 'text-ink-muted'
+   629→   629→                  }`}
+   630→   630→                >
+   631→   631→                  <button
+   632→   632→                    type="button"
+   633→   633→                    onClick={() => onSelect(s)}
+   634→   634→                    className="min-h-[44px] hover:text-ink"
+   635→   635→                  >
+   636→   636→                    {SCENARIO_LABELS[s]}
+   637→   637→                  </button>
+   638→   638→                </th>
+   639→   639→              ))}
+   640→   640→            </tr>
+   641→   641→          </thead>
+   642→   642→          <tbody>
+   643→   643→            {rows.map((r, i) => (
+   644→   644→              <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface/50">
+   645→   645→                <td className="px-5 py-2.5 text-ink">{r[0]}</td>
+   646→   646→                {SCENARIO_ORDER.map((s) => {
+   647→   647→                  const val = r[1](results[s]);
+   648→   648→                  const isActive = s === activeScenario;
+   649→   649→                  return (
+   650→   650→                    <td
+   651→   651→                      key={s}
+   652→   652→                      className={`px-5 py-2.5 text-right font-mono tnum ${
+   653→   653→                        isActive ? 'text-ink' : 'text-ink-muted'
+   654→   654→                      }`}
+   655→   655→                    >
+   656→   656→                      {val}
+   657→   657→                    </td>
+   658→   658→                  );
+   659→   659→                })}
+   660→   660→              </tr>
+   661→   661→            ))}
+   662→   662→          </tbody>
+   663→   663→        </table>
+   664→   664→      </div>
+   665→   665→    </div>
+   666→   666→  );
+   667→   667→}
+   668→   668→
+   669→   669→// ── Skeletons + empty state ────────────────────────────────────────────────
+   670→   670→
+   671→   671→function ChartSkeleton({ title }: { title: string }) {
+   672→   672→  return (
+   673→   673→    <div className="rounded-lg border border-border bg-surface-raised p-6">
+   674→   674→      <div className="mb-3 flex items-center gap-2">
+   675→   675→        <LoadingDot />
+   676→   676→        <span className="text-[13px] text-ink-muted">{title}</span>
+   677→   677→      </div>
+   678→   678→      <div className="h-[320px] animate-pulse rounded bg-surface" />
+   679→   679→    </div>
+   680→   680→  );
+   681→   681→}
+   682→   682→
+   683→   683→function EmptyResults({ onBack }: { onBack: () => void }) {
+   684→   684→  return (
+   685→   685→    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+   686→   686→      <FileText className="size-8 text-ink-muted" strokeWidth={1.75} aria-hidden="true" />
+   687→   687→      <div>
+   688→   688→        <p className="font-display text-[18px] font-semibold text-ink">
+   689→   689→          No {TERM.analysis.toLowerCase()} yet.
+   690→   690→        </p>
+   691→   691→        <p className="mt-1 text-[14px] text-ink-muted">
+   692→   692→          Run the calculator to see the {TERM.decision.toLowerCase()} and the exhibits.
+   693→   693→        </p>
+   694→   694→      </div>
+   695→   695→      <Button
+   696→   696→        onClick={onBack}
+   697→   697→        className="mt-2 min-h-[44px] bg-brand text-brand-foreground hover:bg-brand-hover"
+   698→   698→      >
+   699→   699→        Open the calculator
+   700→   700→      </Button>
+   701→   701→    </div>
+   702→   702→  );
+   703→   703→}
+   704→   704→
+   705→   705→/** Floating scroll-to-top button — appears after 400px scroll. */
+   706→   706→function ScrollToTop() {
+   707→   707→  const [visible, setVisible] = React.useState(false);
+   708→   708→
+   709→   709→  React.useEffect(() => {
+   710→   710→    const onScroll = () => setVisible(window.scrollY > 400);
+   711→   711→    onScroll();
+   712→   712→    window.addEventListener('scroll', onScroll, { passive: true });
+   713→   713→    return () => window.removeEventListener('scroll', onScroll);
+   714→   714→  }, []);
+   715→   715→
+   716→   716→  if (!visible) return null;
+   717→   717→
+   718→   718→  return (
+   719→   719→    <button
+   720→   720→      type="button"
+   721→   721→      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+   722→   722→      className="fixed bottom-20 right-4 z-20 flex size-10 items-center justify-center rounded-full border border-border bg-surface shadow-floating text-ink-muted hover:text-ink transition-colors duration-hover md:bottom-6"
+   723→   723→      aria-label="Back to top"
+   724→   724→    >
+   725→   725→      <ArrowUp className="size-4" strokeWidth={1.75} aria-hidden="true" />
+   726→   726→    </button>
+   727→   727→  );
+   728→   728→}
+   729→   729→

@@ -1,13 +1,17 @@
 /**
  * POST /api/upload — logo upload (agency+).
  *
- * Validates MIME type and file size (<= 2MB) server-side (Section 24). Returns
- * a data: URL the PDF renderer and Organization.logoUrl can reference directly
- * (no blob storage in this demo). Stored on the Organization row on PATCH.
+ * Validates MIME type and file size (<= 2MB) server-side (Section 24).
+ *
+ * - Production (BLOB_READ_WRITE_TOKEN set): uploads to Vercel Blob and returns
+ *   the blob URL for efficient CDN-served storage.
+ * - Development: returns a data: URL so the PDF renderer and Organization.logoUrl
+ *   can reference it directly without any cloud credentials.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getDemoOrganization } from '@/lib/session';
 import { getActiveEntitlement, has } from '@/lib/entitlement';
+import { storeImage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
 
@@ -40,6 +44,11 @@ export async function POST(req: NextRequest) {
   }
 
   const buf = Buffer.from(await file.arrayBuffer());
-  const dataUrl = `data:${file.type};base64,${buf.toString('base64')}`;
-  return NextResponse.json({ url: dataUrl, size: buf.length });
+
+  // Use the storage abstraction — Vercel Blob in production, data: URI in dev
+  const ext = file.type.split('/')[1]?.replace('svg+xml', 'svg') ?? 'png';
+  const fileName = `${org.id}/logo-${Date.now()}.${ext}`;
+  const stored = await storeImage(fileName, buf, file.type);
+
+  return NextResponse.json({ url: stored.url, size: buf.length });
 }

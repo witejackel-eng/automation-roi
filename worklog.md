@@ -279,3 +279,54 @@ Stage Summary:
 - Hero is now a product instrument, not just a landing page
 - Charts use unified Viableo language with semantic colors
 - All existing functionality preserved and verified end-to-end
+
+---
+Task ID: 65-SECTION-MANDATE-CONTINUATION
+Agent: main
+Task: Continue 65-section production mandate — build fix + storage + security + visual
+
+Work Log:
+- Fixed Vercel build failure: excluded examples/ from tsconfig.json (socket.io-client not installed)
+- Pushed build fix to GitHub (10288e5)
+- COMPREHENSIVE INSPECTION PHASE (Section 0 mandate):
+  - Inspected Prisma schema: 5 models, schema declares postgresql but .env is SQLite, fully compatible
+  - Inspected all 10 API routes: 13 endpoint handlers, consistent entitlement checks, good IDOR protection
+  - Inspected auth: ZERO authentication — no middleware, no NextAuth, no sessions
+  - Inspected entitlement: ranked tier system well-designed, backdoor at /api/entitlement/set (prod-gated)
+  - Inspected file storage: PDFs write to public/reports/ (READ-ONLY on Vercel = CRITICAL FAILURE), logos as base64 in DB
+  - Inspected UI: comprehensive color system, dark surface tokens, motion/react, 45 shadcn components
+- P0: Vercel Blob migration (Section 5):
+  - Installed @vercel/blob v2.8.0
+  - Created src/lib/storage.ts — storage abstraction with Vercel Blob (prod) + local FS (dev) fallback
+  - Migrated POST /api/projects/[id]/report to use storePdf() instead of fs.writeFile
+  - Migrated POST /api/projects/[id]/proposal to use storePdf() instead of fs.writeFile
+  - Migrated POST /api/upload to use storeImage() instead of base64 data: URIs
+  - Updated CSP in next.config.ts: added blob: to img-src, *.blob.vercel-storage.com to connect-src
+- P0: Security hardening (Sections 10-12):
+  - Whop webhook: added Zod schema validation (whopWebhookSchema) for request body
+  - Entitlement backdoor: added DEV_ENTITLEMENT_SECRET guard — dev requests need x-dev-secret header
+  - Share endpoint: added shareId format validation (^[0-9a-f]{24}$) to prevent arbitrary DB queries
+  - Projects POST: enforced server-side re-derivation of results — client-provided results NEVER trusted
+- P1: Production hardening (Sections 32-34):
+  - Removed framer-motion package (only motion/react is used)
+  - Created prisma/seed.ts — seeds demo org + free-tier license
+  - Added db:seed script to package.json
+  - Reduced dev query logging: only logs when DEBUG_PRISMA=1 (not by default)
+  - Updated .env.example with BLOB_READ_WRITE_TOKEN and DEV_ENTITLEMENT_SECRET
+- P0: Visual transformation — Signature interactions (Sections 7.5-7.6b):
+  - ScenarioSlider: added motion/react layoutId for smooth sliding pill animation between positions
+  - Results hero figures: added AnimatePresence + motion.div with cross-fade on scenario change (opacity + y shift)
+  - Stress test threshold bars: replaced CSS transition with motion.div (initial width:0, animate to fill)
+  - Stress test sensitivity bars: added motion.div with staggered delay (i * 0.06s)
+  - Stress test STILL VIABLE / DECISION BREAKS label: added motion.span with fade-in on state change
+- VERIFIED: Lint passes, dev server 200, Agent Browser confirms all 9 checks pass
+- VERIFIED: Landing, calculator, results, mobile 390px all functional
+- VERIFIED: No JS errors, no hydration issues
+
+Stage Summary:
+- Vercel Blob migration fixes the #1 deployment blocker (PDF writes were failing on Vercel)
+- 5 security vulnerabilities hardened (Whop Zod, backdoor guard, shareId validation, results re-derivation, upload to Blob)
+- framer-motion removed (only motion/react remains)
+- Seed script created for PostgreSQL deployment
+- Signature interactions implemented: sliding scenario pill, cross-fading figures, animated threshold bars
+- All changes verified end-to-end via Agent Browser
