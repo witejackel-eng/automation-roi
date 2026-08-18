@@ -61,12 +61,9 @@ import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { resolveTierByWhopPlanId } from '@/lib/tenant';
 import { logSystemEvent } from '@/lib/observability/system-event';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { verifyWebhookSignature } from '@/lib/webhooks/whop/verify-signature';
 
 export const runtime = 'nodejs';
-
-// 5-minute replay-protection window (per Whop docs).
-const WEBHOOK_TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000;
 
 // ── Zod schema for Whop webhook body ──────────────────────────────
 // Whop's payload wraps the actual resource in `data` and carries the
@@ -97,63 +94,6 @@ const whopWebhookSchema = z.object({
 }).passthrough();
 
 type WhopWebhook = z.infer<typeof whopWebhookSchema>;
-
-// ── Signature verification (Standard Webhooks spec) ────────────────
-
-/**
- * Verify a Whop webhook signature per the Standard Webhooks spec:
- * HMAC-SHA256 over `{webhook-id}.{webhook-timestamp}.{raw-body}`,
- * compared in constant time. Accepts any of the space-separated
- * `v1,<base64>` values (supports secret rotation).
- *
- * Returns true only if (a) at least one signature matches AND
- * (b) the timestamp is within the 5-minute tolerance window.
- */
-function verifyWebhookSignature(
-  rawBody: string,
-  webhookId: string | null,
-  webhookTimestamp: string | null,
-  webhookSignatureHeader: string | null,
-  secret: string,
-): boolean {
-  if (!webhookId || !webhookTimestamp || !webhookSignatureHeader) {
-    return false;
-  }
-
-  // Replay-protection: reject timestamps more than 5 minutes old.
-  const ts = Number(webhookTimestamp);
-  if (!Number.isFinite(ts)) return false;
-  const ageMs = Math.abs(Date.now() - ts * 1000);
-  if (ageMs > WEBHOOK_TIMESTAMP_TOLERANCE_MS) {
-    return false;
-  }
-
-  // Compute the expected signature over `{id}.{timestamp}.{body}`.
-  const signedPayload = `${webhookId}.${webhookTimestamp}.${rawBody}`;
-  const expectedSig = createHmac('sha256', secret)
-    .update(signedPayload)
-    .digest('base64');
-
-  // The signature header may contain multiple space-separated `v1,<sig>`
-  // values (for secret rotation). Accept any match.
-  const sigs = webhookSignatureHeader
-    .split(' ')
-    .map((s) => s.trim())
-    .filter((s) => s.startsWith('v1,'))
-    .map((s) => s.slice(3));
-
-  if (sigs.length === 0) return false;
-
-  // Constant-time comparison against each candidate.
-  const expectedBuf = Buffer.from(expectedSig, 'base64');
-  for (const sig of sigs) {
-    const sigBuf = Buffer.from(sig, 'base64');
-    if (expectedBuf.length === sigBuf.length && timingSafeEqual(expectedBuf, sigBuf)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 // ── Tier resolution helper ──────────────────────────────────────────
 
