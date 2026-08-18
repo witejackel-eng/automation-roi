@@ -1,93 +1,110 @@
 /**
- * Observability stub tests (Phase 5).
+ * SystemEvent logger tests (Agent 2 — real Prisma-backed implementation).
  *
- * The current implementation is a temporary stub (per Agent 1 master
- * prompt §7): console.debug in non-production, no-op in production,
- * never throws. Agent 2 will replace the body with a real Prisma write
- * — the signature MUST stay identical.
+ * Agent 1's tests asserted the stub's behavior (console.debug in dev,
+ * no-op in prod, never throws). Agent 2 replaces the stub with a real
+ * Prisma write — these tests assert the real write behavior + that
+ * the failure-isolation rule still holds (Prisma failures don't throw
+ * out of logSystemEvent).
  *
- * These tests assert the stub's behavior contract so Agent 2's
- * replacement can be verified to preserve it.
+ * The contract is unchanged from Agent 1's perspective: same
+ * signature, same "never throws" guarantee.
  */
-import { describe, it, expect, vi } from 'vitest';
-import { logSystemEvent } from '../system-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { LogSystemEventInput } from '../types';
 
-// Capture console.debug so we can assert the stub's behavior.
-function captureConsoleDebug() {
-  const original = console.debug;
-  const calls: unknown[][] = [];
-  console.debug = (...args: unknown[]) => calls.push(args);
+// Mock the db so tests don't need a real database.
+function makeMockDb() {
+  const create = vi.fn();
   return {
-    calls,
-    restore() {
-      console.debug = original;
-    },
+    systemEvent: { create },
   };
 }
 
-describe('logSystemEvent — temporary stub (Agent 2 will replace the body)', () => {
-  it('accepts a LogSystemEventInput and returns a Promise<void>', async () => {
+vi.mock('@/lib/db', () => ({
+  get db() {
+    return (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb;
+  },
+}));
+
+import { logSystemEvent } from '../system-event';
+
+beforeEach(() => {
+  (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb = makeMockDb();
+});
+
+describe('logSystemEvent — real Prisma-backed implementation', () => {
+  it('persists a SystemEvent row with all fields mapped correctly', async () => {
+    const mock = (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb!;
+    mock.systemEvent.create.mockResolvedValue({ id: 'evt_1' });
+
     const input: LogSystemEventInput = {
-      eventType: 'CALCULATION_STARTED',
+      eventType: 'CALCULATION_COMPLETED',
       organizationId: 'org_123',
       userId: 'user_456',
       severity: 'info',
-      metadata: { scenario: 'expected', durationMs: 42 },
+      metadata: { durationMs: 42, scenario: 'expected' },
       requestId: 'req_789',
     };
-    const result = logSystemEvent(input);
-    await expect(result).resolves.toBeUndefined();
+    await logSystemEvent(input);
+
+    expect(mock.systemEvent.create).toHaveBeenCalledTimes(1);
+    const args = mock.systemEvent.create.mock.calls[0][0];
+    expect(args.data.eventType).toBe('CALCULATION_COMPLETED');
+    expect(args.data.organizationId).toBe('org_123');
+    expect(args.data.userId).toBe('user_456');
+    expect(args.data.severity).toBe('info');
+    expect(args.data.metadata).toBe(JSON.stringify({ durationMs: 42, scenario: 'expected' }));
+    expect(args.data.requestId).toBe('req_789');
   });
 
-  it('never throws — observability must not become a source of request failures', async () => {
-    const input: LogSystemEventInput = {
-      eventType: 'DATABASE_ERROR',
-      severity: 'error',
-      metadata: { reason: 'observability must never fail the request' },
-    };
-    // Even with malformed metadata (e.g., circular reference), the stub
-    // should not throw. JSON.stringify would throw on circular refs,
-    // but the stub doesn't serialize — Agent 2's replacement MUST wrap
-    // any Prisma write in try/catch per the master prompt.
-    await expect(logSystemEvent(input)).resolves.toBeUndefined();
+  it('defaults severity to "info" when omitted', async () => {
+    const mock = (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb!;
+    mock.systemEvent.create.mockResolvedValue({ id: 'evt_2' });
+    await logSystemEvent({ eventType: 'AUTH_FAILED' });
+    const args = mock.systemEvent.create.mock.calls[0][0];
+    expect(args.data.severity).toBe('info');
   });
 
-  it('logs to console.debug in non-production (NODE_ENV !== "production")', async () => {
-    const original = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
-    const cap = captureConsoleDebug();
+  it('passes metadata as undefined when omitted (no JSON.stringify of undefined)', async () => {
+    const mock = (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb!;
+    mock.systemEvent.create.mockResolvedValue({ id: 'evt_3' });
+    await logSystemEvent({ eventType: 'USER_SIGNED_IN', userId: 'u1' });
+    const args = mock.systemEvent.create.mock.calls[0][0];
+    expect(args.data.metadata).toBeUndefined();
+  });
+
+  it('NEVER throws — Prisma failures are caught and logged to console.error', async () => {
+    const mock = (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb!;
+    mock.systemEvent.create.mockRejectedValue(new Error('DB connection refused'));
+    // Capture console.error so the test output stays clean.
+    const original = console.error;
+    const calls: unknown[][] = [];
+    console.error = (...args: unknown[]) => calls.push(args);
     try {
-      await logSystemEvent({
-        eventType: 'CALCULATION_COMPLETED',
-        organizationId: 'org_test',
-        metadata: { durationMs: 100 },
-      });
-      // The stub logs to console.debug in dev.
-      expect(cap.calls.length).toBeGreaterThan(0);
-      const firstCall = cap.calls[0];
-      expect(firstCall[0]).toBe('[system-event:stub]');
-      expect(firstCall[1]).toBe('CALCULATION_COMPLETED');
+      // Must NOT throw — observability must never fail the request.
+      await expect(logSystemEvent({ eventType: 'DATABASE_ERROR' })).resolves.toBeUndefined();
+      expect(calls.length).toBe(1);
+      expect(calls[0][0]).toBe('[system-event] failed to persist');
+      expect(calls[0][1]).toBe('DATABASE_ERROR');
     } finally {
-      cap.restore();
-      process.env.NODE_ENV = original;
+      console.error = original;
     }
   });
 
-  it('is a no-op in production (no console.debug)', async () => {
-    const original = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-    const cap = captureConsoleDebug();
+  it('does NOT recurse on DATABASE_ERROR events (would infinite-loop)', async () => {
+    // The real impl's catch block logs to console.error but does NOT
+    // call logSystemEvent({ eventType: 'DATABASE_ERROR' }) recursively.
+    // Verify by failing the write and asserting create was called only once.
+    const mock = (globalThis as { __mockDb?: ReturnType<typeof makeMockDb> }).__mockDb!;
+    mock.systemEvent.create.mockRejectedValue(new Error('DB down'));
+    const original = console.error;
+    console.error = () => {};
     try {
-      await logSystemEvent({
-        eventType: 'CALCULATION_COMPLETED',
-        organizationId: 'org_test',
-        metadata: { durationMs: 100 },
-      });
-      expect(cap.calls.length).toBe(0);
+      await logSystemEvent({ eventType: 'DATABASE_ERROR' });
+      expect(mock.systemEvent.create).toHaveBeenCalledTimes(1);
     } finally {
-      cap.restore();
-      process.env.NODE_ENV = original;
+      console.error = original;
     }
   });
 });

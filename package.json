@@ -22,7 +22,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:golden": "bun run scripts/verify-golden.ts",
-    "certify": "bun run scripts/verify-golden.ts && bun run test && bun run typecheck && bun run lint && bun run build"
+    "certify": "bun run scripts/certify.ts",
+    "seed:qa": "bun run scripts/seed-qa-org.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

@@ -1,39 +1,48 @@
 /**
- * System-event logger — TEMPORARY STUB (per Agent 1 master prompt §7).
+ * System-event logger — REAL Prisma-backed implementation (Agent 2).
  *
- * Agent 1 (this agent) needs to emit events from billing/webhook/auth/AI
- * code paths it owns, but the actual `SystemEvent` Prisma model does
- * not exist yet — it is Agent 2's responsibility (added in migration 4,
- * after Agent 1's three migrations are merged).
+ * Agent 1 originally created a temporary stub here (console.debug in
+ * dev, no-op in production, never throws). Agent 2's job is to
+ * replace the stub body with a real SystemEvent Prisma write WITHOUT
+ * changing the exported signature — Agent 1's call sites in the
+ * billing/webhook/auth/AI/calculation code paths depend on it
+ * exactly as defined in src/lib/observability/types.ts.
  *
- * Until Agent 2 ships the real implementation, this stub:
- *   - matches the EXACT signature Agent 2's implementation must expose
- *   - logs to console.debug in non-production (no-op in production)
- *   - NEVER throws — observability must not become an availability risk
+ * FAILURE-ISOLATION RULE (per master prompt §7):
+ *   Observability must NEVER become a source of request failures.
+ *   The Prisma write is wrapped in try/catch — on failure, log to
+ *   console.error and return. The original business operation's
+ *   response is unaffected.
  *
- * Agent 2's replacement is a drop-in: change the function body, keep
- * the signature, and every Agent 1 emission site keeps working.
- *
- * DO NOT call logSystemEvent directly from a hot path — wrap every call
- * in a try/catch at the call site too, so that even a thrown error from
- * a future real Prisma-backed implementation cannot fail the surrounding
- * business operation. (See Phase 5 of the master prompt for the
- * rationale: "observability must never become a new source of request
- * failures".)
+ * GUARDED AGAINST INFINITE RECURSION:
+ *   If the Prisma write itself fails with a DATABASE_ERROR, we DO NOT
+ *   call logSystemEvent({ eventType: 'DATABASE_ERROR', ... }) again
+ *   (which could recurse). We just log to console.error and stop.
  */
+import { db } from '@/lib/db';
 import type { LogSystemEventInput } from './types';
 
 export async function logSystemEvent(input: LogSystemEventInput): Promise<void> {
-  // Temporary stub — Agent 2 replaces this body with a real SystemEvent
-  // Prisma write once that model exists. Signature must not change.
-  if (process.env.NODE_ENV !== 'production') {
-    console.debug(
-      '[system-event:stub]',
+  try {
+    await db.systemEvent.create({
+      data: {
+        eventType: input.eventType,
+        organizationId: input.organizationId,
+        userId: input.userId,
+        severity: input.severity ?? 'info',
+        metadata: input.metadata ? JSON.stringify(input.metadata) : undefined,
+        requestId: input.requestId,
+      },
+    });
+  } catch (err) {
+    // Never let observability failures break the calling request.
+    // Per Viableo Production Architecture §9.2: wrap the Prisma write
+    // in try/catch that logs to console.error — but DO NOT emit a
+    // DATABASE_ERROR event recursively (could infinite-loop).
+    console.error(
+      '[system-event] failed to persist',
       input.eventType,
-      input.organizationId ?? '-',
-      input.userId ?? '-',
-      input.severity ?? 'info',
-      input.metadata ?? {},
+      err instanceof Error ? err.message : String(err),
     );
   }
 }
