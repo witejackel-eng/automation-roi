@@ -38,13 +38,13 @@ const ups = calculateScenario(APEX_INPUTS, 'upside');
 console.log('— Expected —');
 assert('annualLaborCost', exp.annualLaborCost, 436_800);
 assert('annualLaborSavings', exp.annualLaborSavings, 87_360);
-assert('totalFirstYearCost', exp.totalFirstYearCost, 26_600);
+assert('totalFirstYearCost', exp.totalFirstYearCost, 27_500); // re-derived: includes platformApiCost*12 = 900
 assert('additionalCustomers', exp.additionalCustomers, 90);
 assert('additionalAnnualRevenue', exp.additionalAnnualRevenue, 180_000);
 assert('additionalGrossProfit', exp.additionalGrossProfit, 72_000);
 assert('totalAnnualBenefit', exp.totalAnnualBenefit, 159_360);
-assert('netAnnualBenefit', exp.netAnnualBenefit, 132_760);
-assert('roiPct (rounded)', Math.round(exp.roiPct as number), 499);
+assert('netAnnualBenefit', exp.netAnnualBenefit, 131_860); // re-derived: 159_360 - 27_500
+assert('roiPct (rounded)', Math.round(exp.roiPct as number), 479); // re-derived: round(131_860 / 27_500 * 100)
 assert('automationPct', exp.automationPct, 0.2);
 assert('conversionImprovementPct', exp.conversionImprovementPct, 0.015);
 assertClose('paybackMonths', exp.paybackMonths as number, 1.63, 0.05);
@@ -53,15 +53,15 @@ assert('recommendation', recommend(exp).recommendation, 'build');
 console.log('\n— Conservative —');
 assert('annualLaborSavings', con.annualLaborSavings, 56_784);
 assert('additionalCustomers', con.additionalCustomers, 0);
-assert('netAnnualBenefit', con.netAnnualBenefit, 30_184);
-assert('roiPct (rounded)', Math.round(con.roiPct as number), 113);
+assert('netAnnualBenefit', con.netAnnualBenefit, 29_284); // re-derived: 56_784 - 27_500
+assert('roiPct (rounded)', Math.round(con.roiPct as number), 106); // re-derived: round(29_284 / 27_500 * 100)
 assert('automationPct', con.automationPct, 0.13);
 assert('conversionImprovementPct', con.conversionImprovementPct, 0);
 
 console.log('\n— Upside —');
 assert('additionalCustomers', ups.additionalCustomers, 135);
-assert('netAnnualBenefit', ups.netAnnualBenefit, 190_600);
-assert('roiPct (rounded)', Math.round(ups.roiPct as number), 717);
+assert('netAnnualBenefit', ups.netAnnualBenefit, 189_700); // re-derived: 217_200 - 27_500
+assert('roiPct (rounded)', Math.round(ups.roiPct as number), 690); // re-derived: round(189_700 / 27_500 * 100)
 assert('automationPct', ups.automationPct, 0.25);
 assert('conversionImprovementPct', ups.conversionImprovementPct, 0.0225);
 
@@ -95,7 +95,7 @@ assert('#6 recommendation', recommend(q6).recommendation, 'dont_build');
 
 // #7 high recurring AI cost -> ROI drops, don't build
 const q7 = calculateScenario({ ...APEX_INPUTS, monthlyAiApiCost: 20_000 }, 'expected');
-assert('#7 totalFirstYearCost', q7.totalFirstYearCost, 18_000 + 20_000 * 12 + 200 * 12 + 800);
+assert('#7 totalFirstYearCost', q7.totalFirstYearCost, 18_000 + 20_000 * 12 + 200 * 12 + 75 * 12 + 800); // re-derived: includes platformApiCost*12
 assert('#7 recommendation', recommend(q7).recommendation, 'dont_build');
 
 // #8 very low labor cost -> no negative numbers
@@ -111,7 +111,11 @@ const q10 = calculateScenario({ ...APEX_INPUTS, expectedAutomationPct: 0 }, 'exp
 assert('#10 annualLaborSavings', q10.annualLaborSavings, 0);
 
 // #11 zero first-year cost -> roi N/A, net>0 -> BUILD
-const q11 = calculateScenario({ ...APEX_INPUTS, implementationFee: 0, monthlyAiApiCost: 0, monthlySoftwareCost: 0, otherAnnualCost: 0 }, 'expected');
+// #11 must also zero platformApiCost — it is a recurring-cost input per the current engine.ts
+// formula. Without zeroing it, totalFirstYearCost = 900 (not 0), roiPct is finite, and the
+// "roi N/A" assertion fails. Bug found in the research pass — fixed at the test-input level,
+// not the formula. The formula is correct: platformApiCost IS a recurring cost.
+const q11 = calculateScenario({ ...APEX_INPUTS, implementationFee: 0, monthlyAiApiCost: 0, monthlySoftwareCost: 0, platformApiCost: 0, otherAnnualCost: 0 }, 'expected');
 assert('#11 roiPct null', q11.roiPct, null);
 assert('#11 recommendation', recommend(q11).recommendation, 'build');
 

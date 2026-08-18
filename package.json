@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "db:push": "prisma db push",
@@ -17,7 +17,10 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
     "db:push:prod": "prisma db push --accept-data-loss",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify:golden": "bun run scripts/verify-golden.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -105,6 +108,7 @@
     "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3"
   }
 }
