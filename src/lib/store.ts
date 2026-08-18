@@ -89,6 +89,8 @@ interface AppState {
    * store stays unchanged so the user's current state is preserved.
    */
   reopenProject: (id: string) => Promise<boolean>;
+  /** Remove a project from the local list after server-side delete. */
+  deleteProject: (id: string) => void;
   /** Clear the saved-project id (used when starting a fresh analysis). */
   clearSavedProject: () => void;
 }
@@ -172,6 +174,8 @@ export const useApp = create<AppState>((set) => ({
       return false;
     }
   },
+
+  deleteProject: (id) => set({ projects: get().projects.filter((p) => p.id !== id) }),
 
   clearSavedProject: () => set({ savedProjectId: null }),
 }));

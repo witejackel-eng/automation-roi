@@ -1,5 +1,6 @@
 /**
  * GET /api/projects/[id] — fetch a saved project (pro+).
+ * DELETE /api/projects/[id] — delete a saved project (pro+).
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
@@ -44,4 +45,24 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   });
+}
+
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  const org = await getDemoOrganization();
+  const entitlement = await getActiveEntitlement(org.id);
+  if (!has(entitlement, 'save_project')) {
+    return NextResponse.json(
+      { error: 'Saved projects require Pro or higher.', requiredTier: 'pro' },
+      { status: 403 }
+    );
+  }
+
+  const project = await db.project.findUnique({ where: { id } });
+  if (!project || project.organizationId !== org.id) {
+    return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
+  }
+
+  await db.project.delete({ where: { id } });
+  return NextResponse.json({ success: true });
 }

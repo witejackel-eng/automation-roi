@@ -22,7 +22,7 @@
  */
 import * as React from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Beaker, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -124,6 +124,18 @@ export function Wizard({ onComplete, onCancel, initialInputs }: WizardProps) {
 
   const { trigger, handleSubmit, setError, formState } = form;
   const apiErrors = formState.errors; // for sticky error banner
+
+  // --- beforeunload guard — warn when the user has started filling in the form ---
+  React.useEffect(() => {
+    if (!formState.isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Modern browsers require returnValue to be set; the actual string is ignored.
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [formState.isDirty]);
 
   // --- Live preview panel (Section 6.6) ------------------------------------
   // Subscribe to all form values so the live business-case panel updates as the

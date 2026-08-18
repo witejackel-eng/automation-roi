@@ -10,7 +10,7 @@
  */
 import * as React from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Search, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
@@ -21,17 +21,19 @@ import { DECISION_LABELS, TERM, type DecisionKey } from '@/lib/brand';
 import type { SavedProject } from '@/lib/store';
 
 export function ProjectsView() {
-  const { entitlement, projects, setProjects, startCalculator, go } = useApp(
+  const { entitlement, projects, setProjects, startCalculator, reopenProject, go } = useApp(
     useShallow((s) => ({
       entitlement: s.entitlement,
       projects: s.projects,
       setProjects: s.setProjects,
       startCalculator: s.startCalculator,
+      reopenProject: s.reopenProject,
       go: s.go,
     }))
   );
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(true);
+  const [search, setSearch] = React.useState('');
 
   const canList = !!entitlement && has(entitlement, 'client_history');
 
@@ -107,51 +109,102 @@ export function ProjectsView() {
           onCta={() => startCalculator()}
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border bg-surface-raised">
-          <table className="w-full text-[14px]">
-            <thead className="border-b border-border bg-surface">
-              <tr>
-                <th className="px-5 py-2.5 text-left font-medium text-ink-muted">Client</th>
-                <th className="px-5 py-2.5 text-left font-medium text-ink-muted">
-                  {TERM.decision}
-                </th>
-                <th className="px-5 py-2.5 text-right font-medium text-ink-muted">Created</th>
-                <th className="px-5 py-2.5 text-right font-medium text-ink-muted">Updated</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((p) => {
-                const decisionKey = p.recommendation as DecisionKey;
-                return (
-                  <tr
-                    key={p.id}
-                    className="border-b border-border last:border-b-0 hover:bg-surface/50"
-                  >
-                    <td className="px-5 py-3 font-medium text-ink">{p.clientName}</td>
-                    <td className="px-5 py-3">
-                      <StatusPill variant={p.recommendation}>
-                        {DECISION_LABELS[decisionKey]}
-                      </StatusPill>
-                    </td>
-                    <td className="px-5 py-3 text-right font-mono tnum text-ink-muted">
-                      {new Date(p.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </td>
-                    <td className="px-5 py-3 text-right font-mono tnum text-ink-muted">
-                      {new Date(p.updatedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          {/* Search filter */}
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" strokeWidth={1.75} aria-hidden="true" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by client name…"
+              className="h-10 w-full max-w-sm rounded-lg border border-border bg-surface pl-9 pr-3 text-[14px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/40"
+              aria-label="Search projects"
+            />
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-border bg-surface-raised">
+            <table className="w-full text-[14px]" aria-label="Saved analyses">
+              <thead className="border-b border-border bg-surface">
+                <tr>
+                  <th className="px-5 py-2.5 text-left font-medium text-ink-muted">Client</th>
+                  <th className="px-5 py-2.5 text-left font-medium text-ink-muted">
+                    {TERM.decision}
+                  </th>
+                  <th className="px-5 py-2.5 text-right font-medium text-ink-muted">Created</th>
+                  <th className="px-5 py-2.5 text-right font-medium text-ink-muted">Updated</th>
+                  <th className="px-5 py-2.5 w-12"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {projects
+                  .filter((p) =>
+                    search
+                      ? p.clientName.toLowerCase().includes(search.toLowerCase())
+                      : true
+                  )
+                  .map((p) => {
+                  const decisionKey = p.recommendation as DecisionKey;
+                  return (
+                    <tr
+                      key={p.id}
+                      className="group border-b border-border last:border-b-0 hover:bg-surface/50"
+                    >
+                      <td className="px-5 py-3">
+                        <button
+                          type="button"
+                          onClick={() => reopenProject(p.id)}
+                          className="font-medium text-ink hover:text-brand transition-colors duration-hover text-left"
+                        >
+                          {p.clientName}
+                        </button>
+                      </td>
+                      <td className="px-5 py-3">
+                        <StatusPill variant={p.recommendation}>
+                          {DECISION_LABELS[decisionKey]}
+                        </StatusPill>
+                      </td>
+                      <td className="px-5 py-3 text-right font-mono tnum text-ink-muted">
+                        {new Date(p.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+                      <td className="px-5 py-3 text-right font-mono tnum text-ink-muted">
+                        {new Date(p.updatedAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </td>
+                      <td className="px-2 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!window.confirm(`Delete “${p.clientName}”? This cannot be undone.`)) return;
+                            try {
+                              const res = await fetch(`/api/projects/${p.id}`, { method: 'DELETE' });
+                              if (res.ok) {
+                                setProjects(projects.filter((x) => x.id !== p.id));
+                                toast({ title: 'Analysis deleted.' });
+                              }
+                            } catch {
+                              /* ignore */
+                            }
+                          }}
+                          className="inline-flex min-h-[32px] min-w-[32px] items-center justify-center rounded text-ink-faint opacity-0 transition-all duration-hover hover:text-dont-build hover:bg-dont-build/5 focus:opacity-100 group-hover:opacity-100"
+                          aria-label={`Delete ${p.clientName}`}
+                        >
+                          <Trash2 className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

@@ -102,7 +102,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 //
 // Structure (matches piplanning.io):
 //   - Left side: a floating white rounded pill that contains the Logo + the
-//     nav links (Automation ROI, Methodology, Pricing, Login). Soft shadow
+//     nav links (Automation ROI, Methodology, Pricing). Soft shadow
 //     under the pill; the whole thing feels slightly elevated from the page.
 //   - Right side: the dark "Start free analysis →" button, OUTSIDE the pill.
 //   - The header itself is borderless and transparent at the top; on scroll
@@ -173,13 +173,6 @@ function MarketingTopNav() {
                 {item.label}
               </Link>
             ))}
-            <a
-              href="#"
-              onClick={(e) => { e.preventDefault(); }}
-              className="mkt-nav-link link-underline"
-            >
-              Login
-            </a>
           </div>
 
           {/* Mobile hamburger — inside the pill, separated by a hairline. */}
@@ -348,7 +341,12 @@ function MobileTabBar() {
             )}
             aria-current={active ? 'page' : undefined}
           >
-            <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />
+            <div className="flex flex-col items-center gap-0.5">
+              <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />
+              {active && (
+                <span className="block size-1 rounded-full bg-brand" aria-hidden="true" />
+              )}
+            </div>
             <span>{item.label}</span>
           </button>
         );

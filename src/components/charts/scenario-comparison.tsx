@@ -24,11 +24,11 @@ import type { ScenarioResult } from '@/lib/calculations/engine';
 /** Resolved design-token palette for SVG fills — recharts doesn't reliably
  * resolve CSS var() in SVG presentation attributes. */
 const CHART_COLORS = {
-  border: '#E3E6EB',
-  surface: '#F7F8FA',
-  ink: '#0E1420',
-  inkMuted: '#626B7A',
-  brand: '#2647D6',
+  border: '#ECEAE8',
+  surface: '#FAFAF9',
+  ink: '#171516',
+  inkMuted: '#727076',
+  brand: '#FF164B',
 } as const;
 
 interface ScenarioComparisonProps {
@@ -84,7 +84,7 @@ function makeScenarioValueLabel(data: ChartDatum[]) {
           y={y - 22}
           textAnchor="middle"
           fill={CHART_COLORS.ink}
-          style={{ fontSize: 12, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
+          style={{ fontSize: 12, fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
         >
           {formatCurrency(value as number, { compact: true })}
         </text>
@@ -149,7 +149,7 @@ export function ScenarioComparison({
   const headline = buildHeadline(results);
 
   return (
-    <div className={cn('rounded-lg border border-border bg-surface-raised p-6')}>
+    <div className={cn('rounded-lg border border-border bg-surface-raised p-6')} role="img" aria-label={`Scenario Comparison chart: ${headline}`}>
       <h3 className="text-[22px] leading-tight font-semibold font-display text-ink mb-1">
         Exhibit 2 — {headline}
       </h3>

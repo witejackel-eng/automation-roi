@@ -26,7 +26,7 @@
  */
 import * as React from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Save, FileText, FileSignature, ArrowLeft, Share2 } from 'lucide-react';
+import { Save, FileText, FileSignature, ArrowLeft, Share2, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
@@ -300,6 +300,7 @@ export function ResultsView() {
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 md:px-6 md:py-12">
+      <ScrollToTop />
       {/* Back + prepared-for row */}
       <div className="mb-6 flex items-center justify-between">
         <Button
@@ -698,5 +699,30 @@ function EmptyResults({ onBack }: { onBack: () => void }) {
         Open the calculator
       </Button>
     </div>
+  );
+}
+
+/** Floating scroll-to-top button — appears after 400px scroll. */
+function ScrollToTop() {
+  const [visible, setVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="fixed bottom-20 right-4 z-20 flex size-10 items-center justify-center rounded-full border border-border bg-surface shadow-floating text-ink-muted hover:text-ink transition-colors duration-hover md:bottom-6"
+      aria-label="Back to top"
+    >
+      <ArrowUp className="size-4" strokeWidth={1.75} aria-hidden="true" />
+    </button>
   );
 }

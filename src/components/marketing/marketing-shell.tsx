@@ -67,7 +67,6 @@ const FOOTER_COLUMNS = [
     title: 'Company',
     links: [
       { href: '/methodology', label: 'Methodology' },
-      { href: '/methodology', label: 'How it works' },
     ],
   },
 ];
@@ -144,13 +143,6 @@ function MarketingTopNav() {
                 </Link>
               );
             })}
-            <a
-              href="#"
-              onClick={(e) => e.preventDefault()}
-              className="mkt-nav-link link-underline"
-            >
-              Login
-            </a>
           </div>
 
           {/* Mobile hamburger — inside the pill. */}

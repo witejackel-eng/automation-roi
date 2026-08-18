@@ -23,14 +23,14 @@ import type { ScenarioResult } from '@/lib/calculations/engine';
  * variables in globals.css remain the source of truth; this object mirrors them.
  */
 const CHART_COLORS = {
-  borderStrong: '#C7CCD6',
-  border: '#E3E6EB',
-  surface: '#F7F8FA',
-  ink: '#0E1420',
-  inkMuted: '#626B7A',
-  brand: '#2647D6',
-  build: '#0F7B4B',
-  dontBuild: '#8A2E2E',
+  borderStrong: '#CFCCC9',
+  border: '#ECEAE8',
+  surface: '#FAFAF9',
+  ink: '#171516',
+  inkMuted: '#727076',
+  brand: '#FF164B',
+  build: '#1F8A5A',
+  dontBuild: '#B70F38',
 } as const;
 
 interface RoiBridgeProps {
@@ -89,7 +89,7 @@ function makeRoiBridgeValueLabel(data: ChartDatum[]) {
         y={y - 6}
         textAnchor="middle"
         fill={CHART_COLORS.ink}
-        style={{ fontSize: 12, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
+        style={{ fontSize: 12, fontFamily: 'var(--font-mono), ui-monospace, monospace' }}
       >
         {formatCurrency(display, { compact: true })}
       </text>
@@ -177,7 +177,7 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
   const headline = buildHeadline(result, isRevenueOpportunityOnly);
 
   return (
-    <div className={cn('rounded-lg border border-border bg-surface-raised p-6')}>
+    <div className={cn('rounded-lg border border-border bg-surface-raised p-6')} role="img" aria-label={`ROI Bridge waterfall chart: ${headline}`}>
       <h3 className="text-[22px] leading-tight font-semibold font-display text-ink mb-1">
         Exhibit 1 — {headline}
       </h3>

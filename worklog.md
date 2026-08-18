@@ -70,3 +70,29 @@ Stage Summary:
 - Spacing is more commanding throughout the hero
 - Eyebrow dot changed to coral accent for the one sanctioned color moment
 - All changes confined to Hero section only — no other sections touched
+
+---
+Task ID: 5
+Agent: main
+Task: Fix dead links, favicon, nav improvements, beforeunload guard
+
+Work Log:
+- Removed dead Login link (`<a href="#" onClick={e.preventDefault()}>Login</a>`) from desktop nav in app-shell.tsx
+- Updated comment in app-shell.tsx that referenced "Login" in the nav pill description
+- Verified no Login link existed in app-shell.tsx mobile menu dropdown (only CTA button)
+- Removed dead Login link from desktop nav in marketing-shell.tsx (same dead `<a href="#">` pattern)
+- Verified no Login link existed in marketing-shell.tsx mobile menu dropdown
+- Removed duplicate "How it works" link from marketing-shell.tsx FOOTER_COLUMNS Company section (both "Methodology" and "How it works" linked to /methodology)
+- Added active indicator dot (4px bg-brand circle) below the active tab icon in MobileTabBar in app-shell.tsx, wrapped icon + dot in a flex-col container
+- Generated favicon PNGs (favicon-16.png, favicon-32.png, apple-touch-icon.png) from the SVG favicon design using Python PIL — programmatic redraw of the V-check + dot on rounded rect background
+- Added beforeunload guard to wizard.tsx — uses formState.isDirty from react-hook-form to conditionally attach/detach a beforeunload listener that triggers browser navigation confirmation
+- Ran lint — passed with zero errors
+- Dev server running, GET / 200
+
+Stage Summary:
+- All dead links removed: Login link gone from app-shell.tsx and marketing-shell.tsx
+- Duplicate "How it works" footer link removed (was same /methodology as "Methodology")
+- MobileTabBar shows a small brand-colored dot below the active tab icon for clearer visual feedback
+- Favicon PNGs exist at public/favicon-16.png, favicon-32.png, apple-touch-icon.png (no more 404s)
+- Calculator wizard now warns before unload/refresh when form has unsaved changes
+- Zero lint errors
