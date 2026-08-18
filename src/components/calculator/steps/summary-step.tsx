@@ -157,6 +157,7 @@ export function SummaryStep({ form, onEdit }: SummaryStepProps) {
     { label: 'Implementation fee', value: currencyCell(v.implementationFee) },
     { label: 'Monthly AI/API cost', value: `${currencyCell(v.monthlyAiApiCost)}/mo` },
     { label: 'Monthly software/tool cost', value: `${currencyCell(v.monthlySoftwareCost)}/mo` },
+    { label: 'Ongoing platform/API cost', value: `${currencyCell(v.platformApiCost)}/mo` },
     { label: 'Other annual cost', value: currencyCell(v.otherAnnualCost) },
   ]);
 
@@ -166,17 +167,17 @@ export function SummaryStep({ form, onEdit }: SummaryStepProps) {
         Review your assumptions before running the calculation. Numbers are shown exactly as the engine will receive them.
       </p>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <SummaryGroup title="Business" stepId="business" onEdit={onEdit}>
+        <SummaryGroup title="Describe the automation" stepId="business" onEdit={onEdit}>
           {businessRows.map((r) => (
             <SummaryRow key={r.label} row={r} />
           ))}
         </SummaryGroup>
-        <SummaryGroup title="Revenue" stepId="revenue" onEdit={onEdit}>
+        <SummaryGroup title="What would it earn?" stepId="revenue" onEdit={onEdit}>
           {revenueRows.map((r) => (
             <SummaryRow key={r.label} row={r} />
           ))}
         </SummaryGroup>
-        <SummaryGroup title="Automation" stepId="automation" onEdit={onEdit}>
+        <SummaryGroup title="What does it cost today?" stepId="automation" onEdit={onEdit}>
           {automationRows.map((r) => (
             <SummaryRow key={r.label} row={r} />
           ))}

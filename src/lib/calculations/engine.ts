@@ -24,6 +24,7 @@ const REQUIRED_NUMERIC_FIELDS: Array<keyof CalculatorInputs> = [
   'implementationFee',
   'monthlyAiApiCost',
   'monthlySoftwareCost',
+  'platformApiCost',
   'otherAnnualCost',
 ];
 
@@ -103,6 +104,7 @@ export interface CalculatorInputs {
   implementationFee: number; // USD
   monthlyAiApiCost: number; // USD
   monthlySoftwareCost: number; // USD
+  platformApiCost: number; // USD — ongoing platform/API cost (Zapier, Make, n8n task costs)
   otherAnnualCost: number; // USD
 }
 
@@ -154,6 +156,7 @@ export function calculateScenario(
   const annualRecurringCost =
     inputs.monthlyAiApiCost * 12 +
     inputs.monthlySoftwareCost * 12 +
+    inputs.platformApiCost * 12 +
     inputs.otherAnnualCost;
 
   const totalFirstYearCost = inputs.implementationFee + annualRecurringCost;

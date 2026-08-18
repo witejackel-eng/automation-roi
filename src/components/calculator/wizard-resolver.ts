@@ -43,6 +43,7 @@ export type WizardFormValues = {
   implementationFee: string;
   monthlyAiApiCost: string;
   monthlySoftwareCost: string;
+  platformApiCost: string;
   otherAnnualCost: string;
 };
 
@@ -64,6 +65,7 @@ export const EMPTY_FORM_VALUES: WizardFormValues = {
   implementationFee: '',
   monthlyAiApiCost: '',
   monthlySoftwareCost: '',
+  platformApiCost: '',
   otherAnnualCost: '',
 };
 
@@ -185,6 +187,7 @@ export function toFormValues(inputs: CalculatorInputs): WizardFormValues {
     implementationFee: num(inputs.implementationFee),
     monthlyAiApiCost: num(inputs.monthlyAiApiCost),
     monthlySoftwareCost: num(inputs.monthlySoftwareCost),
+    platformApiCost: num(inputs.platformApiCost),
     otherAnnualCost: num(inputs.otherAnnualCost),
   };
 }
@@ -212,6 +215,7 @@ export const STEP_FIELDS: Record<'business' | 'revenue' | 'automation', Array<ke
     'implementationFee',
     'monthlyAiApiCost',
     'monthlySoftwareCost',
+    'platformApiCost',
     'otherAnnualCost',
   ],
 };
@@ -273,6 +277,8 @@ export function formValuesToInputs(
   if (monthlyAiApiCost == null) return null;
   const monthlySoftwareCost = parseNum(v.monthlySoftwareCost);
   if (monthlySoftwareCost == null) return null;
+  const platformApiCost = parseNum(v.platformApiCost);
+  if (platformApiCost == null) return null;
   const otherAnnualCost = parseNum(v.otherAnnualCost);
   if (otherAnnualCost == null) return null;
 
@@ -310,6 +316,7 @@ export function formValuesToInputs(
     implementationFee,
     monthlyAiApiCost,
     monthlySoftwareCost,
+    platformApiCost,
     otherAnnualCost,
   };
 }

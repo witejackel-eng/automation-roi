@@ -40,6 +40,7 @@ export function ScenarioSlider({ value, onChange, className, size = 'md' }: Scen
         SIZE[size],
         className
       )}
+      aria-live="polite"
     >
       {SCENARIO_ORDER.map((name, i) => {
         const active = name === value;

@@ -9,8 +9,9 @@
  *   can reference it directly without any cloud credentials.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement, has } from '@/lib/entitlement';
+import { requireOrg, AuthError } from '@/lib/session';
+import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { has } from '@/lib/entitlement';
 import { storeImage } from '@/lib/storage';
 
 export const runtime = 'nodejs';
@@ -19,8 +20,9 @@ const MAX_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 
 export async function POST(req: NextRequest) {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'agency_branding')) {
     return NextResponse.json(
       { error: 'Logo upload requires Agency or higher.', requiredTier: 'agency' },
@@ -51,4 +53,8 @@ export async function POST(req: NextRequest) {
   const stored = await storeImage(fileName, buf, file.type);
 
   return NextResponse.json({ url: stored.url, size: buf.length });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

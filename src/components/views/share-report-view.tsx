@@ -4,17 +4,19 @@
  * ShareReportView — the read-only client report rendered at /r/[shareId]
  * (Master Spec §41, §45).
  *
- * Shows: agency branding, "Prepared for [Client]", the verdict, the three
- * headline figures (Annual opportunity / ROI / Payback), the scenario slider
- * (read-only — switches the displayed numbers), and a collapsible
- * assumptions panel.
+ * Phase 2 additions:
+ *   - Engagement tracking: view event on mount, section scroll depth via
+ *     IntersectionObserver, time-on-page via beforeunload.
+ *   - Client approval: "Approve" and "Request changes" buttons with a
+ *     frictionless form (name required, email + comment optional).
+ *     No account required.
  *
  * NO edit/save/share actions. NO internal agency notes. NO sensitive data.
  * The scenario slider only changes which computed scenario is displayed —
  * it never re-runs the calculation (the numbers are frozen at share time).
  */
 import * as React from 'react';
-import { ShieldCheck, ExternalLink } from 'lucide-react';
+import { ShieldCheck, ExternalLink, CheckCircle2, MessageSquare } from 'lucide-react';
 import {
   DecisionBadge,
   CountUp,
@@ -49,6 +51,14 @@ interface ShareReportViewProps {
   recommendation: Recommendation;
 }
 
+// Sections to track scroll engagement for.
+const TRACKED_SECTIONS = [
+  { id: 'verdict-section', label: 'Verdict' },
+  { id: 'scenarios-section', label: 'Scenarios' },
+  { id: 'comparison-section', label: 'Comparison' },
+  { id: 'assumptions-section', label: 'Assumptions' },
+];
+
 export function ShareReportView({
   shareId,
   createdAt,
@@ -61,6 +71,15 @@ export function ShareReportView({
   const [activeScenario, setActiveScenario] = React.useState<ScenarioName>('expected');
   const [showAssumptions, setShowAssumptions] = React.useState(false);
 
+  // Approval state
+  const [approvalSubmitted, setApprovalSubmitted] = React.useState(false);
+  const [approvalLoading, setApprovalLoading] = React.useState(false);
+  const [showApprovalForm, setShowApprovalForm] = React.useState(false);
+  const [approvalAction, setApprovalAction] = React.useState<'approve' | 'request_changes' | null>(null);
+  const [approvalName, setApprovalName] = React.useState('');
+  const [approvalEmail, setApprovalEmail] = React.useState('');
+  const [approvalComment, setApprovalComment] = React.useState('');
+
   const active = results[activeScenario];
   const activeRec = recommend(active);
 
@@ -70,6 +89,105 @@ export function ShareReportView({
     month: 'long',
     day: 'numeric',
   });
+
+  // ── Engagement tracking (Phase 2.1) ──────────────────────────────
+  const mountTimeRef = React.useRef(Date.now());
+  const viewSentRef = React.useRef(false);
+
+  // Record 'view' event on mount.
+  React.useEffect(() => {
+    if (viewSentRef.current) return;
+    viewSentRef.current = true;
+
+    fetch(`/api/share/${shareId}/event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventType: 'view' }),
+    }).catch(() => { /* silent */ });
+  }, [shareId]);
+
+  // Track section scroll depth using IntersectionObserver.
+  React.useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    const observers: IntersectionObserver[] = [];
+
+    for (const section of TRACKED_SECTIONS) {
+      const el = document.getElementById(section.id);
+      if (!el) continue;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              fetch(`/api/share/${shareId}/event`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  eventType: 'section_scroll',
+                  section: section.label,
+                  value: entry.intersectionRatio,
+                }),
+              }).catch(() => { /* silent */ });
+            }
+          }
+        },
+        { threshold: [0.25, 0.5, 0.75, 1.0] }
+      );
+
+      observer.observe(el);
+      observers.push(observer);
+    }
+
+    return () => {
+      for (const obs of observers) obs.disconnect();
+    };
+  }, [shareId]);
+
+  // Track time-on-page with beforeunload handler.
+  React.useEffect(() => {
+    const handleUnload = () => {
+      const secondsOnPage = (Date.now() - mountTimeRef.current) / 1000;
+      // Use sendBeacon for reliability during page unload.
+      const payload = JSON.stringify({
+        eventType: 'time_on_page',
+        value: Math.round(secondsOnPage),
+      });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(`/api/share/${shareId}/event`, payload);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, [shareId]);
+
+  // ── Approval handler (Phase 2.2) ────────────────────────────────
+  const handleSubmitApproval = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!approvalAction || !approvalName.trim()) return;
+
+    setApprovalLoading(true);
+    try {
+      const res = await fetch(`/api/share/${shareId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: approvalAction,
+          name: approvalName.trim(),
+          email: approvalEmail.trim() || undefined,
+          comment: approvalComment.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        setApprovalSubmitted(true);
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setApprovalLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas">
@@ -100,7 +218,7 @@ export function ShareReportView({
 
       <main className="mx-auto w-full max-w-[900px] flex-1 px-4 py-12 md:px-6 md:py-16">
         {/* Verdict section — the headline IS the verdict (Voice Spec §5.9) */}
-        <section aria-labelledby="verdict-heading">
+        <section id="verdict-section" aria-labelledby="verdict-heading">
           <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.005em] text-ink-muted">
             <Dot size="sm" />
             Viableo Decision
@@ -127,7 +245,7 @@ export function ShareReportView({
         </div>
 
         {/* Scenario selector — read-only, switches displayed numbers only */}
-        <section aria-labelledby="scenarios-heading">
+        <section id="scenarios-section" aria-labelledby="scenarios-heading">
           <div className="flex items-center justify-between gap-4">
             <h2 id="scenarios-heading" className="text-xl font-semibold tracking-[-0.02em] text-ink">
               See the upside, the floor, and the expected.
@@ -181,7 +299,7 @@ export function ShareReportView({
         </div>
 
         {/* Scenario comparison table */}
-        <section aria-labelledby="comparison-heading">
+        <section id="comparison-section" aria-labelledby="comparison-heading">
           <h2 id="comparison-heading" className="text-xl font-semibold tracking-[-0.02em] text-ink">
             All three scenarios
           </h2>
@@ -215,7 +333,7 @@ export function ShareReportView({
         </div>
 
         {/* Assumptions — collapsible */}
-        <section aria-labelledby="assumptions-heading">
+        <section id="assumptions-section" aria-labelledby="assumptions-heading">
           <button
             type="button"
             onClick={() => setShowAssumptions((v) => !v)}
@@ -239,6 +357,124 @@ export function ShareReportView({
               <AssumptionRow label="Implementation fee" value={formatCurrency(inputs.implementationFee)} />
               <AssumptionRow label="Monthly AI/API cost" value={formatCurrency(inputs.monthlyAiApiCost)} />
               <AssumptionRow label="Monthly software cost" value={formatCurrency(inputs.monthlySoftwareCost)} />
+            </div>
+          )}
+        </section>
+
+        <div className="my-10">
+          <DotRule />
+        </div>
+
+        {/* Client approval section (Phase 2.2) */}
+        <section aria-labelledby="approval-heading">
+          {approvalSubmitted ? (
+            <div className="rounded-md border border-build/30 bg-build/5 p-6 text-center">
+              <CheckCircle2 className="mx-auto size-8 text-build" strokeWidth={1.75} aria-hidden="true" />
+              <h3 className="mt-3 font-display text-lg font-semibold text-ink">
+                {approvalAction === 'approve' ? 'Approved' : 'Feedback sent'}
+              </h3>
+              <p className="mt-1 text-[14px] text-ink-muted">
+                {approvalAction === 'approve'
+                  ? 'Thank you. Your approval has been recorded.'
+                  : 'Thank you. Your change request has been sent.'}
+              </p>
+            </div>
+          ) : showApprovalForm ? (
+            <div className="rounded-md border border-border bg-surface p-6">
+              <h3 id="approval-heading" className="font-display text-lg font-semibold text-ink">
+                {approvalAction === 'approve' ? 'Confirm approval' : 'Request changes'}
+              </h3>
+              <p className="mt-1 text-[14px] text-ink-muted">
+                {approvalAction === 'approve'
+                  ? 'Confirm that you approve this business case.'
+                  : 'Describe what needs to change before you can approve.'}
+              </p>
+              <form onSubmit={handleSubmitApproval} className="mt-5 space-y-4">
+                <div>
+                  <label htmlFor="approval-name" className="block text-[13px] font-medium text-ink">
+                    Your name <span className="text-dont-build">*</span>
+                  </label>
+                  <input
+                    id="approval-name"
+                    type="text"
+                    required
+                    value={approvalName}
+                    onChange={(e) => setApprovalName(e.target.value)}
+                    className="mt-1 h-10 w-full rounded-md border border-border bg-canvas px-3 text-[14px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/40"
+                    placeholder="Your full name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="approval-email" className="block text-[13px] font-medium text-ink">
+                    Email <span className="text-ink-faint">(optional)</span>
+                  </label>
+                  <input
+                    id="approval-email"
+                    type="email"
+                    value={approvalEmail}
+                    onChange={(e) => setApprovalEmail(e.target.value)}
+                    className="mt-1 h-10 w-full rounded-md border border-border bg-canvas px-3 text-[14px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/40"
+                    placeholder="you@company.com"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="approval-comment" className="block text-[13px] font-medium text-ink">
+                    Comment <span className="text-ink-faint">(optional)</span>
+                  </label>
+                  <textarea
+                    id="approval-comment"
+                    value={approvalComment}
+                    onChange={(e) => setApprovalComment(e.target.value)}
+                    rows={3}
+                    className="mt-1 w-full rounded-md border border-border bg-canvas px-3 py-2 text-[14px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand/40"
+                    placeholder={approvalAction === 'request_changes' ? 'What needs to change?' : 'Any additional notes'}
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={approvalLoading || !approvalName.trim()}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-brand px-5 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    {approvalLoading ? 'Sending\u2026' : approvalAction === 'approve' ? 'Confirm approval' : 'Send request'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowApprovalForm(false); setApprovalAction(null); }}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-border px-5 text-[14px] font-medium text-ink-muted transition-colors hover:bg-surface"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="rounded-md border border-border bg-surface p-6">
+              <h3 id="approval-heading" className="font-display text-lg font-semibold text-ink">
+                Your decision
+              </h3>
+              <p className="mt-1 text-[14px] text-ink-muted">
+                Review the analysis above, then let us know where you stand.
+              </p>
+              {/* Mobile-first: buttons are full-width, thumb-reachable at bottom */}
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => { setApprovalAction('approve'); setShowApprovalForm(true); }}
+                  className="inline-flex min-h-[48px] w-full sm:w-auto items-center justify-center gap-2 rounded-md bg-build px-6 text-[15px] font-semibold text-white transition-opacity hover:opacity-90"
+                >
+                  <CheckCircle2 className="size-5" strokeWidth={2} aria-hidden="true" />
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setApprovalAction('request_changes'); setShowApprovalForm(true); }}
+                  className="inline-flex min-h-[48px] w-full sm:w-auto items-center justify-center gap-2 rounded-md border border-consider bg-consider/5 px-6 text-[15px] font-semibold text-consider transition-colors hover:bg-consider/10"
+                >
+                  <MessageSquare className="size-5" strokeWidth={2} aria-hidden="true" />
+                  Request changes
+                </button>
+              </div>
             </div>
           )}
         </section>

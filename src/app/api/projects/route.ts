@@ -3,9 +3,10 @@
  * GET  /api/projects — list projects for the demo organization (agency+).
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { requireOrg, AuthError } from '@/lib/session';
+import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { has } from '@/lib/entitlement';
 import { db } from '@/lib/db';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement, has } from '@/lib/entitlement';
 import { calculatorInputsSchema } from '@/lib/validation/schema';
 import { calculateAllScenarios } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
@@ -22,8 +23,9 @@ interface SaveBody {
 }
 
 export async function POST(req: NextRequest) {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
       { error: 'Saving projects requires Pro or higher.', requiredTier: 'pro' },
@@ -51,9 +53,8 @@ export async function POST(req: NextRequest) {
   const results = calculateAllScenarios(inputs);
   const recommendation = recommend(results.expected);
 
-  const project = await db.project.create({
+  const project = await tenant(org.id).projects.create({
     data: {
-      organizationId: org.id,
       clientName: inputs.clientName,
       inputs: JSON.stringify(inputs),
       results: JSON.stringify(results),
@@ -67,11 +68,16 @@ export async function POST(req: NextRequest) {
     recommendation: project.recommendation,
     createdAt: project.createdAt,
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }
 
 export async function GET() {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'client_history')) {
     return NextResponse.json(
       { error: 'Project history requires Agency or higher.', requiredTier: 'agency' },
@@ -88,8 +94,44 @@ export async function GET() {
       recommendation: true,
       createdAt: true,
       updatedAt: true,
+      shares: {
+        where: { revokedAt: null },
+        select: {
+          id: true,
+          shareId: true,
+          decisionState: true,
+          events: {
+            where: { eventType: 'view' },
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+            take: 1,
+          },
+          _count: {
+            select: { events: { where: { eventType: 'view' } } },
+          },
+        },
+        take: 1,
+      },
     },
   });
 
-  return NextResponse.json({ projects });
+  // Map share engagement data onto the project response.
+  const projectsWithEngagement = projects.map((p) => {
+    const share = p.shares[0]; // most recent non-revoked share
+    const shareEngagement = share
+      ? {
+          viewCount: share._count.events,
+          lastViewed: share.events[0]?.createdAt?.toISOString() ?? null,
+          decisionState: share.decisionState,
+        }
+      : null;
+    const { shares: _shares, ...rest } = p;
+    return { ...rest, shareEngagement };
+  });
+
+  return NextResponse.json({ projects: projectsWithEngagement });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

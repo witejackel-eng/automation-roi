@@ -2,7 +2,8 @@
  * POST /api/calculate — pure calculation, all three scenarios, no persistence.
  * Free-tier path: never writes to the database.
  *
- * Rate-limited (in-memory, 30 req/min/IP) since it is unauthenticated.
+ * Rate-limited (Upstash Redis or in-memory fallback, 30 req/min/IP)
+ * since it is unauthenticated.
  *
  * Response 200: { inputs, results: {conservative, expected, upside}, recommendation }
  * Response 422: { error, issues: { fieldName: string[] } }
@@ -12,11 +13,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { calculatorInputsSchema } from '@/lib/validation/schema';
 import { calculateAllScenarios } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
-import { safeCalc } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
-const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 30;
 
 export async function POST(req: NextRequest) {
@@ -24,7 +24,9 @@ export async function POST(req: NextRequest) {
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     req.headers.get('x-real-ip') ??
     'unknown';
-  if (!safeCalc(ip, WINDOW_MS, MAX_REQUESTS)) {
+
+  const allowed = await checkRateLimit(ip, 60_000, MAX_REQUESTS);
+  if (!allowed) {
     return NextResponse.json(
       { error: 'Too many calculations. Try again in a minute.' },
       { status: 429 }

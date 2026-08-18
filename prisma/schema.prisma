@@ -1,4 +1,4 @@
-// Automation ROI — data model (Section 6, adapted for PostgreSQL).
+// Viableo — data model.
 // PostgreSQL is the production datasource; SQLite .env is kept as a dev fallback.
 
 generator client {
@@ -9,6 +9,80 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ── NextAuth models (Auth.js v4 compatible) ──────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts   Account[]
+  sessions   Session[]
+  memberships Membership[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Multi-tenancy ────────────────────────────────────────────────
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String   // 'owner' | 'member'
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+// ── Organization ─────────────────────────────────────────────────
 
 model Organization {
   id            String    @id @default(cuid())
@@ -21,9 +95,13 @@ model Organization {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  projects Project[]
-  licenses License[]
+  projects    Project[]
+  licenses    License[]
+  memberships Membership[]
+  shareEvents ShareEvent[]
 }
+
+// ── Projects ─────────────────────────────────────────────────────
 
 model Project {
   id             String   @id @default(cuid())
@@ -57,22 +135,61 @@ model Report {
   @@index([projectId])
 }
 
-model Share {
-  id         String   @id @default(cuid())
-  shareId    String   @unique // opaque random identifier used in /r/[shareId]
-  projectId  String
-  reportId   String?  // optional: link to a specific generated report
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  expiresAt  DateTime? // optional expiry
-  revokedAt  DateTime? // set when access is revoked
+// ── Sharing & Client Engagement ──────────────────────────────────
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  report  Report? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+model Share {
+  id            String    @id @default(cuid())
+  shareId       String    @unique // opaque random identifier used in /r/[shareId]
+  projectId     String
+  reportId      String?   // optional: link to a specific generated report
+  decisionState String    @default("sent") // 'sent' | 'viewed' | 'approved' | 'changes_requested'
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  expiresAt     DateTime? // optional expiry
+  revokedAt     DateTime? // set when access is revoked
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  report     Report?  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  approvals  ShareApproval[]
+  events     ShareEvent[]
 
   @@index([shareId])
   @@index([projectId])
 }
+
+model ShareApproval {
+  id        String   @id @default(cuid())
+  shareId   String
+  action    String   // 'approve' | 'request_changes'
+  name      String?
+  email     String?
+  comment   String?
+  createdAt DateTime @default(now())
+
+  share Share @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+}
+
+model ShareEvent {
+  id             String   @id @default(cuid())
+  shareId        String
+  organizationId String
+  eventType      String   // 'view' | 'section_scroll' | 'time_on_page' | 'approval'
+  section        String?  // which section was viewed/scrolled
+  value          Float?   // scroll depth (0-1), time in seconds, etc.
+  metadata       String?  // JSON for extra data
+  createdAt      DateTime @default(now())
+
+  share        Share        @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+// ── Licensing ────────────────────────────────────────────────────
 
 model License {
   id             String    @id @default(cuid())

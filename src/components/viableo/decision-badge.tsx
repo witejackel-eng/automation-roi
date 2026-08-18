@@ -51,11 +51,16 @@ export function DecisionBadge({ decision, size = 'md', className, animate }: Dec
         SIZE_CLASSES[size],
         className
       )}
-      style={{ backgroundColor: colors.bg, color: colors.text }}
+      style={{
+        backgroundColor: colors.bg,
+        color: colors.text,
+        border: `1.5px solid ${colors.border}`,
+      }}
     >
       <span
         className={cn('inline-flex items-center justify-center', SYMBOL_SIZE[size], animateClass)}
-        aria-hidden="true"
+        role="img"
+        aria-label={`${colors.label} indicator`}
       >
         <DecisionSymbol decision={decision} />
       </span>

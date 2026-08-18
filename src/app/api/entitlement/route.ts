@@ -3,17 +3,22 @@
  * drives UI gating.
  */
 import { NextResponse } from 'next/server';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement } from '@/lib/entitlement';
+import { requireOrg, AuthError } from '@/lib/session';
+import { getOrgEntitlement } from '@/lib/tenant';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   return NextResponse.json({
     organizationId: org.id,
     organizationName: org.name,
     ...entitlement,
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

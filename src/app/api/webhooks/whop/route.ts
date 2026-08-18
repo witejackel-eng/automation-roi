@@ -10,11 +10,14 @@
  *  - Idempotency: If a License with the same whopEventId already exists,
  *    return 200 without creating a duplicate.
  *  - Body is validated with Zod — malformed payloads are rejected (Section 12).
+ *
+ * Organization ID is resolved from the webhook payload's metadata (not
+ * hardcoded DEMO_ORG_ID), enabling proper multi-tenant license management.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { DEMO_ORG_ID } from '@/lib/session';
+import { tenant } from '@/lib/tenant';
 import type { Tier } from '@/lib/entitlement';
 import { createHmac } from 'crypto';
 
@@ -33,6 +36,9 @@ const whopWebhookSchema = z.object({
   product: z.string().optional(),
   order_id: z.string().optional(),
   event_id: z.string().optional(),
+  metadata: z.object({
+    organizationId: z.string().optional(),
+  }).passthrough().optional(),
 }).passthrough(); // allow additional Whop fields we don't use
 
 /**
@@ -90,6 +96,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 422 });
   }
 
+  // ── Resolve organizationId from webhook payload metadata ────────
+  const organizationId = parsed.metadata?.organizationId;
+  if (!organizationId) {
+    return NextResponse.json(
+      { error: 'Missing organizationId in webhook metadata.' },
+      { status: 422 }
+    );
+  }
+
+  // Verify the organization exists.
+  const org = await db.organization.findUnique({ where: { id: organizationId } });
+  if (!org) {
+    return NextResponse.json(
+      { error: 'Organization not found.' },
+      { status: 404 }
+    );
+  }
+
   const tier =
     (parsed.tier && TIER_BY_PRODUCT[parsed.tier]) ??
     (parsed.product && TIER_BY_PRODUCT[parsed.product]) ??
@@ -110,8 +134,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Upsert license ─────────────────────────────────────────────
-  const existing = await db.license.findFirst({ where: { organizationId: DEMO_ORG_ID } });
+  // ── Upsert license (tenant-scoped) ─────────────────────────────
+  const existing = await tenant(organizationId).licenses.findFirst();
   if (existing) {
     await db.license.update({
       where: { id: existing.id },
@@ -123,9 +147,8 @@ export async function POST(req: NextRequest) {
       },
     });
   } else {
-    await db.license.create({
+    await tenant(organizationId).licenses.create({
       data: {
-        organizationId: DEMO_ORG_ID,
         tier,
         whopOrderId: parsed.order_id ?? null,
         whopEventId,

@@ -3,9 +3,9 @@
  * DELETE /api/projects/[id] — delete a saved project (pro+).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement, has } from '@/lib/entitlement';
+import { requireOrg, AuthError } from '@/lib/session';
+import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { has } from '@/lib/entitlement';
 import type { CalculatorInputs, ScenarioResult, Recommendation } from '@/lib/calculations/engine';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
 
@@ -13,8 +13,9 @@ export const runtime = 'nodejs';
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
       { error: 'Saved projects require Pro or higher.', requiredTier: 'pro' },
@@ -22,8 +23,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     );
   }
 
-  const project = await db.project.findUnique({ where: { id } });
-  if (!project || project.organizationId !== org.id) {
+  const project = await tenant(org.id).projects.findUnique({ id });
+  if (!project) {
     return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
   }
 
@@ -45,12 +46,17 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
       { error: 'Saved projects require Pro or higher.', requiredTier: 'pro' },
@@ -58,11 +64,15 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
     );
   }
 
-  const project = await db.project.findUnique({ where: { id } });
-  if (!project || project.organizationId !== org.id) {
+  const project = await tenant(org.id).projects.findUnique({ id });
+  if (!project) {
     return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
   }
 
-  await db.project.delete({ where: { id } });
+  await tenant(org.id).projects.delete({ id });
   return NextResponse.json({ success: true });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

@@ -3,6 +3,7 @@
 /**
  * Comparison table (Section 7.9, 9.6).
  *
+ * Includes "Generic ROI calculator" row alongside spreadsheets and generic-AI.
  * Sticky header row on scroll within the section. The Viableo column gets a
  * persistent subtle background tint and coral checkmarks; all other columns
  * stay neutral gray/charcoal. On hover of any row, lightly highlight that
@@ -32,6 +33,9 @@ export function ComparisonTable({ className }: { className?: string }) {
               <th className="px-4 py-3 text-center text-[12px] font-semibold uppercase tracking-[0.005em] text-ink-muted">
                 Spreadsheets
               </th>
+              <th className="px-4 py-3 text-center text-[12px] font-semibold uppercase tracking-[0.005em] text-ink-muted">
+                ROI calculator
+              </th>
               <th className="bg-brand-subtle px-4 py-3 text-center text-[12px] font-bold uppercase tracking-[0.005em] text-brand">
                 {COMPANY_NAME}
               </th>
@@ -56,6 +60,9 @@ export function ComparisonTable({ className }: { className?: string }) {
                 <td className="px-4 py-3 text-center">
                   <Cell mark={row.spreadsheet} />
                 </td>
+                <td className="px-4 py-3 text-center">
+                  <Cell mark={'genericRoi' in row ? row.genericRoi : false} />
+                </td>
                 <td className="bg-brand-subtle/60 px-4 py-3 text-center group-hover:bg-brand-subtle">
                   <Cell mark={row.viableo} highlight />
                 </td>
@@ -75,6 +82,7 @@ export function ComparisonTable({ className }: { className?: string }) {
               </th>
               <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase text-ink-muted">AI</th>
               <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase text-ink-muted">Sheets</th>
+              <th className="px-3 py-2 text-center text-[11px] font-semibold uppercase text-ink-muted">ROI calc</th>
               <th className="sticky right-0 z-10 bg-brand-subtle px-3 py-2 text-center text-[11px] font-bold uppercase text-brand">
                 {COMPANY_NAME}
               </th>
@@ -88,6 +96,7 @@ export function ComparisonTable({ className }: { className?: string }) {
                 </td>
                 <td className="px-3 py-2 text-center"><Cell mark={row.generic} /></td>
                 <td className="px-3 py-2 text-center"><Cell mark={row.spreadsheet} /></td>
+                <td className="px-3 py-2 text-center"><Cell mark={'genericRoi' in row ? row.genericRoi : false} /></td>
                 <td className="sticky right-0 z-10 bg-brand-subtle px-3 py-2 text-center">
                   <Cell mark={row.viableo} highlight />
                 </td>

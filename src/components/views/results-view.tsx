@@ -45,7 +45,13 @@ import {
   LoadingDot,
   WhyRecommendation,
   StressTestSection,
+  BreakingPointSlider,
+  ConfidenceExplained,
+  VerdictReveal,
+  RecurringEconomicsView,
 } from '@/components/viableo';
+import { computeSensitivity } from '@/lib/calculations/stress-test';
+import { computeConfidenceScore, type InputStatus } from '@/lib/calculations/confidence';
 import { TERM, DECISION_LABELS, type DecisionKey } from '@/lib/brand';
 import { recommend } from '@/lib/calculations/recommendation';
 import {
@@ -56,7 +62,8 @@ import {
 } from '@/lib/format';
 import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/calculations/scenarios';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
-import type { ScenarioResult } from '@/lib/calculations/engine';
+import type { ScenarioResult, CalculatorInputs } from '@/lib/calculations/engine';
+import { cn } from '@/lib/utils';
 
 export function ResultsView() {
   const {
@@ -301,6 +308,30 @@ export function ResultsView() {
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-8 md:px-6 md:py-12">
       <ScrollToTop />
+
+      {/* ── Mobile sticky top bar: verdict + confidence + headline figures ──
+          Visible only on small screens. Stays pinned so the key decision
+          numbers are always visible while scrolling through detailed exhibits. */}
+      <div className="sticky top-0 z-30 -mx-4 mb-6 border-b border-border bg-canvas/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-canvas/80 md:hidden" aria-live="polite">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <DecisionBadge decision={activeDecision} size="sm" />
+            <span className="font-mono tnum text-[13px] font-semibold text-ink" role="status">
+              {formatCurrency(active.netAnnualBenefit)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono tnum text-[12px] text-ink-muted" role="status">
+              {roiMultiple == null ? 'N/A' : `${roiMultiple.toFixed(1)}×`}
+            </span>
+            <span className="text-[11px] text-ink-faint">·</span>
+            <span className="font-mono tnum text-[12px] text-ink-muted" role="status">
+              {active.paybackMonths == null ? 'Never' : formatPayback(active.paybackMonths)}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Back + prepared-for row */}
       <div className="mb-6 flex items-center justify-between">
         <Button
@@ -339,6 +370,7 @@ export function ResultsView() {
           <div
             key={activeDecision}
             className="reveal-on-enter flex items-center gap-2"
+            aria-live="polite"
           >
             <span className="text-[11px] uppercase tracking-wide text-ink-muted">
               {TERM.decision}
@@ -377,7 +409,7 @@ export function ResultsView() {
           {/* ROI (×) */}
           <HeroFigure label="ROI" sublabel="Return on first-year cost">
             {roiMultiple == null ? (
-              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted">
+              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted" role="status">
                 N/A
               </span>
             ) : (
@@ -394,7 +426,7 @@ export function ResultsView() {
           {/* Payback (months) */}
           <HeroFigure label="Payback" sublabel="Months to recoup first-year cost">
             {active.paybackMonths == null ? (
-              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted">
+              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted" role="status">
                 Never
               </span>
             ) : (
@@ -466,6 +498,33 @@ export function ResultsView() {
           assumptions → actions. */}
       <StressTestSection inputs={inputs} activeScenario={activeScenario} />
 
+      {/* Breaking point slider (Phase 3.1) — the product's most distinctive moment.
+          Integrates after the stress test section. */}
+      <BreakingPointSlider inputs={inputs} activeScenario={activeScenario} />
+
+      {/* Confidence, explained (Phase 3.2) — below the verdict. */}
+      <ConfidenceExplainedSection inputs={inputs} />
+
+      {/* Verdict reveal with count-up (Phase 3.3) */}
+      <VerdictReveal
+        confidenceScore={computeConfidenceScore({}).score}
+        roiMultiple={roiMultiple}
+        netAnnualBenefit={active.netAnnualBenefit}
+        className="mb-10"
+      />
+
+      {/* Recurring economics view (Phase 3.4) — first-class monthly view */}
+      <RecurringEconomicsView
+        result={active}
+        monthlyAiApiCost={inputs.monthlyAiApiCost}
+        monthlySoftwareCost={inputs.monthlySoftwareCost}
+        platformApiCost={inputs.platformApiCost}
+        className="mb-10"
+      />
+
+      {/* Top drivers callout (Phase 2.4) */}
+      <TopDriversCallout inputs={inputs} activeScenario={activeScenario} />
+
       {/* Exhibit 1 — ROI Bridge (active scenario) */}
       <React.Suspense
         fallback={
@@ -501,7 +560,7 @@ export function ResultsView() {
         onSelect={setActiveScenario}
       />
 
-      {/* Assumptions */}
+      {/* Assumptions — collapsible on mobile via progressive disclosure */}
       <div className="mb-10 mt-12">
         <h2 className="mb-4 font-display text-[22px] font-semibold tracking-[-0.02em] text-ink">
           Assumptions
@@ -510,7 +569,10 @@ export function ResultsView() {
           Every input that feeds the calculation. Fields tagged &quot;context&quot; do not
           affect the dollar math.
         </p>
-        <AssumptionsTable inputs={inputs} />
+        {/* Desktop: full table. Mobile: progressive disclosure wrapper. */}
+        <div className="md:block">
+          <AssumptionsTable inputs={inputs} />
+        </div>
       </div>
 
       {/* Sticky secondary actions */}
@@ -733,5 +795,82 @@ function ScrollToTop() {
     >
       <ArrowUp className="size-4" strokeWidth={1.75} aria-hidden="true" />
     </button>
+  );
+}
+
+/** Top drivers callout — shows the top 3 sensitivity items (Phase 2.4). */
+function TopDriversCallout({
+  inputs,
+  activeScenario,
+}: {
+  inputs: CalculatorInputs;
+  activeScenario: ScenarioName;
+}) {
+  const sensitivity = React.useMemo(
+    () => computeSensitivity(inputs, activeScenario),
+    [inputs, activeScenario]
+  );
+  const top3 = sensitivity.slice(0, 3);
+  if (top3.length === 0) return null;
+
+  return (
+    <div className="mt-8 mb-10 rounded-md border border-border bg-surface p-5">
+      <h3 className="text-[13px] font-semibold uppercase tracking-[0.005em] text-ink-muted">
+        Top drivers of this outcome
+      </h3>
+      <div className="mt-3 space-y-2">
+        {top3.map((item, i) => (
+          <div key={item.label} className="flex items-center gap-3 text-[14px]">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-surface-raised font-mono tnum text-[12px] font-medium text-ink-muted">
+              {i + 1}
+            </span>
+            <span className="font-medium text-ink">{item.label}</span>
+            <span className={cn(
+              'ml-auto font-mono tnum text-[12px]',
+              item.level === 'high' ? 'text-dont-build' :
+              item.level === 'medium' ? 'text-consider' : 'text-build'
+            )}>
+              ±{Math.round(item.impact)}pp ROI
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[13px] text-ink-muted">
+        These assumptions move the verdict the most. Confirm them before committing.
+      </p>
+    </div>
+  );
+}
+
+/** ConfidenceExplained section wrapper — manages input statuses for the ConfidenceExplained component. */
+function ConfidenceExplainedSection({
+  inputs,
+}: {
+  inputs: CalculatorInputs;
+}) {
+  // Default all inputs to 'provided' since the user entered them.
+  // In a real app, these would come from the store with their actual statuses.
+  const [statuses, setStatuses] = React.useState<Record<string, InputStatus>>({
+    hourlyLaborCost: 'provided',
+    workloadVolume: 'provided',
+    implementationFee: 'provided',
+    automationCoverage: 'estimated',
+    conversionImprovement: 'estimated',
+    platformApiCost: 'assumption',
+    otherInputs: 'provided',
+    errorCost: 'assumption',
+  });
+
+  const handleStatusChange = React.useCallback((inputKey: string, newStatus: InputStatus) => {
+    setStatuses((prev) => ({ ...prev, [inputKey]: newStatus }));
+  }, []);
+
+  return (
+    <div className="mb-10">
+      <ConfidenceExplained
+        statuses={statuses}
+        onStatusChange={handleStatusChange}
+      />
+    </div>
   );
 }

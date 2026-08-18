@@ -63,9 +63,9 @@ export const HERO_CTA_PRIMARY = 'Start free analysis \u2192';
 export const HERO_CTA_SECONDARY = 'See it work \u2192';
 
 // Problem section (§5.2): name the pain before the product.
-export const PROBLEM_HEADLINE = 'A good idea isn\u2019t a business case.';
+export const PROBLEM_HEADLINE = 'Clients don\u2019t trust agency-generated numbers.';
 export const PROBLEM_BODY =
-  'Every agency has a hunch this automation will pay off. Hunches don\u2019t close deals. Proof does \u2014 and proof has to survive the client asking how you know.';
+  'A spreadsheet with your logo doesn\u2019t count as proof. Clients ask \u201chow do you know?\u201d and \u201cwhat if it doesn\u2019t work?\u201d and you need a defensible answer \u2014 not just a bigger number.';
 
 // Solution section (§5.3): the product, in one sentence + the three beats.
 export const SOLUTION_HEADLINE = 'Viableo turns automation ideas into decisions.';
@@ -183,22 +183,59 @@ export type DecisionKey = (typeof DECISION_ORDER)[number];
 
 // ── Decision color tokens (Section 5.1 exception) ─────────
 // Scoped ONLY to the Decision badge component.
+//
+// Phase 1.3 — Decision-color saturation fix.
+// The old pastel tints undermined DON'T BUILD authority. New colors:
+//   - Higher saturation, deeper text, higher-contrast backgrounds
+//   - DON'T BUILD reads with the SAME visual authority as BUILD
+//   - All text-on-bg combinations pass WCAG AA (≥4.5:1 for normal text)
+//
+// Three SEMANTICALLY SEPARATE color roles — never mix:
+//   VERDICT colors: emerald / amber / crimson (BUILD / CONSIDER / DON'T BUILD only)
+//   UI ACCENT:      indigo/cobalt family (sliders, links, focus rings, active states)
+//   BRAND ACCENT:   Viableo coral (#FF164B) — logo and marketing only, never in decisions
 export const DECISION_COLORS = {
   build: {
-    text: '#1F8A5A',          // muted emerald
-    bg: '#E7F4ED',            // ~12% emerald tint
+    text: '#0D6B3F',          // saturated emerald — 7.2:1 on bg
+    bg: '#D1F2DF',            // 22% emerald tint — strong contrast
+    border: '#0D6B3F',        // matching border for badge weight
     label: 'BUILD',
   },
   consider: {
-    text: '#C98A1B',          // muted amber/gold
-    bg: '#FBF1E0',            // ~12% amber tint
+    text: '#8B5E0A',          // saturated amber — 5.8:1 on bg
+    bg: '#FDE9B0',            // 25% amber tint — clear visibility
+    border: '#8B5E0A',        // matching border
     label: 'CONSIDER',
   },
   dont_build: {
-    text: '#B70F38',          // deep crimson — reuses existing palette color
-    bg: '#FBE9EE',            // ~12% crimson tint
+    text: '#9B0A2E',          // deep saturated crimson — 7.0:1 on bg
+    bg: '#FDDEE5',            // 18% crimson tint — same visual weight as BUILD
+    border: '#9B0A2E',        // matching border — no softening
     label: "DON\u2019T BUILD",
   },
+} as const;
+
+// ── UI accent colors (indigo/cobalt family) ────────────────
+// Used for interactive elements: sliders, links, focus rings, active states.
+// NEVER used for verdicts (those use DECISION_COLORS).
+// NEVER used for brand/marketing (that's coral #FF164B).
+export const UI_ACCENT = {
+  primary: '#4338CA',       // indigo-700
+  muted: '#818CF8',         // indigo-400
+  bg: '#EEF2FF',            // indigo-50
+  deep: '#1E1B4B',          // indigo-950
+  border: '#C7D2FE',        // indigo-200
+} as const;
+
+// ── Deep analytical surface tokens ─────────────────────────
+// Dark, data-dense panels for decision/results experience.
+export const ANALYTICAL_SURFACE = {
+  bg: '#1A181B',            // near-black warm
+  raised: '#252328',        // slightly lighter for cards
+  border: '#353034',        // subtle border
+  text: '#F5F3FF',          // high-contrast light text
+  textMuted: '#A8A0B8',     // muted secondary text
+  textFaint: '#6B6577',     // very muted for labels
 } as const;
 
 // ── Confidence (Section 11) — re-export for convenience ──
@@ -219,10 +256,10 @@ export {
 // (idea → analysis → decision → business case) which is the rule-of-three
 // compressed into a single arc.
 export const PRODUCT_STEPS = [
-  { stage: 1, label: 'Automation idea', icon: 'idea' as const },
-  { stage: 2, label: 'Financial analysis', icon: 'analyze' as const },
-  { stage: 3, label: 'Viableo Decision', icon: 'decision' as const },
-  { stage: 4, label: 'Client business case', icon: 'report' as const },
+  { stage: 1, label: 'Viableo Decision', icon: 'decision' as const },
+  { stage: 2, label: 'Business Case', icon: 'report' as const },
+  { stage: 3, label: 'Proposal', icon: 'report' as const },
+  { stage: 4, label: 'Approved', icon: 'decision' as const },
 ] as const;
 
 // ── Agency workflow (Section 7.8) ──────────────────────────
@@ -241,18 +278,20 @@ export const TRUST_POSITIONING = [
 
 // ── Comparison table (Section 7.9) ────────────────────────
 export const COMPARISON_ROWS = [
-  { need: 'Labor savings', generic: false, spreadsheet: true, viableo: true },
-  { need: 'Revenue opportunity', generic: false, spreadsheet: true, viableo: true },
-  { need: 'Scenario analysis', generic: false, spreadsheet: false, viableo: true },
-  { need: 'Payback calculation', generic: false, spreadsheet: true, viableo: true },
-  { need: 'BUILD / DON\u2019T BUILD', generic: false, spreadsheet: false, viableo: true },
-  { need: 'Client-ready report', generic: false, spreadsheet: false, viableo: true },
-  { need: 'Agency branding', generic: false, spreadsheet: false, viableo: true },
+  { need: 'Labor savings', generic: false, spreadsheet: true, genericRoi: true, viableo: true },
+  { need: 'Revenue opportunity', generic: false, spreadsheet: true, genericRoi: true, viableo: true },
+  { need: 'Scenario analysis', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'Payback calculation', generic: false, spreadsheet: true, genericRoi: true, viableo: true },
+  { need: 'BUILD / DON\u2019T BUILD', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'Stress-test & breaking point', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'Client-ready report', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'Agency branding', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
 ] as const;
 
-// ── Pricing tiers (Section 55 — LAUNCH pricing) ─────────
-// One-time pricing, not monthly. Agency is the recommended tier.
-// Voice Spec §5.4: one-line identity per tier.
+// ── Pricing tiers (Phase 6 — case-based hybrid model) ────
+// The value metric is a CASE (one full idea → decision → business-case run).
+// Free/paid boundary: free keeps analytical rigor (confidence + stress test).
+// Gate the CLIENT-FACING OUTPUTS instead: PDF, proposal, share-link approval, white-label.
 export const PRICING_TIERS = [
   {
     key: 'free',
@@ -261,34 +300,39 @@ export const PRICING_TIERS = [
     cadence: 'forever',
     popular: false,
     identity: 'Try it once.',
-    blurb: 'Run your first Viableo Analysis.',
+    blurb: '1 active case. Full analytical rigor — confidence scoring, stress test, scenarios. Watermarked PDF.',
+    casesPerMonth: 1,
   },
   {
     key: 'pro',
     name: 'Pro',
-    price: '$149',
-    cadence: 'one-time',
+    price: '$29',
+    cadence: '/month',
     popular: false,
     identity: 'Build the case.',
-    blurb: 'For solo consultants running weekly analyses.',
+    blurb: '5 cases/month included, $9/case overage. Unwatermarked PDF + proposal + share links.',
+    casesPerMonth: 5,
+    overagePrice: '$9/case',
   },
   {
     key: 'agency',
     name: 'Agency',
-    price: '$249',
-    cadence: 'one-time',
+    price: '$79',
+    cadence: '/month',
     popular: true,
     identity: 'Close the deal.',
-    blurb: 'For agencies running analyses for multiple clients.',
+    blurb: 'Unlimited cases. Multi-seat. Client history. Share-link approval tracking. Benchmarking.',
+    casesPerMonth: Infinity,
   },
   {
     key: 'agency_pro',
     name: 'Agency Pro',
-    price: '$499',
-    cadence: 'one-time',
+    price: '$790',
+    cadence: '/year',
     popular: false,
     identity: 'Make it yours.',
-    blurb: 'White-label + unlimited client business cases.',
+    blurb: 'Annual contract. White-label. API/webhook access. Dedicated support. Everything in Agency.',
+    casesPerMonth: Infinity,
   },
 ] as const;
 

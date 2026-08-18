@@ -65,9 +65,9 @@
   --color-surface-indigo-border: #E9E5F5; /* border for indigo surfaces */
 
   /* ── Fonts ──────────────────────────────────────────────── */
-  /* Inter (display + body), IBM Plex Mono (data / tabular numerals). */
+  /* Inter (body), IBM Plex Sans (display/headings), IBM Plex Mono (data / tabular numerals). */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-plex-sans), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
 
   /* ── Radius scale (coherent language) ───────────────────────
@@ -192,6 +192,21 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  /* Ensure interactive state changes are still instant */
+  :focus-visible {
+    outline-offset: 2px;
+  }
+  /* Disable motion/react animations */
+  .reveal-on-enter,
+  .reveal-on-scroll,
+  .hero-rise,
+  .dot-drop,
+  .count-pulse,
+  .stepper-line-draw {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
@@ -596,4 +611,43 @@
   background-color: var(--color-surface-analytical-raised);
   color: #E8E4F0;
   border-color: var(--color-surface-analytical-border);
+}
+
+/* ── Warm Editorial Light Surface ────────────────────────
+   For marketing / onboarding surfaces. Warm off-white with
+   soft borders — the inverse of the analytical surface. */
+.surface-editorial {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  border-color: var(--color-border);
+}
+.surface-editorial-raised {
+  background-color: var(--color-surface-raised);
+  color: var(--color-ink);
+  border-color: var(--color-border-strong);
+}
+
+/* ── Brand signature visual prominence ───────────────────
+   Ordered by visual priority:
+   (a) stress-test breaking-point meter
+   (b) confidence indicator
+   (c) decision verdict badge/stamp
+   (d) analytical data-grid pattern */
+.brand-signature-meter {
+  border: 2px solid var(--color-indigo-muted);
+  box-shadow: 0 0 0 1px var(--color-surface-analytical-border),
+    0 4px 12px rgba(0, 0, 0, 0.14);
+}
+.brand-signature-confidence {
+  border: 1.5px solid var(--color-indigo-muted);
+  box-shadow: 0 0 0 1px var(--color-surface-analytical-border);
+}
+.brand-signature-verdict {
+  border: 2px solid currentColor;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.brand-signature-datagrid {
+  background-image:
+    radial-gradient(circle, rgba(245, 243, 255, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
 }

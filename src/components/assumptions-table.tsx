@@ -127,6 +127,11 @@ function buildSections(inputs: CalculatorInputs): AssumptionSection[] {
           isNumeric: true,
         },
         {
+          label: 'Ongoing platform/API cost',
+          value: formatCurrency(inputs.platformApiCost),
+          isNumeric: true,
+        },
+        {
           label: 'Other annual cost',
           value: formatCurrency(inputs.otherAnnualCost),
           isNumeric: true,

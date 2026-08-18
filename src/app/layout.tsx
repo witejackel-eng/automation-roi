@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, IBM_Plex_Mono } from "next/font/google";
+import { Inter, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/components/auth-provider";
 import {
   COMPANY_NAME,
   PRODUCT_NAME,
@@ -10,12 +11,20 @@ import {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://viableo.app";
 
-// Inter is the primary display + body family (Section 5.2).
+// Inter is the primary body family (Section 5.2).
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
+});
+
+// IBM Plex Sans for display headings — strong, geometric character.
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 // IBM Plex Mono for tabular numerals on all financial figures.
@@ -164,9 +173,11 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
+        className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

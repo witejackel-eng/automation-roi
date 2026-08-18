@@ -3,13 +3,21 @@
 /**
  * Wizard stepper (Section 3.6).
  *
- * 3 steps labelled by NOUN ("Business", "Revenue", "Automation"). Each step has
+ * 3 steps labelled by JOB-ORIENTED terms ("Describe the automation",
+ * "What would it earn?", "What does it cost today?"). Each step has
  * three states: `completed` (brand, click-to-return), `current` (ink), `upcoming`
  * (ink-faint, not clickable).
  *
  * Desktop (≥768px): a horizontal row of [1]·Noun — line — [2]·Noun — line — [3]·Noun.
  * Mobile (<768px): a sticky progress bar at the top reading
  *   "Step X of 3 · {noun}" with a 1px-tall brand fill at (X/3)·100% width.
+ *
+ * Overall product flow (decision-first hierarchy):
+ *   Idea → Opportunity/Economics → Assumptions → Confidence Check →
+ *   Scenarios & Stress Test → DECISION → Business Case → Proposal →
+ *   Share/Deliver → Approve/Request changes
+ * Decision is promoted ABOVE Business Case — the decision IS the destination,
+ * documents are exports of it.
  */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
@@ -23,9 +31,9 @@ interface StepperStep {
 }
 
 const STEPS: StepperStep[] = [
-  { id: 'business', noun: 'Business', index: 1 },
-  { id: 'revenue', noun: 'Revenue', index: 2 },
-  { id: 'automation', noun: 'Automation', index: 3 },
+  { id: 'business', noun: 'Describe the automation', index: 1 },
+  { id: 'revenue', noun: 'What would it earn?', index: 2 },
+  { id: 'automation', noun: 'What does it cost today?', index: 3 },
 ];
 
 type StepState = 'completed' | 'current' | 'upcoming';

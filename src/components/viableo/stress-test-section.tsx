@@ -99,10 +99,10 @@ export function StressTestSection({ inputs, activeScenario }: StressTestSectionP
               />
               <ThresholdCardWithBar
                 label="Monthly operating cost"
-                currentValue={inputs.monthlyAiApiCost + inputs.monthlySoftwareCost}
+                currentValue={inputs.monthlyAiApiCost + inputs.monthlySoftwareCost + inputs.platformApiCost}
                 thresholdValue={thresholds.monthlyOperatingCost}
                 formatValue={(v) => formatCurrency(v)}
-                context="AI/API + software, per month"
+                context="AI/API + software + platform/API, per month"
               />
             </div>
 

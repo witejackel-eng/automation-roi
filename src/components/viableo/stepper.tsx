@@ -34,10 +34,10 @@ interface StepDef {
 }
 
 const PRIMARY_STEPS: StepDef[] = [
-  { icon: Lightbulb, label: 'Automation idea' },
-  { icon: Calculator, label: 'Financial analysis' },
   { icon: Check, label: 'Viableo Decision' },
-  { icon: FileText, label: 'Client business case' },
+  { icon: FileText, label: 'Business Case' },
+  { icon: FileText, label: 'Proposal' },
+  { icon: Check, label: 'Approved' },
 ];
 
 const SECONDARY_STEPS: StepDef[] = [
@@ -87,7 +87,7 @@ export function Stepper({ weight = 'primary', surface = 'light', className }: St
       {steps.map((step, i) => {
         const Icon = step.icon;
         const isLast = i === steps.length - 1;
-        const isDecisionStep = isPrimary && i === 2;
+        const isDecisionStep = isPrimary && i === 0;
         return (
           <React.Fragment key={i}>
             <div

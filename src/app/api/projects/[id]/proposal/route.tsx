@@ -9,8 +9,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import React from 'react';
 import { db } from '@/lib/db';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement, has } from '@/lib/entitlement';
+import { requireOrg, AuthError } from '@/lib/session';
+import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { has } from '@/lib/entitlement';
 import { recommend } from '@/lib/calculations/recommendation';
 import { storePdf } from '@/lib/storage';
 import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine';
@@ -20,8 +21,9 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'proposal')) {
     return NextResponse.json(
       { error: 'Proposal generation requires Pro or higher.', requiredTier: 'pro' },
@@ -29,8 +31,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     );
   }
 
-  const project = await db.project.findUnique({ where: { id } });
-  if (!project || project.organizationId !== org.id) {
+  const project = await tenant(org.id).projects.findUnique({ id });
+  if (!project) {
     return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
   }
 
@@ -102,4 +104,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     pdfUrl: report.pdfUrl,
     createdAt: report.createdAt,
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

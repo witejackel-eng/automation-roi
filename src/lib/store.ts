@@ -22,12 +22,19 @@ export interface SavedReport {
   createdAt: string;
 }
 
+export interface ShareEngagement {
+  viewCount: number;
+  lastViewed: string | null;
+  decisionState: string;
+}
+
 export interface SavedProject {
   id: string;
   clientName: string;
   recommendation: 'build' | 'consider' | 'dont_build';
   createdAt: string;
   updatedAt: string;
+  shareEngagement?: ShareEngagement | null;
 }
 
 interface AppState {

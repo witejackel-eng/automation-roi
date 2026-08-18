@@ -235,7 +235,7 @@ function HeroSection() {
               {HERO_SUBHEAD}
             </motion.p>
 
-            {/* Two CTAs: dark primary + text-link secondary. */}
+            {/* Single visually dominant CTA + demoted ghost secondary. */}
             <motion.div
               className="mt-11 flex flex-col gap-4 sm:flex-row sm:items-center"
               variants={{
@@ -256,12 +256,12 @@ function HeroSection() {
               <motion.button
                 type="button"
                 onClick={() => startCalculator(APEX_INPUTS)}
-                className="link-underline inline-flex min-h-[48px] items-center gap-1.5 px-2 text-[15px] font-medium text-ink transition-opacity duration-hover hover:opacity-70"
+                className="inline-flex min-h-[40px] items-center gap-1.5 px-3 text-[13px] font-medium text-ink-muted transition-opacity duration-hover hover:opacity-70 border border-border rounded-full"
                 whileHover={{ x: 3 }}
                 transition={{ duration: 0.22, ease: EASE_OUT }}
               >
                 {HERO_CTA_SECONDARY}
-                <ArrowRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
+                <ArrowRight className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
               </motion.button>
             </motion.div>
           </motion.div>
@@ -554,8 +554,8 @@ const DECISION_CARDS = [
 function DecisionFramework() {
   return (
     <section className="bg-canvas">
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-28 md:px-6 md:py-36">
-        <FadeIn className="mb-16 max-w-[760px]">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-36 md:px-6 md:py-48">
+        <FadeIn className="mb-20 max-w-[760px]">
           <p className="mkt-eyebrow">
             <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
             The verdict
@@ -565,12 +565,12 @@ function DecisionFramework() {
           </h2>
           <p className="mt-6 max-w-[600px] text-[17px] leading-[1.65] text-ink-muted md:text-[18px]">
             A closed vocabulary, not a vibe. Every Viableo Analysis terminates in BUILD,
-            CONSIDER, or DON&rsquo;T BUILD — with the math to defend it.
+            CONSIDER, or DON&rsquo;T BUILD &mdash; with the math to defend it.
           </p>
         </FadeIn>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
           {DECISION_CARDS.map((card, i) => (
-            <FadeIn key={card.decision} delay={i * 0.08}>
+            <FadeIn key={card.decision} delay={i * 0.1}>
               <DecisionCard {...card} />
             </FadeIn>
           ))}
@@ -917,6 +917,12 @@ function StressTestTeaser() {
                   DON&rsquo;T BUILD.
                 </span>
               </li>
+              <li className="flex items-start gap-3 text-[13px] text-[#B8B2C4]">
+                <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-[#706B7A]" />
+                <span>
+                  The breaking point is the exact value where your recommendation changes from BUILD to DON&rsquo;T BUILD.
+                </span>
+              </li>
             </ul>
           </div>
 
@@ -937,7 +943,8 @@ function StressTestTeaser() {
 
             <div className="mt-8 rounded-md border border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical-raised)] p-5">
               <p className="text-[13px] leading-[1.55] text-[#B8B2C4]">
-                The full stress test runs 50+ assumption permutations and ranks the
+                The full stress test runs 60+ assumption permutations — varying
+                individual levers and multi-lever combinations — and ranks the
                 inputs by how much they move the verdict.
               </p>
             </div>

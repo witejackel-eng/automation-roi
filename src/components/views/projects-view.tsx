@@ -10,7 +10,7 @@
  */
 import * as React from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { FileText, Plus, Search, Trash2 } from 'lucide-react';
+import { FileText, Plus, Search, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
@@ -163,6 +163,15 @@ export function ProjectsView() {
                         <StatusPill variant={p.recommendation}>
                           {DECISION_LABELS[decisionKey]}
                         </StatusPill>
+                        {p.shareEngagement && p.shareEngagement.viewCount > 0 && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-[11px] text-ink-faint">
+                            <Eye className="size-3" strokeWidth={1.75} aria-hidden="true" />
+                            Client opened {p.shareEngagement.viewCount} {p.shareEngagement.viewCount === 1 ? 'time' : 'times'}
+                            {p.shareEngagement.lastViewed && (
+                              <> · {relativeTime(p.shareEngagement.lastViewed)}</>
+                            )}
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-3 text-right font-mono tnum text-ink-muted">
                         {new Date(p.createdAt).toLocaleDateString('en-US', {
@@ -209,6 +218,23 @@ export function ProjectsView() {
       )}
     </div>
   );
+}
+
+/** Format a date string as a relative time like "2 hours ago" or "3 days ago". */
+function relativeTime(isoDate: string): string {
+  const now = Date.now();
+  const then = new Date(isoDate).getTime();
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} ${diffHr === 1 ? 'hour' : 'hours'} ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return `${diffDay} ${diffDay === 1 ? 'day' : 'days'} ago`;
+  const diffMo = Math.floor(diffDay / 30);
+  return `${diffMo} ${diffMo === 1 ? 'month' : 'months'} ago`;
 }
 
 function EmptyState({

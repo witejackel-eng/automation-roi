@@ -16,3 +16,13 @@ export {
   ConfidenceScoreCard,
 } from './confidence-tag';
 export { StressTestSection } from './stress-test-section';
+export { BreakingPointSlider } from './breaking-point-slider';
+export { ConfidenceExplained } from './confidence-explained';
+export { VerdictReveal } from './verdict-reveal';
+export { RecurringEconomicsView } from './recurring-economics-view';
+export { ClientHistoryReuse } from './client-history-reuse';
+
+// Phase 4 — AI features (z-ai-web-dev-sdk, server-side only)
+export { AiRisksSummary } from './ai-risks-summary';
+export { AiInputEstimator } from './ai-input-estimator';
+export { AiNarrativeDraft } from './ai-narrative-draft';

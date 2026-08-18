@@ -1,5 +1,5 @@
 /**
- * Prisma seed script — creates the demo organization + free-tier license.
+ * Prisma seed script — creates the demo user, organization, and membership.
  *
  * Run with: bun run db:seed
  *
@@ -9,23 +9,52 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const DEMO_ORG_ID = 'org_apex_demo';
+const SEED_USER_EMAIL = 'demo@viableo.app';
+const SEED_ORG_NAME = 'Apex Automation Studio';
 
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Upsert the demo organization
-  const org = await prisma.organization.upsert({
-    where: { id: DEMO_ORG_ID },
+  // Upsert the demo user
+  const user = await prisma.user.upsert({
+    where: { email: SEED_USER_EMAIL },
     update: {},
     create: {
-      id: DEMO_ORG_ID,
-      name: 'Apex Automation Studio',
+      email: SEED_USER_EMAIL,
+      name: 'Apex Demo User',
+    },
+  });
+  console.log(`  ✓ User: ${user.name} (${user.email})`);
+
+  // Upsert the demo organization
+  const org = await prisma.organization.upsert({
+    where: { id: 'org_apex_demo' },
+    update: {},
+    create: {
+      id: 'org_apex_demo',
+      name: SEED_ORG_NAME,
       website: 'https://apexautomation.example.com',
       contactEmail: 'hello@apexautomation.example.com',
     },
   });
   console.log(`  ✓ Organization: ${org.name} (${org.id})`);
+
+  // Upsert the membership (user → org, role: owner)
+  const membership = await prisma.membership.upsert({
+    where: {
+      userId_organizationId: {
+        userId: user.id,
+        organizationId: org.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: user.id,
+      organizationId: org.id,
+      role: 'owner',
+    },
+  });
+  console.log(`  ✓ Membership: ${membership.role}`);
 
   // Upsert a free-tier license for the demo org
   const existingLicense = await prisma.license.findFirst({

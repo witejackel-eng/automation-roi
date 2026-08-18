@@ -73,6 +73,7 @@ export const calculatorInputsSchema = z.object({
   implementationFee: reqCurrency(0, 1_000_000, 'Implementation fee'),
   monthlyAiApiCost: reqCurrency(0, 100_000, 'Monthly AI/API cost'),
   monthlySoftwareCost: reqCurrency(0, 100_000, 'Monthly software/tool cost'),
+  platformApiCost: reqCurrency(0, 100_000, 'Ongoing platform/API cost'),
   otherAnnualCost: reqCurrency(0, 1_000_000, 'Other annual cost'),
 });
 

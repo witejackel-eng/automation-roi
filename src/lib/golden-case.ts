@@ -23,5 +23,6 @@ export const APEX_INPUTS: CalculatorInputs = {
   implementationFee: 18000,
   monthlyAiApiCost: 450,
   monthlySoftwareCost: 200,
+  platformApiCost: 75,
   otherAnnualCost: 800,
 };

@@ -4,15 +4,16 @@
  * never inside the live app UI (Section 16).
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement, has } from '@/lib/entitlement';
+import { requireOrg, AuthError } from '@/lib/session';
+import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { has } from '@/lib/entitlement';
 import { organizationSchema } from '@/lib/validation/schema';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const org = await getDemoOrganization();
+  try {
+  const org = await requireOrg();
   return NextResponse.json({
     id: org.id,
     name: org.name,
@@ -22,11 +23,16 @@ export async function GET() {
     logoUrl: org.logoUrl ?? '',
     brandColorHex: org.brandColorHex ?? '',
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }
 
 export async function PATCH(req: NextRequest) {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
 
   let body: unknown;
   try {
@@ -67,7 +73,7 @@ export async function PATCH(req: NextRequest) {
       : {}),
   };
 
-  const updated = await db.organization.update({ where: { id: org.id }, data });
+  const updated = await tenant(org.id).organization.update({ data });
   return NextResponse.json({
     id: updated.id,
     name: updated.name,
@@ -77,4 +83,8 @@ export async function PATCH(req: NextRequest) {
     logoUrl: updated.logoUrl ?? '',
     brandColorHex: updated.brandColorHex ?? '',
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

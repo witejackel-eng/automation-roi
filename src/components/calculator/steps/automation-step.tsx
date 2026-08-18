@@ -114,6 +114,21 @@ export function AutomationStep({ form }: StepProps) {
       </FieldShell>
 
       <FieldShell
+        id="platformApiCost"
+        label="Ongoing platform/API cost"
+        required
+        helper="Zapier, Make, n8n task costs."
+        error={errors.platformApiCost?.message as string | undefined}
+      >
+        <MoneyInput
+          id="platformApiCost"
+          placeholder="e.g. 75"
+          suffix="/mo"
+          registration={form.register('platformApiCost')}
+        />
+      </FieldShell>
+
+      <FieldShell
         id="otherAnnualCost"
         label="Other annual cost"
         required

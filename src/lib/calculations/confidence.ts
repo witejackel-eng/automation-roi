@@ -32,9 +32,10 @@ export const CONFIDENCE_WEIGHTS = {
   workloadVolume: 15,
   implementationFee: 15,
   automationCoverage: 15,
-  conversionImprovement: 20,
-  errorCost: 10,
+  conversionImprovement: 15,
+  platformApiCost: 10,
   otherInputs: 10,
+  errorCost: 5,
 } as const;
 
 /** Status → multiplier. Provided counts fully; assumption counts 30%. */
@@ -51,8 +52,9 @@ export const INPUT_LABELS: Record<keyof typeof CONFIDENCE_WEIGHTS, string> = {
   implementationFee: 'implementation cost',
   automationCoverage: 'automation coverage',
   conversionImprovement: 'revenue improvement',
-  errorCost: 'error cost inputs',
+  platformApiCost: 'platform/API cost',
   otherInputs: 'other cost inputs',
+  errorCost: 'error cost inputs',
 };
 
 export interface ConfidenceBreakdownRow {

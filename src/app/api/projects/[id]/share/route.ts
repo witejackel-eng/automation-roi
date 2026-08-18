@@ -11,9 +11,10 @@
  * Returns: { shareId, url } where `url` is the absolute /r/[shareId] path.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { requireOrg, AuthError } from '@/lib/session';
+import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { has } from '@/lib/entitlement';
 import { db } from '@/lib/db';
-import { getDemoOrganization } from '@/lib/session';
-import { getActiveEntitlement, has } from '@/lib/entitlement';
 import { randomBytes } from 'crypto';
 
 export const runtime = 'nodejs';
@@ -27,8 +28,9 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'share_links')) {
     return NextResponse.json(
       {
@@ -44,10 +46,7 @@ export async function POST(
   // Authorization: the project must belong to the requesting organization.
   // A user must never access another organization's project by modifying an
   // id in the URL (Master Spec §58).
-  const project = await db.project.findFirst({
-    where: { id: projectId, organizationId: org.id },
-    select: { id: true },
-  });
+  const project = await tenant(org.id).projects.findUnique({ id: projectId });
   if (!project) {
     return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
   }
@@ -66,14 +65,19 @@ export async function POST(
     url: `/r/${share.shareId}`,
     createdAt: share.createdAt,
   });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }
 
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const org = await getDemoOrganization();
-  const entitlement = await getActiveEntitlement(org.id);
+  try {
+  const org = await requireOrg();
+  const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'share_links')) {
     return NextResponse.json(
       { error: 'Share links require Agency Pro.' },
@@ -85,10 +89,7 @@ export async function DELETE(
 
   // Authorization: verify the project belongs to the requesting organization
   // to prevent IDOR — a user must not revoke shares on another org's project.
-  const project = await db.project.findFirst({
-    where: { id: projectId, organizationId: org.id },
-    select: { id: true },
-  });
+  const project = await tenant(org.id).projects.findUnique({ id: projectId });
   if (!project) {
     return NextResponse.json({ error: 'Project not found.' }, { status: 403 });
   }
@@ -100,4 +101,8 @@ export async function DELETE(
   });
 
   return NextResponse.json({ ok: true });
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    throw e;
+  }
 }

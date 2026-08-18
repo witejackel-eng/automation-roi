@@ -64,19 +64,19 @@ interface WizardProps {
 const STEP_ORDER: StepId[] = ['business', 'revenue', 'automation', 'summary'];
 const STEP_TITLES: Record<StepId, { title: string; subtitle: string }> = {
   business: {
-    title: 'Business',
+    title: 'Describe the automation',
     subtitle: 'How much time and labor does the task cost today?',
   },
   revenue: {
-    title: 'Revenue',
+    title: 'What would it earn?',
     subtitle: 'How big is the upside if the automation lifts conversion?',
   },
   automation: {
-    title: 'Automation',
+    title: 'What does it cost today?',
     subtitle: 'What will it cost to build and run?',
   },
   summary: {
-    title: 'Review your assumptions',
+    title: 'Review your case',
     subtitle: 'Check for a typo before you see the numbers.',
   },
 };
@@ -484,7 +484,7 @@ function WizardFooter({
           <p
             className="text-xs text-dont-build"
             role="status"
-            aria-live="polite"
+            aria-live="assertive"
           >
             Some fields need attention.
           </p>

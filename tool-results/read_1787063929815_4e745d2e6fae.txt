@@ -1,0 +1,787 @@
+     1→'use client';
+     2→
+     3→/**
+     4→ * Results dashboard (Section 13) — Viableo voice.
+     5→ *
+     6→ * Layout, top to bottom:
+     7→ *   1. Back + "Prepared for {client}" row
+     8→ *   2. Page header — "Viableo Analysis" + the Viableo Decision subhead
+     9→ *   3. Hero summary card — ScenarioSlider + DecisionBadge (cross-fades on
+    10→ *      scenario change) + 3 big figures (Annual Opportunity, ROI ×, Payback)
+    11→ *      driven by the active scenario, animated via CountUp
+    12→ *   4. Verdict Stamp — the detailed sign-off, also driven by the active
+    13→ *      scenario (kept per Task 4-b: the signature double-rule element)
+    14→ *   5. Recommendation copy (active scenario)
+    15→ *   6. Three secondary KPI cards (savings, profit/revenue, first-year cost)
+    16→ *   7. Exhibit 1 — ROI Bridge waterfall (active scenario)
+    17→ *   8. Exhibit 2 — Scenario Comparison (all three scenarios)
+    18→ *   9. Scenario detail table (all three, with the active column highlighted)
+    19→ *  10. Assumptions
+    20→ *  11. Sticky actions: Save, Generate Client Report, Generate Proposal
+    21→ *      (last two gated behind entitlement — show lock + "Included in Pro")
+    22→ *
+    23→ * The store's `recommendation` (project-level, Expected scenario) is preserved
+    24→ * for save / report / proposal persistence. Display figures use the active
+    25→ * scenario, computed client-side via `recommend()`.
+    26→ */
+    27→import * as React from 'react';
+    28→import { useShallow } from 'zustand/react/shallow';
+    29→import { motion, AnimatePresence } from 'motion/react';
+    30→import { Save, FileText, FileSignature, ArrowLeft, Share2, ArrowUp } from 'lucide-react';
+    31→import { Button } from '@/components/ui/button';
+    32→import { useApp } from '@/lib/store';
+    33→import { useToast } from '@/hooks/use-toast';
+    34→import { has } from '@/lib/entitlement';
+    35→import { VerdictStamp } from '@/components/verdict-stamp';
+    36→import { KpiCard } from '@/components/kpi-card';
+    37→import { RoiBridge } from '@/components/charts/roi-bridge';
+    38→import { ScenarioComparison } from '@/components/charts/scenario-comparison';
+    39→import { AssumptionsTable } from '@/components/assumptions-table';
+    40→import { EntitlementButton } from '@/components/entitlement-button';
+    41→import {
+    42→  DecisionBadge,
+    43→  ScenarioSlider,
+    44→  CountUp,
+    45→  LoadingDot,
+    46→  WhyRecommendation,
+    47→  StressTestSection,
+    48→} from '@/components/viableo';
+    49→import { computeSensitivity } from '@/lib/calculations/stress-test';
+    50→import { TERM, DECISION_LABELS, type DecisionKey } from '@/lib/brand';
+    51→import { recommend } from '@/lib/calculations/recommendation';
+    52→import {
+    53→  formatCurrency,
+    54→  formatPayback,
+    55→  formatRatioAsPercent,
+    56→  formatRoi,
+    57→} from '@/lib/format';
+    58→import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/calculations/scenarios';
+    59→import type { ScenarioName } from '@/lib/calculations/scenarios';
+    60→import type { ScenarioResult, CalculatorInputs } from '@/lib/calculations/engine';
+    61→import { cn } from '@/lib/utils';
+    62→
+    63→export function ResultsView() {
+    64→  const {
+    65→    inputs,
+    66→    results,
+    67→    recommendation,
+    68→    entitlement,
+    69→    go,
+    70→    activeScenario,
+    71→    setActiveScenario,
+    72→  } = useApp(
+    73→    useShallow((s) => ({
+    74→      inputs: s.inputs,
+    75→      results: s.results,
+    76→      recommendation: s.recommendation,
+    77→      entitlement: s.entitlement,
+    78→      go: s.go,
+    79→      activeScenario: s.activeScenario,
+    80→      setActiveScenario: s.setActiveScenario,
+    81→    }))
+    82→  );
+    83→
+    84→  const { toast } = useToast();
+    85→  const [saving, setSaving] = React.useState(false);
+    86→  const [reportLoading, setReportLoading] = React.useState(false);
+    87→  const [proposalLoading, setProposalLoading] = React.useState(false);
+    88→  const [shareLoading, setShareLoading] = React.useState(false);
+    89→  // Mirror the store's savedProjectId locally so the existing handlers keep
+    90→  // working unchanged, but ALSO sync it back to the store on save so that
+    91→  // the reopen flow (which sets the store's savedProjectId before navigating
+    92→  // here) is respected — re-saving after a reopen updates the same project
+    93→  // rather than creating a duplicate.
+    94→  const storeSavedProjectId = useApp((s) => s.savedProjectId);
+    95→  const [savedProjectId, setSavedProjectId] = React.useState<string | null>(
+    96→    storeSavedProjectId
+    97→  );
+    98→  // If the store's savedProjectId changes (e.g. user reopened a project),
+    99→  // sync the local state.
+   100→  React.useEffect(() => {
+   101→    setSavedProjectId(storeSavedProjectId);
+   102→  }, [storeSavedProjectId]);
+   103→
+   104→  if (!inputs || !results || !recommendation) {
+   105→    return (
+   106→      <div className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-6">
+   107→        <EmptyResults onBack={() => go('calculator')} />
+   108→      </div>
+   109→    );
+   110→  }
+   111→
+   112→  // Active scenario drives every displayed figure. The store's
+   113→  // `recommendation` (Expected) is preserved for the saved-project record.
+   114→  const active: ScenarioResult = results[activeScenario];
+   115→  const activeRec = recommend(active);
+   116→  const activeDecision = activeRec.recommendation as DecisionKey;
+   117→  const ent = entitlement;
+   118→  const canSave = !!ent && has(ent, 'save_project');
+   119→  const canReport = !!ent && has(ent, 'client_report');
+   120→  const canProposal = !!ent && has(ent, 'proposal');
+   121→  const canShare = !!ent && has(ent, 'share_links');
+   122→
+   123→  // ROI as a multiplier (499% → "5.0×"). Null when totalFirstYearCost = 0.
+   124→  const roiMultiple =
+   125→    active.roiPct == null ? null : active.roiPct / 100;
+   126→
+   127→  const handleSave = async () => {
+   128→    if (!canSave) {
+   129→      go('pricing');
+   130→      return;
+   131→    }
+   132→    setSaving(true);
+   133→    try {
+   134→      const res = await fetch('/api/projects', {
+   135→        method: 'POST',
+   136→        headers: { 'Content-Type': 'application/json' },
+   137→        body: JSON.stringify({
+   138→          inputs,
+   139→          results,
+   140→          recommendation,
+   141→          clientName: inputs.clientName,
+   142→        }),
+   143→      });
+   144→      if (res.status === 403) {
+   145→        toast({ title: 'Saving projects requires Pro.', variant: 'destructive' });
+   146→        go('pricing');
+   147→        return;
+   148→      }
+   149→      if (!res.ok) {
+   150→        toast({ title: 'Could not save the project.', variant: 'destructive' });
+   151→        return;
+   152→      }
+   153→      const data = (await res.json()) as { id: string };
+   154→      setSavedProjectId(data.id);
+   155→      toast({ title: 'Project saved.' });
+   156→    } catch {
+   157→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   158→    } finally {
+   159→      setSaving(false);
+   160→    }
+   161→  };
+   162→
+   163→  const handleReport = async () => {
+   164→    if (!canReport) {
+   165→      go('pricing');
+   166→      return;
+   167→    }
+   168→    if (!savedProjectId) {
+   169→      await handleSave();
+   170→    }
+   171→    const projectId = savedProjectId;
+   172→    if (!projectId) {
+   173→      toast({ title: 'Save the project first.', description: 'Then generate the report.' });
+   174→      return;
+   175→    }
+   176→    setReportLoading(true);
+   177→    try {
+   178→      const res = await fetch(`/api/projects/${projectId}/report`, {
+   179→        method: 'POST',
+   180→        headers: { 'Content-Type': 'application/json' },
+   181→        body: JSON.stringify({}),
+   182→      });
+   183→      if (res.status === 403) {
+   184→        toast({ title: 'Client report requires Pro.', variant: 'destructive' });
+   185→        go('pricing');
+   186→        return;
+   187→      }
+   188→      if (!res.ok) {
+   189→        toast({ title: 'Could not generate the report.', variant: 'destructive' });
+   190→        return;
+   191→      }
+   192→      const data = (await res.json()) as { pdfUrl: string };
+   193→      toast({ title: 'Report generated.' });
+   194→      window.open(data.pdfUrl, '_blank', 'noopener,noreferrer');
+   195→    } catch {
+   196→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   197→    } finally {
+   198→      setReportLoading(false);
+   199→    }
+   200→  };
+   201→
+   202→  const handleProposal = async () => {
+   203→    if (!canProposal) {
+   204→      go('pricing');
+   205→      return;
+   206→    }
+   207→    if (!savedProjectId) {
+   208→      await handleSave();
+   209→    }
+   210→    const projectId = savedProjectId;
+   211→    if (!projectId) {
+   212→      toast({ title: 'Save the project first.', description: 'Then generate the proposal.' });
+   213→      return;
+   214→    }
+   215→    setProposalLoading(true);
+   216→    try {
+   217→      const res = await fetch(`/api/projects/${projectId}/proposal`, {
+   218→        method: 'POST',
+   219→        headers: { 'Content-Type': 'application/json' },
+   220→        body: JSON.stringify({}),
+   221→      });
+   222→      if (res.status === 403) {
+   223→        toast({ title: 'Proposal generation requires Pro.', variant: 'destructive' });
+   224→        go('pricing');
+   225→        return;
+   226→      }
+   227→      if (!res.ok) {
+   228→        toast({ title: 'Could not generate the proposal.', variant: 'destructive' });
+   229→        return;
+   230→      }
+   231→      const data = (await res.json()) as { pdfUrl: string };
+   232→      toast({ title: 'Proposal generated.' });
+   233→      window.open(data.pdfUrl, '_blank', 'noopener,noreferrer');
+   234→    } catch {
+   235→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   236→    } finally {
+   237→      setProposalLoading(false);
+   238→    }
+   239→  };
+   240→
+   241→  const handleShare = async () => {
+   242→    if (!canShare) {
+   243→      go('pricing');
+   244→      return;
+   245→    }
+   246→    if (!savedProjectId) {
+   247→      await handleSave();
+   248→    }
+   249→    const projectId = savedProjectId;
+   250→    if (!projectId) {
+   251→      toast({ title: 'Save the project first.', description: 'Then create a share link.' });
+   252→      return;
+   253→    }
+   254→    setShareLoading(true);
+   255→    try {
+   256→      const res = await fetch(`/api/projects/${projectId}/share`, {
+   257→        method: 'POST',
+   258→        headers: { 'Content-Type': 'application/json' },
+   259→        body: JSON.stringify({}),
+   260→      });
+   261→      if (res.status === 403) {
+   262→        toast({ title: 'Share links require Agency Pro.', variant: 'destructive' });
+   263→        go('pricing');
+   264→        return;
+   265→      }
+   266→      if (!res.ok) {
+   267→        toast({ title: 'Could not create the share link.', variant: 'destructive' });
+   268→        return;
+   269→      }
+   270→      const data = (await res.json()) as { shareId: string; url: string };
+   271→      // Copy to clipboard + use Web Share API where supported (Master Spec §46).
+   272→      const fullUrl = `${window.location.origin}${data.url}`;
+   273→      if (navigator.share) {
+   274→        try {
+   275→          await navigator.share({
+   276→            title: 'Viableo — Shared analysis',
+   277→            text: 'A shared automation business case.',
+   278→            url: fullUrl,
+   279→          });
+   280→        } catch {
+   281→          /* user dismissed — still copy below */
+   282→        }
+   283→      }
+   284→      try {
+   285→        await navigator.clipboard.writeText(fullUrl);
+   286→        toast({
+   287→          title: 'Link copied.',
+   288→          description: 'Share it with your client.',
+   289→        });
+   290→      } catch {
+   291→        toast({
+   292→          title: 'Share link created.',
+   293→          description: fullUrl,
+   294→        });
+   295→      }
+   296→    } catch {
+   297→      toast({ title: 'Could not reach the service.', variant: 'destructive' });
+   298→    } finally {
+   299→      setShareLoading(false);
+   300→    }
+   301→  };
+   302→
+   303→  return (
+   304→    <div className="mx-auto w-full max-w-[1200px] px-4 py-8 md:px-6 md:py-12">
+   305→      <ScrollToTop />
+   306→      {/* Back + prepared-for row */}
+   307→      <div className="mb-6 flex items-center justify-between">
+   308→        <Button
+   309→          variant="ghost"
+   310→          size="sm"
+   311→          onClick={() => go('calculator')}
+   312→          className="min-h-[44px] gap-1.5 text-ink-muted hover:text-ink"
+   313→        >
+   314→          <ArrowLeft className="size-4" strokeWidth={1.75} aria-hidden="true" />
+   315→          Edit assumptions
+   316→        </Button>
+   317→        <p className="text-[13px] text-ink-muted">
+   318→          Prepared for <span className="font-medium text-ink">{inputs.clientName}</span>
+   319→        </p>
+   320→      </div>
+   321→
+   322→      {/* Page header — references TERM.analysis + TERM.decision */}
+   323→      <header className="mb-8">
+   324→        <h1 className="font-display text-[32px] font-bold leading-[1.02] tracking-[-0.02em] text-ink md:text-[40px]">
+   325→          {TERM.analysis}
+   326→        </h1>
+   327→        <p className="mt-2 max-w-[640px] text-[15px] leading-[1.55] text-ink-muted">
+   328→          The {TERM.decision} and the figures that justify it. Switch scenarios to see how the
+   329→          numbers hold up under conservative and upside assumptions.
+   330→        </p>
+   331→      </header>
+   332→
+   333→      {/* Hero summary card — ScenarioSlider + DecisionBadge + 3 headline figures */}
+   334→      <section
+   335→        aria-label="Viableo Decision summary"
+   336→        className="mb-10 rounded-lg border border-border bg-surface-raised p-5 md:p-6"
+   337→      >
+   338→        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   339→          <ScenarioSlider value={activeScenario} onChange={setActiveScenario} />
+   340→          {/* Cross-fade on decision change via key + reveal-on-enter animation. */}
+   341→          <div
+   342→            key={activeDecision}
+   343→            className="reveal-on-enter flex items-center gap-2"
+   344→          >
+   345→            <span className="text-[11px] uppercase tracking-wide text-ink-muted">
+   346→              {TERM.decision}
+   347→            </span>
+   348→            <DecisionBadge decision={activeDecision} size="lg" animate />
+   349→          </div>
+   350→        </div>
+   351→
+   352→        <AnimatePresence mode="wait">
+   353→          <motion.div
+   354→            key={activeScenario}
+   355→            initial={{ opacity: 0.6, y: 4 }}
+   356→            animate={{ opacity: 1, y: 0 }}
+   357→            exit={{ opacity: 0.6, y: -4 }}
+   358→            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+   359→            className="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8"
+   360→          >
+   361→          {/* Annual Opportunity ($) */}
+   362→          <HeroFigure
+   363→            label="Annual opportunity"
+   364→            sublabel={
+   365→              active.isRevenueOpportunityOnly
+   366→                ? 'Revenue opportunity, net of first-year cost'
+   367→                : 'Net annual benefit, net of first-year cost'
+   368→            }
+   369→          >
+   370→            <CountUp
+   371→              value={active.netAnnualBenefit}
+   372→              prefix="$"
+   373→              decimals={0}
+   374→              retriggerOnValueChange
+   375→              className="text-[40px] font-medium leading-none text-ink"
+   376→            />
+   377→          </HeroFigure>
+   378→
+   379→          {/* ROI (×) */}
+   380→          <HeroFigure label="ROI" sublabel="Return on first-year cost">
+   381→            {roiMultiple == null ? (
+   382→              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted">
+   383→                N/A
+   384→              </span>
+   385→            ) : (
+   386→              <CountUp
+   387→                value={roiMultiple}
+   388→                suffix="×"
+   389→                decimals={1}
+   390→                retriggerOnValueChange
+   391→                className="text-[40px] font-medium leading-none text-ink"
+   392→              />
+   393→            )}
+   394→          </HeroFigure>
+   395→
+   396→          {/* Payback (months) */}
+   397→          <HeroFigure label="Payback" sublabel="Months to recoup first-year cost">
+   398→            {active.paybackMonths == null ? (
+   399→              <span className="font-mono tnum text-[40px] font-medium leading-none text-ink-muted">
+   400→                Never
+   401→              </span>
+   402→            ) : (
+   403→              <CountUp
+   404→                value={active.paybackMonths}
+   405→                suffix=" mo"
+   406→                decimals={active.paybackMonths >= 10 ? 0 : 1}
+   407→                retriggerOnValueChange
+   408→                className="text-[40px] font-medium leading-none text-ink"
+   409→              />
+   410→            )}
+   411→          </HeroFigure>
+   412→        </motion.div>
+   413→        </AnimatePresence>
+   414→      </section>
+   415→
+   416→      {/* Verdict Stamp — the detailed sign-off (kept per Task 4-b). */}
+   417→      <div className="mb-8 flex justify-center md:justify-start">
+   418→        <VerdictStamp
+   419→          recommendation={activeRec.recommendation}
+   420→          paybackMonths={active.paybackMonths}
+   421→          roiPct={active.roiPct}
+   422→          netAnnualBenefit={active.netAnnualBenefit}
+   423→          size="lg"
+   424→        />
+   425→      </div>
+   426→
+   427→      {/* Why this recommendation? (Section 6.9) — expandable bullet rationale,
+   428→          each reason backed by a real number from the active scenario. */}
+   429→      <WhyRecommendation
+   430→        inputs={inputs}
+   431→        results={results}
+   432→        recommendation={activeRec}
+   433→        className="mb-8"
+   434→      />
+   435→
+   436→      {/* Recommendation copy (active scenario) */}
+   437→      <p className="mb-10 max-w-[760px] text-[15px] leading-[1.55] text-ink-muted">
+   438→        {activeRec.copy}
+   439→      </p>
+   440→
+   441→      {/* Secondary KPI row */}
+   442→      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   443→        <KpiCard
+   444→          label="Annual labor savings"
+   445→          value={formatCurrency(active.annualLaborSavings)}
+   446→          variant="secondary"
+   447→        />
+   448→        <KpiCard
+   449→          label={
+   450→            active.isRevenueOpportunityOnly
+   451→              ? 'Additional revenue opportunity'
+   452→              : 'Additional gross profit'
+   453→          }
+   454→          value={formatCurrency(active.additionalGrossProfit)}
+   455→          variant="secondary"
+   456→        />
+   457→        <KpiCard
+   458→          label="First-year cost"
+   459→          value={formatCurrency(active.totalFirstYearCost)}
+   460→          variant="secondary"
+   461→        />
+   462→      </div>
+   463→
+   464→      {/* Stress test + break-even thresholds (Master Spec §29, §30, §31).
+   465→          Placed after the key financials and before the exhibits, per the
+   466→          §33 results-page section order: decision → financials → why →
+   467→          confidence → stress test → break-even → ROI bridge → comparison →
+   468→          assumptions → actions. */}
+   469→      <StressTestSection inputs={inputs} activeScenario={activeScenario} />
+   470→
+   471→      {/* Top drivers callout (Phase 2.4) */}
+   472→      <TopDriversCallout inputs={inputs} activeScenario={activeScenario} />
+   473→
+   474→      {/* Exhibit 1 — ROI Bridge (active scenario) */}
+   475→      <React.Suspense
+   476→        fallback={
+   477→          <ChartSkeleton title="Exhibit 1 — Labor savings drive the first-year benefit" />
+   478→        }
+   479→      >
+   480→        <div className="mb-10">
+   481→          <RoiBridge
+   482→            result={active}
+   483→            isRevenueOpportunityOnly={active.isRevenueOpportunityOnly}
+   484→          />
+   485→        </div>
+   486→      </React.Suspense>
+   487→
+   488→      {/* Exhibit 2 — Scenario Comparison (all three) */}
+   489→      <React.Suspense
+   490→        fallback={
+   491→          <ChartSkeleton title="Exhibit 2 — Expected scenario carries the strongest benefit" />
+   492→        }
+   493→      >
+   494→        <div className="mb-10">
+   495→          <ScenarioComparison
+   496→            results={results}
+   497→            isRevenueOpportunityOnly={active.isRevenueOpportunityOnly}
+   498→          />
+   499→        </div>
+   500→      </React.Suspense>
+   501→
+   502→      {/* Scenario detail table (numeric, for the audit trail) */}
+   503→      <ScenarioTable
+   504→        results={results}
+   505→        activeScenario={activeScenario}
+   506→        onSelect={setActiveScenario}
+   507→      />
+   508→
+   509→      {/* Assumptions */}
+   510→      <div className="mb-10 mt-12">
+   511→        <h2 className="mb-4 font-display text-[22px] font-semibold tracking-[-0.02em] text-ink">
+   512→          Assumptions
+   513→        </h2>
+   514→        <p className="mb-4 text-[14px] text-ink-muted">
+   515→          Every input that feeds the calculation. Fields tagged &quot;context&quot; do not
+   516→          affect the dollar math.
+   517→        </p>
+   518→        <AssumptionsTable inputs={inputs} />
+   519→      </div>
+   520→
+   521→      {/* Sticky secondary actions */}
+   522→      <div className="sticky bottom-0 -mx-4 mt-8 border-t border-border bg-canvas/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-canvas/80 md:static md:mx-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+   523→        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+   524→          <EntitlementButton
+   525→            allowed={canSave}
+   526→            requiredTierLabel="Pro"
+   527→            onClick={handleSave}
+   528→            loading={saving}
+   529→            variant="secondary"
+   530→            icon={<Save className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   531→          >
+   532→            Save project
+   533→          </EntitlementButton>
+   534→          <EntitlementButton
+   535→            allowed={canReport}
+   536→            requiredTierLabel="Pro"
+   537→            onClick={handleReport}
+   538→            loading={reportLoading}
+   539→            icon={<FileText className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   540→          >
+   541→            Generate Client Report
+   542→          </EntitlementButton>
+   543→          <EntitlementButton
+   544→            allowed={canProposal}
+   545→            requiredTierLabel="Pro"
+   546→            onClick={handleProposal}
+   547→            loading={proposalLoading}
+   548→            icon={<FileSignature className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   549→          >
+   550→            Generate Proposal
+   551→          </EntitlementButton>
+   552→          <EntitlementButton
+   553→            allowed={canShare}
+   554→            requiredTierLabel="Agency Pro"
+   555→            onClick={handleShare}
+   556→            loading={shareLoading}
+   557→            icon={<Share2 className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+   558→          >
+   559→            Create share link
+   560→          </EntitlementButton>
+   561→        </div>
+   562→      </div>
+   563→    </div>
+   564→  );
+   565→}
+   566→
+   567→// ── Hero figure cell ───────────────────────────────────────────────────────
+   568→
+   569→function HeroFigure({
+   570→  label,
+   571→  sublabel,
+   572→  children,
+   573→}: {
+   574→  label: string;
+   575→  sublabel: string;
+   576→  children: React.ReactNode;
+   577→}) {
+   578→  return (
+   579→    <div className="flex flex-col gap-2">
+   580→      <span className="text-[12px] uppercase tracking-wide text-ink-muted">
+   581→        {label}
+   582→      </span>
+   583→      <div className="font-mono tnum">{children}</div>
+   584→      <span className="text-[12px] text-ink-muted">{sublabel}</span>
+   585→    </div>
+   586→  );
+   587→}
+   588→
+   589→// Small helper: derive the DecisionKey from a scenario result, so the table's
+   590→// last row uses the canonical DECISION_LABELS instead of a hardcoded string.
+   591→function scenarioDecisionKey(r: ScenarioResult): DecisionKey {
+   592→  return recommend(r).recommendation as DecisionKey;
+   593→}
+   594→
+   595→// ── Scenario detail table ──────────────────────────────────────────────────
+   596→
+   597→function ScenarioTable({
+   598→  results,
+   599→  activeScenario,
+   600→  onSelect,
+   601→}: {
+   602→  results: Record<ScenarioName, ScenarioResult>;
+   603→  activeScenario: ScenarioName;
+   604→  onSelect: (s: ScenarioName) => void;
+   605→}) {
+   606→  // Build rows by reading known fields off the ScenarioResult type.
+   607→  const rows: Array<[string, (r: ScenarioResult) => string]> = [
+   608→    ['Automation % used', (r) => formatRatioAsPercent(r.automationPct, 1)],
+   609→    ['Conversion improvement used', (r) => `${(r.conversionImprovementPct * 100).toFixed(1)}pp`],
+   610→    ['Annual labor cost', (r) => formatCurrency(r.annualLaborCost)],
+   611→    ['Annual labor savings', (r) => formatCurrency(r.annualLaborSavings)],
+   612→    ['Total first-year cost', (r) => formatCurrency(r.totalFirstYearCost)],
+   613→    ['Additional customers', (r) => r.additionalCustomers.toLocaleString('en-US', { maximumFractionDigits: 0 })],
+   614→    ['Additional annual revenue', (r) => formatCurrency(r.additionalAnnualRevenue)],
+   615→    ['Additional gross profit', (r) => formatCurrency(r.additionalGrossProfit)],
+   616→    ['Total annual benefit', (r) => formatCurrency(r.totalAnnualBenefit)],
+   617→    ['Net annual benefit', (r) => formatCurrency(r.netAnnualBenefit)],
+   618→    ['ROI', (r) => formatRoi(r.roiPct)],
+   619→    ['Payback', (r) => formatPayback(r.paybackMonths)],
+   620→    ['Viableo Decision', (r) => DECISION_LABELS[scenarioDecisionKey(r)]],
+   621→  ];
+   622→
+   623→  return (
+   624→    <div className="rounded-lg border border-border bg-surface-raised">
+   625→      <div className="border-b border-border px-5 py-4">
+   626→        <h3 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-ink">
+   627→          Scenario detail
+   628→        </h3>
+   629→        <p className="text-[12px] text-ink-muted">
+   630→          Costs held constant across all scenarios; only benefit assumptions vary.
+   631→        </p>
+   632→      </div>
+   633→      <div className="overflow-x-auto">
+   634→        <table className="w-full text-[13px]">
+   635→          <thead>
+   636→            <tr className="border-b border-border bg-surface">
+   637→              <th className="px-5 py-2.5 text-left font-medium text-ink-muted">Metric</th>
+   638→              {SCENARIO_ORDER.map((s) => (
+   639→                <th
+   640→                  key={s}
+   641→                  className={`px-5 py-2.5 text-right font-medium ${
+   642→                    s === activeScenario ? 'text-ink' : 'text-ink-muted'
+   643→                  }`}
+   644→                >
+   645→                  <button
+   646→                    type="button"
+   647→                    onClick={() => onSelect(s)}
+   648→                    className="min-h-[44px] hover:text-ink"
+   649→                  >
+   650→                    {SCENARIO_LABELS[s]}
+   651→                  </button>
+   652→                </th>
+   653→              ))}
+   654→            </tr>
+   655→          </thead>
+   656→          <tbody>
+   657→            {rows.map((r, i) => (
+   658→              <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface/50">
+   659→                <td className="px-5 py-2.5 text-ink">{r[0]}</td>
+   660→                {SCENARIO_ORDER.map((s) => {
+   661→                  const val = r[1](results[s]);
+   662→                  const isActive = s === activeScenario;
+   663→                  return (
+   664→                    <td
+   665→                      key={s}
+   666→                      className={`px-5 py-2.5 text-right font-mono tnum ${
+   667→                        isActive ? 'text-ink' : 'text-ink-muted'
+   668→                      }`}
+   669→                    >
+   670→                      {val}
+   671→                    </td>
+   672→                  );
+   673→                })}
+   674→              </tr>
+   675→            ))}
+   676→          </tbody>
+   677→        </table>
+   678→      </div>
+   679→    </div>
+   680→  );
+   681→}
+   682→
+   683→// ── Skeletons + empty state ────────────────────────────────────────────────
+   684→
+   685→function ChartSkeleton({ title }: { title: string }) {
+   686→  return (
+   687→    <div className="rounded-lg border border-border bg-surface-raised p-6">
+   688→      <div className="mb-3 flex items-center gap-2">
+   689→        <LoadingDot />
+   690→        <span className="text-[13px] text-ink-muted">{title}</span>
+   691→      </div>
+   692→      <div className="h-[320px] animate-pulse rounded bg-surface" />
+   693→    </div>
+   694→  );
+   695→}
+   696→
+   697→function EmptyResults({ onBack }: { onBack: () => void }) {
+   698→  return (
+   699→    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+   700→      <FileText className="size-8 text-ink-muted" strokeWidth={1.75} aria-hidden="true" />
+   701→      <div>
+   702→        <p className="font-display text-[18px] font-semibold text-ink">
+   703→          No {TERM.analysis.toLowerCase()} yet.
+   704→        </p>
+   705→        <p className="mt-1 text-[14px] text-ink-muted">
+   706→          Run the calculator to see the {TERM.decision.toLowerCase()} and the exhibits.
+   707→        </p>
+   708→      </div>
+   709→      <Button
+   710→        onClick={onBack}
+   711→        className="mt-2 min-h-[44px] bg-brand text-brand-foreground hover:bg-brand-hover"
+   712→      >
+   713→        Open the calculator
+   714→      </Button>
+   715→    </div>
+   716→  );
+   717→}
+   718→
+   719→/** Floating scroll-to-top button — appears after 400px scroll. */
+   720→function ScrollToTop() {
+   721→  const [visible, setVisible] = React.useState(false);
+   722→
+   723→  React.useEffect(() => {
+   724→    const onScroll = () => setVisible(window.scrollY > 400);
+   725→    onScroll();
+   726→    window.addEventListener('scroll', onScroll, { passive: true });
+   727→    return () => window.removeEventListener('scroll', onScroll);
+   728→  }, []);
+   729→
+   730→  if (!visible) return null;
+   731→
+   732→  return (
+   733→    <button
+   734→      type="button"
+   735→      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+   736→      className="fixed bottom-20 right-4 z-20 flex size-10 items-center justify-center rounded-full border border-border bg-surface shadow-floating text-ink-muted hover:text-ink transition-colors duration-hover md:bottom-6"
+   737→      aria-label="Back to top"
+   738→    >
+   739→      <ArrowUp className="size-4" strokeWidth={1.75} aria-hidden="true" />
+   740→    </button>
+   741→  );
+   742→}
+   743→
+   744→/** Top drivers callout — shows the top 3 sensitivity items (Phase 2.4). */
+   745→function TopDriversCallout({
+   746→  inputs,
+   747→  activeScenario,
+   748→}: {
+   749→  inputs: CalculatorInputs;
+   750→  activeScenario: ScenarioName;
+   751→}) {
+   752→  const sensitivity = React.useMemo(
+   753→    () => computeSensitivity(inputs, activeScenario),
+   754→    [inputs, activeScenario]
+   755→  );
+   756→  const top3 = sensitivity.slice(0, 3);
+   757→  if (top3.length === 0) return null;
+   758→
+   759→  return (
+   760→    <div className="mt-8 mb-10 rounded-md border border-border bg-surface p-5">
+   761→      <h3 className="text-[13px] font-semibold uppercase tracking-[0.005em] text-ink-muted">
+   762→        Top drivers of this outcome
+   763→      </h3>
+   764→      <div className="mt-3 space-y-2">
+   765→        {top3.map((item, i) => (
+   766→          <div key={item.label} className="flex items-center gap-3 text-[14px]">
+   767→            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-surface-raised font-mono tnum text-[12px] font-medium text-ink-muted">
+   768→              {i + 1}
+   769→            </span>
+   770→            <span className="font-medium text-ink">{item.label}</span>
+   771→            <span className={cn(
+   772→              'ml-auto font-mono tnum text-[12px]',
+   773→              item.level === 'high' ? 'text-dont-build' :
+   774→              item.level === 'medium' ? 'text-consider' : 'text-build'
+   775→            )}>
+   776→              ±{Math.round(item.impact)}pp ROI
+   777→            </span>
+   778→          </div>
+   779→        ))}
+   780→      </div>
+   781→      <p className="mt-3 text-[13px] text-ink-muted">
+   782→        These assumptions move the verdict the most. Confirm them before committing.
+   783→      </p>
+   784→    </div>
+   785→  );
+   786→}
+   787→

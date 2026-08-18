@@ -36,6 +36,7 @@ import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine
 import type { ScenarioName } from '@/lib/calculations/scenarios';
 import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/calculations/scenarios';
 import { recommend } from '@/lib/calculations/recommendation';
+import { computeSensitivity, type SensitivityItem } from '@/lib/calculations/stress-test';
 
 // Fonts are registered lazily by the API route via `registerFonts()` in
 // @/lib/pdf/fonts before this document renders. Keeps @react-pdf/renderer
@@ -83,6 +84,10 @@ export function ClientReport({
 
   const numExhibits = 2;
 
+  // Compute sensitivity for top-driver identification.
+  const sensitivity = computeSensitivity(inputs, 'expected');
+  const topDriver = sensitivity[0]; // highest-impact driver
+
   return (
     <Document
       title={`${inputs.clientName} — Viableo Business Case`}
@@ -122,7 +127,7 @@ export function ClientReport({
         <Text style={{ fontFamily: PDF_SANS, fontSize: 8, color: PDF_COLORS.inkFaint }}>
           Confidential business case. Figures are estimates based on assumptions and have not been independently audited.
         </Text>
-        <PageFooter agency={agencyName} page={1} total={8} hideDisclaimer />
+        <PageFooter agency={agencyName} page={1} total={9} hideDisclaimer />
       </Page>
 
       {/* Page 2 — Executive Summary (pyramid principle) */}
@@ -152,7 +157,7 @@ export function ClientReport({
           <Bullet>{`Upside scenario reaches ${pdfCurrency(results.upside.netAnnualBenefit)} net annual benefit.`}</Bullet>
         </View>
 
-        <PageFooter agency={agencyName} page={2} total={8} />
+        <PageFooter agency={agencyName} page={2} total={9} />
       </Page>
 
       {/* Page 3 — Current State */}
@@ -182,7 +187,7 @@ export function ClientReport({
             ['Gross margin %', inputs.grossMarginPct != null ? pdfRatioAsPercent(inputs.grossMarginPct, 1) : 'Omitted — figures labeled revenue opportunity', false],
           ]}
         />
-        <PageFooter agency={agencyName} page={3} total={8} />
+        <PageFooter agency={agencyName} page={3} total={9} />
       </Page>
 
       {/* Page 4 — Proposed Automation */}
@@ -203,7 +208,7 @@ export function ClientReport({
             ['Other annual cost', pdfCurrency(inputs.otherAnnualCost), false],
           ]}
         />
-        <PageFooter agency={agencyName} page={4} total={8} />
+        <PageFooter agency={agencyName} page={4} total={9} />
       </Page>
 
       {/* Page 5 — Financial Impact (Exhibit 1) */}
@@ -230,7 +235,7 @@ export function ClientReport({
 
         <View style={{ height: 18 }} />
         <FinancialTable expected={expected} />
-        <PageFooter agency={agencyName} page={5} total={8} />
+        <PageFooter agency={agencyName} page={5} total={9} />
       </Page>
 
       {/* Page 6 — Scenario Analysis (Exhibit 2) */}
@@ -252,7 +257,30 @@ export function ClientReport({
 
         <View style={{ height: 16 }} />
         <ScenarioTable results={results} />
-        <PageFooter agency={agencyName} page={6} total={8} />
+
+        {/* Top drivers callout (Phase 2.4) */}
+        <View style={{ height: 16 }} />
+        <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 12, color: PDF_COLORS.ink, marginBottom: 6 }}>
+          Top drivers of this outcome
+        </Text>
+        {sensitivity.slice(0, 3).map((item, i) => (
+          <View key={item.label} style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'baseline' }}>
+            <Text style={{ fontFamily: PDF_MONO, fontSize: 10, color: PDF_COLORS.inkMuted, marginRight: 8, width: 18 }}>
+              {i + 1}.
+            </Text>
+            <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.ink, flex: 1 }}>
+              {item.label}
+            </Text>
+            <Text style={{ fontFamily: PDF_MONO, fontSize: 10, color: item.level === 'high' ? PDF_COLORS.dontBuild : item.level === 'medium' ? PDF_COLORS.consider : PDF_COLORS.build }}>
+              ±{Math.round(item.impact)}pp ROI
+            </Text>
+          </View>
+        ))}
+        <Text style={{ fontFamily: PDF_SANS, fontSize: 9, color: PDF_COLORS.inkMuted, marginTop: 4 }}>
+          These assumptions move the verdict the most. Confirm them before committing.
+        </Text>
+
+        <PageFooter agency={agencyName} page={6} total={9} />
       </Page>
 
       {/* Page 7 — Recommendation (full-page verdict) */}
@@ -278,10 +306,20 @@ export function ClientReport({
           <Bullet>{`Costs held constant across scenarios; only benefit assumptions vary.`}</Bullet>
         </View>
 
-        <PageFooter agency={agencyName} page={7} total={8} />
+        <PageFooter agency={agencyName} page={7} total={9} />
       </Page>
 
-      {/* Page 8 — Assumptions + Disclaimer */}
+      {/* Page 8 — Recommended Next Steps (Phase 2.3) */}
+      <Page size="LETTER" style={styles.page}>
+        <Text style={styles.sectionTitle}>Recommended Next Steps</Text>
+        <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.inkMuted, marginBottom: 16 }}>
+          Actionable guidance based on the Viableo Decision.
+        </Text>
+        <NextSteps recommendation={recommendation.recommendation} topDriver={topDriver} />
+        <PageFooter agency={agencyName} page={8} total={9} />
+      </Page>
+
+      {/* Page 9 — Assumptions + Disclaimer */}
       <Page size="LETTER" style={styles.page}>
         <Text style={styles.sectionTitle}>Assumptions</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.inkMuted, marginBottom: 12 }}>
@@ -325,7 +363,7 @@ export function ClientReport({
         <Text style={styles.disclaimer}>
           Figures are estimates based on assumptions provided by {agencyName} and its client and have not been independently audited. Validate against actual operating data before finalizing investment decisions.
         </Text>
-        <PageFooter agency={agencyName} page={8} total={8} />
+        <PageFooter agency={agencyName} page={9} total={9} />
       </Page>
     </Document>
   );
@@ -532,4 +570,72 @@ function PdfLogo({ src, alt }: { src: string; alt: string }) {
 
 function isNumericValue(s: string): boolean {
   return /^[\$\-0-9,.%pp\smonthsNeverImmediateN/A]+$/.test(s) || /^[\$]/.test(s) || /%$/.test(s) || /pp$/.test(s);
+}
+
+// ── Next Steps sub-component (Phase 2.3) ─────────────────────────────
+
+function NextSteps({
+  recommendation,
+  topDriver,
+}: {
+  recommendation: 'build' | 'consider' | 'dont_build';
+  topDriver: SensitivityItem | undefined;
+}) {
+  const driverLabel = topDriver?.label ?? 'the top assumption';
+  // For DON'T BUILD, compute the improvement % needed.
+  // We show a generic statement since the exact % requires solving the inverse
+  // which depends on which driver it is.
+  const improvementPct = topDriver?.impact ? Math.round(topDriver.impact) : 20;
+
+  if (recommendation === 'build') {
+    return (
+      <View>
+        <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+          Scope confirmation
+        </Text>
+        <Bullet>{`Define implementation timeline and milestones.`}</Bullet>
+        <View style={{ height: 8 }} />
+        <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+          Approval
+        </Text>
+        <Bullet>{`Present this business case to the decision-maker.`}</Bullet>
+        <View style={{ height: 8 }} />
+        <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+          Implementation
+        </Text>
+        <Bullet>{`Begin with the highest-confidence components.`}</Bullet>
+      </View>
+    );
+  }
+
+  if (recommendation === 'consider') {
+    return (
+      <View>
+        <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+          Validate assumptions
+        </Text>
+        <Bullet>{`The ${driverLabel} assumption has the most impact on this outcome. Confirm this with operational data.`}</Bullet>
+        <View style={{ height: 8 }} />
+        <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+          Pilot
+        </Text>
+        <Bullet>{`Consider a limited-scope pilot to validate the key assumption before full commitment.`}</Bullet>
+      </View>
+    );
+  }
+
+  // dont_build
+  return (
+    <View>
+      <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+        What would change
+      </Text>
+      <Bullet>{`For this to become viable, ${driverLabel} would need to improve by approximately ${improvementPct}%.`}</Bullet>
+      <View style={{ height: 8 }} />
+      <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 13, color: PDF_COLORS.ink, marginBottom: 8 }}>
+        Revisit
+      </Text>
+      <Bullet>{`If business conditions change, re-run this analysis with updated assumptions.`}</Bullet>
+    </View>
+  );
 }
