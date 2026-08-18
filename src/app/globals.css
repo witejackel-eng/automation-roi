@@ -1,0 +1,537 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Viableo — Automation ROI design system tokens.
+ * Canonical per the Viableo Brand & Product Implementation spec (Section 5.1).
+ *
+ * Usage ratio (ENFORCED): 70% off-white/white light surface · 20% charcoal
+ * typography/structure · 10% coral accent (a ceiling, not a target).
+ *
+ * Coral is exposed as `brand` so existing components using bg-brand / text-brand
+ * automatically inherit the Viableo coral system. Decision colors are scoped
+ * ONLY to the Decision badge component (Section 9.3) — never buttons / links /
+ * backgrounds / chart colors.
+ */
+@theme inline {
+  /* ── Surfaces ────────────────────────────────────────────── */
+  --color-canvas: #FAFAF9;          /* warm off-white: primary page bg (premium, not sterile) */
+  --color-surface: #FFFFFF;          /* --white: card / elevated */
+  --color-surface-raised: #FFFFFF;
+  --color-border: #ECEAE8;           /* warm-tinted hairline, slightly softer than pure gray */
+  --color-border-strong: #CFCCC9;    /* between light-gray and mid-gray */
+
+  /* ── Text ────────────────────────────────────────────────── */
+  --color-ink: #171516;              /* --charcoal: primary text, nav */
+  --color-ink-muted: #727076;        /* --mid-gray: tertiary, borders */
+  --color-ink-faint: #A8A5AA;        /* lighter mid-gray for captions */
+  --color-ink-soft: #353034;         /* --soft-charcoal: muted headings on dark */
+
+  /* ── Brand / interactive accent — Viableo Coral ─────────── */
+  --color-brand: #FF164B;           /* --viableo-coral: primary accent */
+  --color-brand-hover: #B70F38;     /* --deep-crimson: hover, dark-surface accent */
+  --color-brand-subtle: #FFF1F4;    /* ~12% coral tint for hover backgrounds */
+  --color-brand-foreground: #FFFFFF;
+  --color-crimson: #B70F38;         /* explicit deep-crimson token */
+
+  /* ── Decision semantics (Section 5.1 exception) ─────────── */
+  /* Scoped ONLY to the Decision badge component. */
+  --color-build: #1F8A5A;           /* muted emerald */
+  --color-build-bg: #E7F4ED;        /* ~12% emerald tint */
+  --color-consider: #C98A1B;        /* muted amber/gold */
+  --color-consider-bg: #FBF1E0;     /* ~12% amber tint */
+  --color-dont-build: #B70F38;      /* reuses deep crimson — no new color */
+  --color-dont-build-bg: #FBE9EE;   /* ~12% crimson tint */
+
+  /* ── Fonts ──────────────────────────────────────────────── */
+  /* Inter (display + body), IBM Plex Mono (data / tabular numerals). */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* ── Radius scale (coherent language) ───────────────────────
+     Pills for actions (nav, primary CTAs). Rounded rectangles for
+     surfaces. Smaller rounding for compact controls. Consistency
+     over any single number. */
+  --radius: 12px;            /* default surface (cards, panels) */
+  --radius-xs: 4px;          /* tiny badges, tags */
+  --radius-sm: 8px;          /* small controls, inputs, secondary buttons */
+  --radius-md: 12px;         /* cards, elevated surfaces */
+  --radius-lg: 16px;         /* large hero card, feature panels */
+  --radius-pill: 999px;      /* nav pill, primary CTAs */
+
+  /* ── Elevation (layered, soft, low-contrast) ───────────────
+     A coherent shadow language: surface → elevated card → floating
+     nav → interactive hover. Each is a soft, diffused layer — never
+     a generic dark drop shadow. */
+  --shadow-surface: 0 1px 2px rgba(23, 21, 22, 0.03);
+  --shadow-floating: 0 1px 2px rgba(23, 21, 22, 0.04), 0 8px 20px -8px rgba(23, 21, 22, 0.10);
+  --shadow-card-hover: 0 1px 2px rgba(23, 21, 22, 0.04), 0 16px 36px -10px rgba(23, 21, 22, 0.12);
+  /* Quiet elevation for the hero verdict mock + premium resting cards:
+     two stacked layers — a tight contact shadow + a soft ambient wash. */
+  --shadow-quiet: 0 1px 2px rgba(23, 21, 22, 0.04), 0 12px 28px -10px rgba(23, 21, 22, 0.07);
+  --shadow-quiet-hover: 0 1px 2px rgba(23, 21, 22, 0.05), 0 20px 44px -12px rgba(23, 21, 22, 0.11);
+  /* The hero verdict card — slightly stronger than quiet, layered for
+     the sense of a real floating product object. */
+  --shadow-hero: 0 1px 2px rgba(23, 21, 22, 0.04), 0 2px 6px rgba(23, 21, 22, 0.03), 0 24px 48px -16px rgba(23, 21, 22, 0.10), 0 8px 20px -8px rgba(23, 21, 22, 0.05);
+  --shadow-hero-hover: 0 1px 2px rgba(23, 21, 22, 0.05), 0 2px 8px rgba(23, 21, 22, 0.04), 0 32px 64px -18px rgba(23, 21, 22, 0.14), 0 12px 24px -8px rgba(23, 21, 22, 0.07);
+
+  /* ── shadcn primitive remap (kept so shadcn components keep working) ─ */
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface-raised);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-ink);          /* primary buttons = charcoal on light */
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: var(--color-canvas);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-canvas);
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent: var(--color-canvas);
+  --color-accent-foreground: var(--color-ink);
+  --color-destructive: var(--color-dont-build);
+  --color-destructive-foreground: #FFFFFF;
+  --color-border-shadcn: var(--color-border);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-brand);
+  --color-sidebar: var(--color-surface);
+  --color-sidebar-foreground: var(--color-ink);
+  --color-sidebar-primary: var(--color-brand);
+  --color-sidebar-primary-foreground: #FFFFFF;
+  --color-sidebar-accent: var(--color-brand-subtle);
+  --color-sidebar-accent-foreground: var(--color-brand);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-brand);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    outline-color: var(--color-brand);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* HUGE + BOLD + TIGHT — the one rule that defines Viableo typography. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+  }
+  /* Tabular figures everywhere a number appears (Section 5.2). */
+  .tnum, .font-mono, [data-tnum] {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  ::selection {
+    background-color: var(--color-brand-subtle);
+    color: var(--color-ink);
+  }
+  /* Visible focus ring: 2px coral, 2px offset (Section 11). */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  /* Custom scrollbar for long lists. */
+  .scroll-area-clean::-webkit-scrollbar { width: 10px; height: 10px; }
+  .scroll-area-clean::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area-clean::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-strong);
+    border-radius: 999px;
+    border: 2px solid var(--color-canvas);
+  }
+  .scroll-area-clean::-webkit-scrollbar-thumb:hover { background-color: var(--color-ink-faint); }
+
+  /* Hide number input spinners — custom steppers used instead. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] { -moz-appearance: textfield; }
+}
+
+/* ── prefers-reduced-motion: disable count-ups, scroll-reveal, keep essential ─ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Motion utilities (Section 10) ──────────────────────────── */
+.duration-hover { transition-duration: 150ms; }
+.duration-panel { transition-duration: 180ms; }
+.duration-modal { transition-duration: 240ms; }
+.duration-reveal { transition-duration: 400ms; }
+.duration-count { transition-duration: 600ms; }
+.ease-decelerate { transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }      /* ease-out-expo-ish */
+.ease-accelerate { transition-timing-function: cubic-bezier(0.4, 0, 1, 1); }
+.ease-out-expo { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }      /* ~ease-out-expo */
+.ease-spring { transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.shadow-floating { box-shadow: var(--shadow-floating); }
+.shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+.shadow-quiet { box-shadow: var(--shadow-quiet); }
+.shadow-quiet-hover { box-shadow: var(--shadow-quiet-hover); }
+.shadow-hero { box-shadow: var(--shadow-hero); }
+.shadow-hero-hover { box-shadow: var(--shadow-hero-hover); }
+.shadow-surface { box-shadow: var(--shadow-surface); }
+
+/* ── Viableo brand: the pulsing coral dot loading indicator (Section 10.5) ─ */
+@keyframes viableo-dot-pulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.4; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+.viableo-dot-loading {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background-color: var(--color-brand);
+  animation: viableo-dot-pulse 800ms ease-in-out infinite;
+}
+
+/* ── Hero entrance: staggered fade-in-up (300–600ms, premium & soft) ──
+   Applied to hero eyebrow / headline / subcopy / CTA row / stats.
+   Each child picks up a progressively later delay via --reveal-i.
+   Gated by prefers-reduced-motion (collapses to instant via the global block). */
+@keyframes viableo-hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-rise {
+  opacity: 0;
+  animation: viableo-hero-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--reveal-i, 0) * 80ms + 60ms);
+}
+
+/* ── Scroll-reveal: fade-up on enter (IntersectionObserver-driven) ───────
+   Elements with .reveal-on-scroll start hidden; when the observer adds
+   .is-revealed, they rise into place. Premium, soft, 500ms. */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Scroll-reveal fade-up (Section 10.6) ─────────────────── */
+@keyframes viableo-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-on-enter {
+  animation: viableo-fade-up 400ms ease-out-expo both;
+}
+
+/* ── Decision-reveal dot drop (Section 10.3) ──────────────── */
+@keyframes viableo-dot-drop {
+  0% { transform: translateY(-12px) scale(0.6); opacity: 0; }
+  60% { transform: translateY(2px) scale(1.15); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.dot-drop {
+  animation: viableo-dot-drop 600ms ease-out-expo both;
+}
+
+/* ── Count-up completion pulse (Section 10.1 micro detail) ── */
+@keyframes viableo-count-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.count-pulse {
+  animation: viableo-count-pulse 150ms ease-out-expo;
+}
+
+/* ── Underline-wipe-on-hover for text links (Section 10.4) ── */
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 0;
+  background-color: var(--color-brand);
+  transition: width 200ms ease-out-expo;
+}
+.link-underline:hover::after { width: 100%; }
+
+/* ── Stepper connecting line draw (Section 10.3 / 9.5) ───── */
+@keyframes viableo-line-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.stepper-line-draw {
+  transform-origin: left center;
+  animation: viableo-line-draw 700ms ease-out-expo both;
+}
+
+/* ── Brand gradient moment — hero background + PDF cover ONLY (Section 5.1) ─ */
+.viableo-gradient-brand {
+  background: linear-gradient(135deg, #FF164B 0%, #B70F38 100%);
+}
+.viableo-gradient-diagonal {
+  background: linear-gradient(135deg, rgba(255, 22, 75, 0.08) 0%, rgba(183, 15, 56, 0.04) 100%);
+}
+
+/* Tilted product-card utility for hero overlap (Section 7.1). */
+.tilt-product-card { transform: rotate(-2deg); }
+.tilt-report-card { transform: rotate(-4deg); }
+
+/* ── Marketing display language (piplanning.io-inspired) ────────────────
+   The marketing surface (homepage + /pricing) uses a calmer, more
+   typography-dominant expression than the product UI. Coral stays as a
+   tiny ~5% accent (eyebrow dot, link-underline wipe). Primary CTAs are
+   dark charcoal, never bright coral. Generous whitespace, near-monochrome.
+   These utilities DO NOT touch any product UI tokens. */
+
+/* The dark marketing primary CTA — charcoal pill, white label.
+   Pill radius (999px) matches the nav pill language: actions are pills,
+   surfaces are rounded rectangles. Refined hover: soft translateY lift +
+   subtle coral glow ring (the one sanctioned coral hover moment on the
+   marketing surface). */
+.mkt-cta-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-ink);
+  color: #ffffff;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 2px rgba(23, 21, 22, 0.10);
+  transition:
+    background-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-cta-dark:hover {
+  background-color: var(--color-ink-soft);
+  box-shadow:
+    0 1px 2px rgba(23, 21, 22, 0.12),
+    0 10px 24px -6px rgba(23, 21, 22, 0.18),
+    0 0 0 1px rgba(255, 22, 75, 0.18); /* soft coral glow ring */
+}
+.mkt-cta-dark:active {
+  box-shadow: 0 1px 2px rgba(23, 21, 22, 0.10);
+}
+.mkt-cta-dark:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* Marketing display headline — massive, tight, bold. Fluid clamp keeps
+   mobile/tablet/desktop scaling smooth without snapping breakpoints.
+   Optical balance: tight tracking, compressed line-height, deliberate. */
+.mkt-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  font-size: clamp(2.75rem, 8.5vw, 6.5rem);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+.mkt-display-md {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+/* Lead paragraph — the supporting copy directly under a display headline.
+   Generous line-height for comfortable reading; comfortable max width. */
+.mkt-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+  max-width: 540px;
+}
+@media (min-width: 768px) {
+  .mkt-lead { font-size: 19px; line-height: 1.55; }
+}
+
+/* Quiet marketing eyebrow — tiny uppercase label with a leading dot. */
+.mkt-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* Hairline divider used between quiet marketing sections. */
+.mkt-hairline {
+  border-color: var(--color-border);
+}
+
+/* Subtle marketing card — almost no chrome, hairline + quiet shadow.
+   Resting state is calm; hover lifts -2px and deepens the shadow slightly. */
+.mkt-card-quiet {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-quiet);
+  transition:
+    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-card-quiet:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-quiet-hover);
+}
+
+/* Hover-lift for interactive marketing cards (very subtle: -2px).
+   Communicates "this surface is responsive" — never a bounce. */
+.mkt-lift {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-quiet-hover);
+}
+
+/* Quiet hero verdict-card mock — the single elegant visual object on the
+   right side of the hero. Layered shadow (contact + ambient + soft wash)
+   so it reads as a real floating product object. Larger radius (16px)
+   for a premium, deliberate surface. */
+.mkt-verdict-mock {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hero);
+  transition:
+    border-color 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-verdict-mock:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-hero-hover);
+}
+
+/* ── Floating pill nav (piplanning.io-inspired) ─────────────────────────
+   The header is no longer a full-width bar. Instead the logo + nav links
+   live inside a floating white rounded pill that sits slightly elevated
+   from the page. The dark CTA stays OUTSIDE the pill on the right.
+   On scroll the header backdrop gains a faint blur so content never
+   collides with the pill. This is the single most distinctive structural
+   element of the header. */
+.mkt-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-floating);
+  transition:
+    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-nav-pill:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 1px 2px rgba(23, 21, 22, 0.05), 0 12px 32px -12px rgba(23, 21, 22, 0.14);
+}
+/* Slight visual separator between the logo and the nav links. */
+.mkt-nav-pill-sep {
+  width: 1px;
+  height: 18px;
+  background-color: var(--color-border);
+  margin-inline: 0.375rem;
+  flex-shrink: 0;
+}
+.mkt-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding-inline: 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--color-ink-muted);
+  transition:
+    color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-nav-link:hover {
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+}
+.mkt-nav-link[data-active="true"] {
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+}
+
+/* Mobile menu panel — slides down under the pill. Clean, airy, same
+   surface language as the pill. */
+.mkt-mobile-menu {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  overflow: hidden;
+}
+.mkt-mobile-menu-link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding-inline: 1.25rem;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ink);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-mobile-menu-link:last-child { border-bottom: none; }
+.mkt-mobile-menu-link:hover,
+.mkt-mobile-menu-link[data-active="true"] {
+  background-color: var(--color-canvas);
+}

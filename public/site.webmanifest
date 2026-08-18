@@ -1,0 +1,16 @@
+{
+  "name": "Viableo — Automation ROI",
+  "short_name": "Viableo",
+  "description": "Know what's worth building. Turn an automation idea into a number your client will actually sign.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF9",
+  "theme_color": "#FF164B",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

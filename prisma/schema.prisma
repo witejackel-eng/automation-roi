@@ -1,0 +1,86 @@
+// Automation ROI — data model (Section 6, adapted for SQLite).
+// SQLite stores Json as TEXT; Prisma handles (de)serialization.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id            String    @id @default(cuid())
+  name          String
+  website       String?
+  contactEmail  String?
+  phone         String?
+  logoUrl       String?
+  brandColorHex String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  projects Project[]
+  licenses License[]
+}
+
+model Project {
+  id             String   @id @default(cuid())
+  organizationId String
+  clientName     String
+  inputs         String // serialized CalculatorInputs (JSON)
+  results        String // serialized ScenarioResult x3 (JSON)
+  recommendation String   // 'build' | 'consider' | 'dont_build'
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reports      Report[]
+  shares       Share[]
+
+  @@index([organizationId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  projectId  String
+  reportType String // 'client_report' | 'proposal'
+  pdfUrl     String
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  shares Share[]
+
+  @@index([projectId])
+}
+
+model Share {
+  id         String   @id @default(cuid())
+  shareId    String   @unique // opaque random identifier used in /r/[shareId]
+  projectId  String
+  reportId   String?  // optional: link to a specific generated report
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime? // optional expiry
+  revokedAt  DateTime? // set when access is revoked
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  report  Report? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
+  @@index([projectId])
+}
+
+model License {
+  id             String    @id @default(cuid())
+  organizationId String
+  tier           String    // 'free' | 'pro' | 'agency' | 'agency_pro'
+  whopOrderId    String?
+  purchasedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}

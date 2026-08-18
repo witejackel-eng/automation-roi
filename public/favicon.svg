@@ -1,0 +1,6 @@
+<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Viableo">
+  <!-- Favicon: symbol only (V/check + dot), no wordmark. Section 5.3. -->
+  <rect width="32" height="32" rx="6" fill="#171516"/>
+  <path d="M6 8 L15 23 L24 8" stroke="#FF164B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="15" cy="27" r="1.9" fill="#FF164B"/>
+</svg>

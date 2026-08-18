@@ -1,0 +1,47 @@
+/**
+ * GET /api/projects/[id] — fetch a saved project (pro+).
+ */
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { getDemoOrganization } from '@/lib/session';
+import { getActiveEntitlement, has } from '@/lib/entitlement';
+import type { CalculatorInputs, ScenarioResult, Recommendation } from '@/lib/calculations/engine';
+import type { ScenarioName } from '@/lib/calculations/scenarios';
+
+export const runtime = 'nodejs';
+
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  const org = await getDemoOrganization();
+  const entitlement = await getActiveEntitlement(org.id);
+  if (!has(entitlement, 'save_project')) {
+    return NextResponse.json(
+      { error: 'Saved projects require Pro or higher.', requiredTier: 'pro' },
+      { status: 403 }
+    );
+  }
+
+  const project = await db.project.findUnique({ where: { id } });
+  if (!project || project.organizationId !== org.id) {
+    return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
+  }
+
+  let inputs: CalculatorInputs;
+  let results: Record<ScenarioName, ScenarioResult>;
+  try {
+    inputs = JSON.parse(project.inputs) as CalculatorInputs;
+    results = JSON.parse(project.results) as Record<ScenarioName, ScenarioResult>;
+  } catch {
+    return NextResponse.json({ error: 'Project data is corrupted.' }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    id: project.id,
+    clientName: project.clientName,
+    inputs,
+    results,
+    recommendation: project.recommendation as Recommendation,
+    createdAt: project.createdAt,
+    updatedAt: project.updatedAt,
+  });
+}

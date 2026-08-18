@@ -1,0 +1,11 @@
+<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Viableo logo">
+  <!--
+    Viableo mark — V shape (Viable) + check secondary read (verified economics)
+    + forward-leaning stroke (growth) + dot beneath (the decision point).
+    Construction logic per Section 5.3. Works at 16x16 favicon size.
+  -->
+  <!-- The V: two strokes meeting at bottom-left, right stroke lifts into a check. -->
+  <path d="M6 7 L15 24 L24 7" stroke="#FF164B" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- The dot beneath the V vertex — the decision point. -->
+  <circle cx="15" cy="28" r="2.2" fill="#FF164B"/>
+</svg>

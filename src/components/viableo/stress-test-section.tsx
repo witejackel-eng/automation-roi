@@ -1,0 +1,197 @@
+'use client';
+
+/**
+ * StressTestSection — "Try to break it" (Master Spec §29, §30, §31).
+ *
+ * Shows the break-even thresholds (when does this stop making sense?) and
+ * the sensitivity ranking (what could go wrong?). Pure display — all
+ * calculations happen in `@/lib/calculations/stress-test` against the
+ * frozen engine. No invented numbers.
+ *
+ * Voice (§5.11): "Move the assumptions. We'll tell you the second this
+ * stops making sense."
+ */
+import * as React from 'react';
+import {
+  computeBreakEven,
+  computeSensitivity,
+  stillViableStatement,
+} from '@/lib/calculations/stress-test';
+import type { CalculatorInputs } from '@/lib/calculations/engine';
+import type { ScenarioName } from '@/lib/calculations/scenarios';
+import { formatCurrency } from '@/lib/format';
+import { Dot, DotRule } from '@/components/viableo';
+import { cn } from '@/lib/utils';
+
+interface StressTestSectionProps {
+  inputs: CalculatorInputs;
+  activeScenario: ScenarioName;
+}
+
+export function StressTestSection({ inputs, activeScenario }: StressTestSectionProps) {
+  // Recompute on every render (pure functions, cheap).
+  const thresholds = React.useMemo(
+    () => computeBreakEven(inputs, activeScenario),
+    [inputs, activeScenario]
+  );
+  const sensitivity = React.useMemo(
+    () => computeSensitivity(inputs, activeScenario),
+    [inputs, activeScenario]
+  );
+  const viableStatement = React.useMemo(
+    () => stillViableStatement(thresholds, inputs),
+    [thresholds, inputs]
+  );
+
+  return (
+    <section className="mt-10" aria-labelledby="stress-test-heading">
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.005em] text-ink-muted">
+          <Dot size="sm" />
+          Stress test
+        </div>
+        <h2
+          id="stress-test-heading"
+          className="mt-3 text-2xl font-bold tracking-[-0.02em] text-ink md:text-3xl"
+        >
+          Try to break it.
+        </h2>
+        <p className="mt-2 max-w-[560px] text-[15px] leading-[1.55] text-ink-muted">
+          Move the assumptions. We{"\u2019"}ll tell you the second this stops making sense.
+        </p>
+      </div>
+
+      {/* Break-even thresholds (Section 30) */}
+      <div className="rounded-lg border border-border bg-surface p-5 md:p-6">
+        <h3 className="text-[13px] font-semibold uppercase tracking-[0.005em] text-ink-muted">
+          Here{"\u2019"}s where it stops making sense.
+        </h3>
+
+        {thresholds.alreadyBroken ? (
+          <p className="mt-3 text-[15px] font-medium text-dont-build">
+            The numbers don{"\u2019"}t support it in this scenario. Better to know now.
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <ThresholdCard
+                label="Implementation cost"
+                value={
+                  thresholds.implementationFee != null
+                    ? formatCurrency(thresholds.implementationFee)
+                    : 'N/A'
+                }
+                context="cross this and the return drops below zero"
+              />
+              <ThresholdCard
+                label="Automation coverage"
+                value={
+                  thresholds.automationPct != null
+                    ? `${(thresholds.automationPct * 100).toFixed(0)}%`
+                    : 'N/A'
+                }
+                context="drop below this and the case breaks"
+              />
+              <ThresholdCard
+                label="Monthly operating cost"
+                value={
+                  thresholds.monthlyOperatingCost != null
+                    ? formatCurrency(thresholds.monthlyOperatingCost)
+                    : 'N/A'
+                }
+                context="AI/API + software, per month"
+              />
+            </div>
+
+            {viableStatement && (
+              <p className="mt-4 text-[14px] font-medium text-build">
+                Still viable. — {viableStatement}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="my-6">
+        <DotRule />
+      </div>
+
+      {/* Sensitivity ranking (Section 31) */}
+      <div>
+        <h3 className="text-[13px] font-semibold uppercase tracking-[0.005em] text-ink-muted">
+          Before you build, know what could go wrong.
+        </h3>
+        <p className="mt-2 text-[14px] text-ink-muted">
+          Each bar shows how far the ROI moves when that assumption shifts ±20%.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          {sensitivity.map((item) => {
+            const maxImpact = Math.max(...sensitivity.map((s) => s.impact), 1);
+            const widthPct = (item.impact / maxImpact) * 100;
+            return (
+              <div key={item.label} className="flex items-center gap-3">
+                <div className="w-44 shrink-0 text-[13px] text-ink-muted">
+                  {item.label}
+                </div>
+                <div className="relative h-7 flex-1 overflow-hidden rounded-sm bg-surface">
+                  <div
+                    className={cn(
+                      'h-full rounded-sm transition-all duration-500',
+                      item.level === 'high'
+                        ? 'bg-dont-build'
+                        : item.level === 'medium'
+                          ? 'bg-consider'
+                          : 'bg-build'
+                    )}
+                    style={{ width: `${Math.max(widthPct, 3)}%` }}
+                    aria-hidden="true"
+                  />
+                  <span className="absolute inset-y-0 left-2 flex items-center text-[11px] font-medium text-white mix-blend-difference">
+                    {item.level === 'high'
+                      ? 'high sensitivity'
+                      : item.level === 'medium'
+                        ? 'medium'
+                        : 'low'}
+                  </span>
+                </div>
+                <div className="w-28 shrink-0 text-right font-mono tnum text-[12px] text-ink-muted">
+                  ±{Math.round(item.impact)}pp ROI
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {sensitivity[0] && sensitivity[0].level === 'high' && (
+          <p className="mt-4 text-[14px] text-ink-muted">
+            <span className="font-medium text-ink">{sensitivity[0].label}</span> — high sensitivity.
+            The case depends most on this assumption.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ThresholdCard({
+  label,
+  value,
+  context,
+}: {
+  label: string;
+  value: string;
+  context: string;
+}) {
+  return (
+    <div className="rounded-md border border-border bg-canvas p-4">
+      <div className="text-[12px] uppercase tracking-[0.005em] text-ink-muted">
+        {label}
+      </div>
+      <div className="mt-2 font-mono tnum text-xl font-bold tracking-[-0.02em] text-ink">
+        {value}
+      </div>
+      <div className="mt-1 text-[11px] text-ink-faint">{context}</div>
+    </div>
+  );
+}

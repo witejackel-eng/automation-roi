@@ -1,0 +1,174 @@
+import type { Metadata } from "next";
+import { Inter, IBM_Plex_Mono } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import {
+  COMPANY_NAME,
+  PRODUCT_NAME,
+  BRAND_TAGLINE,
+} from "@/lib/brand";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://viableo.app";
+
+// Inter is the primary display + body family (Section 5.2).
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+// IBM Plex Mono for tabular numerals on all financial figures.
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500"],
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${COMPANY_NAME} — ${PRODUCT_NAME} | Know what\u2019s worth building.`,
+    template: `%s | ${COMPANY_NAME}`,
+  },
+  description:
+    "Viableo turns an automation idea into a number your client will actually sign. Model the economics, stress-test the assumptions, and walk in with a client-ready business case.",
+  keywords: [
+    "Viableo",
+    "Automation ROI",
+    "AI automation ROI",
+    "automation calculator",
+    "business case",
+    "n8n ROI",
+    "Make automation",
+    "Zapier ROI",
+    "AI implementation",
+    "automation payback",
+  ],
+  authors: [{ name: COMPANY_NAME }],
+  creator: COMPANY_NAME,
+  publisher: COMPANY_NAME,
+  applicationName: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
+  category: "Business Software",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  manifest: "/site.webmanifest",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
+    title: `${COMPANY_NAME} — Know what\u2019s worth building.`,
+    description:
+      "Turn an automation idea into a number your client will actually sign. Model the economics, stress-test the assumptions, walk in with the answer.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: `${COMPANY_NAME} — ${BRAND_TAGLINE}`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${COMPANY_NAME} — Know what\u2019s worth building.`,
+    description:
+      "Turn an automation idea into a number your client will actually sign.",
+    images: ["/opengraph-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+};
+
+/**
+ * JSON-LD structured data (Master Spec §9).
+ * Organization + WebSite + SoftwareApplication.
+ * Only factual attributes — no invented ratings/reviews/awards (§13).
+ */
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: COMPANY_NAME,
+      url: SITE_URL,
+      description:
+        "Viableo turns automation ideas into decisions. Model the economics, stress-test the assumptions, generate a client-ready business case.",
+      slogan: BRAND_TAGLINE,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${SITE_URL}/?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE_URL}/#software`,
+      name: PRODUCT_NAME,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      offers: [
+        { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
+        { "@type": "Offer", price: "149", priceCurrency: "USD", name: "Pro" },
+        { "@type": "Offer", price: "249", priceCurrency: "USD", name: "Agency" },
+        { "@type": "Offer", price: "499", priceCurrency: "USD", name: "Agency Pro" },
+      ],
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body
+        className={`${inter.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
+      >
+        {children}
+        <Toaster />
+      </body>
+    </html>
+  );
+}
