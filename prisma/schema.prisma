@@ -23,6 +23,10 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  // System-level role. 'USER' (default) | 'SUPERADMIN' (founder/operator).
+  // Threaded through the NextAuth jwt()/session() callbacks alongside the
+  // existing organizationId/role fields — see src/lib/auth.ts.
+  systemRole    String    @default("USER")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -100,10 +104,12 @@ model Organization {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  projects    Project[]
-  licenses    License[]
-  memberships Membership[]
-  shareEvents ShareEvent[]
+  projects       Project[]
+  licenses       License[]
+  memberships    Membership[]
+  shareEvents    ShareEvent[]
+  subscriptions  Subscription[]
+  payments       Payment[]
 }
 
 // ── Projects ─────────────────────────────────────────────────────
@@ -210,4 +216,87 @@ model License {
 
   @@index([organizationId])
   @@unique([whopEventId])
+}
+
+
+// ── Billing / Subscription truth ─────────────────────────────────
+// Subscription is the source of truth for an organization's current
+// billing lifecycle (status, period, tier). License.tier becomes a
+// derived cache that is upserted whenever Subscription.tier changes;
+// it is no longer written to directly from raw webhook fields.
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  organizationId     String
+  // Whop membership.id — durable identifier for the customer's
+  // membership lifecycle. Nullable so a subscription can exist briefly
+  // before the webhook that carries the membership id arrives.
+  whopMembershipId   String?   @unique
+  // Internal plan key, e.g. "pro_monthly". Distinct from the raw
+  // Whop plan id (see PlanMapping).
+  planKey            String
+  // 'free' | 'pro' | 'agency' | 'agency_pro' — derived via PlanMapping.
+  tier               String
+  // Mirrors Whop MembershipStatus:
+  // trialing|active|past_due|completed|canceled|expired|unresolved|drafted|canceling
+  status             String
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  canceledAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+model Payment {
+  id               String    @id @default(cuid())
+  organizationId   String
+  // Optional link to the Subscription row. Nullable on purpose: a
+  // payment event may arrive before the corresponding membership event
+  // has been processed.
+  subscriptionId   String?
+  // Whop payment.id (pay_...) — for billing visibility only, never
+  // used to derive tier.
+  whopPaymentId    String    @unique
+  // webhook envelope id — the primary idempotency key.
+  whopEventId      String    @unique
+  amount           Decimal
+  currency         String
+  status           String    // 'succeeded' | 'failed' | 'pending'
+  whopProductId    String?
+  whopPlanId       String?
+  refundedAmount   Decimal?  @default(0)
+  refundedAt       DateTime?
+  // Sanitized JSON snapshot of the relevant webhook payload (no PII
+  // beyond what is needed for billing visibility).
+  metadata         String?
+  createdAt        DateTime  @default(now())
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([organizationId])
+  @@index([whopEventId])
+}
+
+// ── Plan / Product mapping ────────────────────────────────────────
+// Maps Whop's durable plan id (plan_...) to Viableo's internal tier
+// string. A data table — not a code constant — so pricing/plan renames
+// in Whop's dashboard do not require a code deploy.
+
+model PlanMapping {
+  id             String   @id @default(cuid())
+  whopPlanId     String   @unique
+  whopProductId  String?
+  tier           String   // 'free' | 'pro' | 'agency' | 'agency_pro'
+  billingPeriod  String?  // 'monthly' | 'annual'
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
