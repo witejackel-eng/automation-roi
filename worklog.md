@@ -96,3 +96,39 @@ Stage Summary:
 - Favicon PNGs exist at public/favicon-16.png, favicon-32.png, apple-touch-icon.png (no more 404s)
 - Calculator wizard now warns before unload/refresh when form has unsaved changes
 - Zero lint errors
+
+---
+Task ID: 10/10
+Agent: main
+Task: Complete 10/10 Product + UX + Functionality + Production QA mandate
+
+Work Log:
+- Read the full PDF mandate: "Viableo — Final 10/10 Product + Ux + Functionality + Production Qa"
+- Conducted comprehensive codebase audit across all 15 areas (landing, calculator, results, projects, settings, pricing, shell, marketing, charts, UI, CSS, store, API, lib, public)
+- Identified 3 critical issues, 8 significant issues, 12 polish items
+- Fixed chart color tokens (THE #1 visual bug): CHART_COLORS in roi-bridge.tsx and scenario-comparison.tsx aligned with design system — brand #2647D6→#FF164B (coral), ink #0E1420→#171516, etc.
+- Added chart accessibility: role="img" + aria-label on both chart containers
+- Replaced hardcoded 'IBM Plex Mono' font with var(--font-mono) in chart labels
+- Added DELETE /api/projects/[id] endpoint with entitlement + ownership check
+- Added deleteProject() to store
+- Enhanced ProjectsView: clickable client names reopen analyses, trash delete with confirm, search/filter by name, table aria-label
+- Removed dead Login links from app-shell.tsx and marketing-shell.tsx
+- Removed duplicate "How it works" footer link
+- Added mobile tab bar active indicator dot
+- Generated favicon-16.png, favicon-32.png, apple-touch-icon.png
+- Consolidated framer-motion → motion/react in wizard.tsx
+- Added beforeunload guard to calculator when form is dirty
+- Added ScrollToTop button to results view (appears after 400px scroll)
+- All changes verified: lint passes, dev server 200, Agent Browser confirms all views render correctly
+- Calculator → Apex example → Results flow tested end-to-end
+- Mobile responsiveness verified at 375px viewport
+- Committed and pushed to GitHub: 4c5b070
+
+Stage Summary:
+- 12+ issues fixed across visual, functional, UX, and accessibility categories
+- Charts now match Viableo brand system (coral, not blue)
+- Projects table is fully functional (reopen, delete, search)
+- All dead links eliminated
+- Key accessibility improvements (chart aria, table labels, active indicators)
+- Production safeguards added (beforeunload, delete API with auth)
+- Pushed to https://github.com/witejackel-eng/automation-roi on main branch
