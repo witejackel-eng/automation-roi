@@ -4,7 +4,7 @@
  * Canonical worked example used by: the landing page's "View Example Report",
  * the calculator's demo-data fill button, and the unit test suite.
  */
-import type { CalculatorInputs } from '../calculations/engine';
+import type { CalculatorInputs } from './calculations/engine';
 
 export const APEX_INPUTS: CalculatorInputs = {
   clientName: 'Apex Home Services',

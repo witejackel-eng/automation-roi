@@ -175,7 +175,7 @@ export const useApp = create<AppState>((set) => ({
     }
   },
 
-  deleteProject: (id) => set({ projects: get().projects.filter((p) => p.id !== id) }),
+  deleteProject: (id) => set({ projects: useApp.getState().projects.filter((p) => p.id !== id) }),
 
   clearSavedProject: () => set({ savedProjectId: null }),
 }));

@@ -200,7 +200,7 @@ export function ShareReportView({
               <tbody className="font-mono tnum text-ink">
                 <ComparisonRow label="Annual benefit" scenarioResults={results} active={activeScenario} field="totalAnnualBenefit" format="currency" />
                 <ComparisonRow label="Annual labor savings" scenarioResults={results} active={activeScenario} field="annualLaborSavings" format="currency" />
-                <ComparisonRow label="Revenue opportunity" scenarioResults={results} active={activeScenario} field="revenueOpportunity" format="currency" />
+                <ComparisonRow label="Additional gross profit" scenarioResults={results} active={activeScenario} field="additionalGrossProfit" format="currency" />
                 <ComparisonRow label="First-year cost" scenarioResults={results} active={activeScenario} field="totalFirstYearCost" format="currency" />
                 <ComparisonRow label="Net annual benefit" scenarioResults={results} active={activeScenario} field="netAnnualBenefit" format="currency" />
                 <ComparisonRow label="ROI" scenarioResults={results} active={activeScenario} field="roiPct" format="roi" />
@@ -234,8 +234,8 @@ export function ShareReportView({
               <AssumptionRow label="Client / company" value={inputs.clientName} />
               <AssumptionRow label="Employees affected" value={String(inputs.employeesAffected)} />
               <AssumptionRow label="Hours per employee / week" value={String(inputs.hoursPerWeek)} />
-              <AssumptionRow label="Hourly labor cost" value={`$${inputs.hourlyLaborCost}`} />
-              <AssumptionRow label="Automation coverage" value={`${(inputs.automationPct * 100).toFixed(0)}%`} />
+              <AssumptionRow label="Hourly labor cost" value={`$${inputs.hourlyCost}`} />
+              <AssumptionRow label="Automation coverage" value={`${(inputs.expectedAutomationPct * 100).toFixed(0)}%`} />
               <AssumptionRow label="Implementation fee" value={formatCurrency(inputs.implementationFee)} />
               <AssumptionRow label="Monthly AI/API cost" value={formatCurrency(inputs.monthlyAiApiCost)} />
               <AssumptionRow label="Monthly software cost" value={formatCurrency(inputs.monthlySoftwareCost)} />

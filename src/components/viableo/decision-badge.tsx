@@ -1,14 +1,13 @@
 'use client';
 
 /**
- * Decision badge — BUILD / PILOT / CONSIDER / DON'T BUILD (Section 9.3).
+ * Decision badge — BUILD / CONSIDER / DON'T BUILD (Section 9.3).
  *
  * A major Viableo signature: strong typography, shared geometry, semantic color,
  * and shape/symbol differentiation (color is NOT the only differentiator).
  *
  *   BUILD       → filled emerald circle (●) + "BUILD" in bold caps
- *   PILOT       → half-filled steel-blue circle + "PILOT" in bold caps
- *   CONSIDER    → half-filled amber circle (◐) + "CONSIDER" in bold caps
+ *   CONSIDER    → ring amber circle (◎) + "CONSIDER" in bold caps
  *   DON'T BUILD → X mark in crimson (✕) + "DON'T BUILD" in bold caps
  *
  * Background = 10–12% tint of the decision color, text/icon = full-strength
@@ -70,7 +69,6 @@ export function DecisionBadge({ decision, size = 'md', className, animate }: Dec
  * beyond color alone (accessibility: not color-only differentiation).
  *
  *   BUILD       → filled circle (●)   — complete, positive
- *   PILOT       → half-filled circle   — in progress, partial
  *   CONSIDER    → ring / donut (◎)    — uncertain, open
  *   DON'T BUILD → X mark (✕)          — rejected, negative
  */
@@ -81,14 +79,6 @@ function DecisionSymbol({ decision }: { decision: DecisionKey }) {
       return (
         <svg viewBox="0 0 12 12" fill="none" className="h-full w-full">
           <circle cx="6" cy="6" r="5" fill="currentColor" />
-        </svg>
-      );
-    case 'pilot':
-      /* Half-filled circle — partial, in progress */
-      return (
-        <svg viewBox="0 0 12 12" fill="none" className="h-full w-full">
-          <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M6 1A5 5 0 0 1 6 11L6 6Z" fill="currentColor" />
         </svg>
       );
     case 'consider':

@@ -72,8 +72,12 @@ interface LabelProps {
  * the datum by `index` instead — deterministic and version-independent.
  */
 function makeScenarioValueLabel(data: ChartDatum[]) {
-  return function ScenarioValueLabel(props: LabelProps) {
-    const { x, y, width, value, index } = props;
+  return function ScenarioValueLabel(props: Record<string, unknown>) {
+    const x = props.x as number | undefined;
+    const y = props.y as number | undefined;
+    const width = props.width as number | undefined;
+    const value = props.value as number | undefined;
+    const index = props.index as number | undefined;
     if (x == null || y == null || width == null) return null;
     if (value == null || !Number.isFinite(value as number)) return null;
     const datum = data[index ?? -1];
@@ -211,7 +215,7 @@ export function ScenarioComparison({
                   fillOpacity={entry.fillOpacity}
                 />
               ))}
-              <LabelList dataKey="value" content={makeScenarioValueLabel(data)} />
+              <LabelList dataKey="value" content={makeScenarioValueLabel(data) as unknown as React.ReactNode} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

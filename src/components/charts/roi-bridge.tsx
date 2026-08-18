@@ -79,8 +79,11 @@ interface LabelProps {
  * the datum by `index` instead.
  */
 function makeRoiBridgeValueLabel(data: ChartDatum[]) {
-  return function RoiBridgeValueLabel(props: LabelProps) {
-    const { x, y, width, index } = props;
+  return function RoiBridgeValueLabel(props: Record<string, unknown>) {
+    const x = props.x as number | undefined;
+    const y = props.y as number | undefined;
+    const width = props.width as number | undefined;
+    const index = props.index as number | undefined;
     if (x == null || y == null || width == null) return null;
     const datum = data[index ?? -1];
     const display = datum?.labelValue;
@@ -238,7 +241,7 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
                   fillOpacity={entry.fillOpacity ?? 1}
                 />
               ))}
-              <LabelList dataKey="range" content={makeRoiBridgeValueLabel(data)} />
+              <LabelList dataKey="range" content={makeRoiBridgeValueLabel(data) as unknown as React.ReactNode} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

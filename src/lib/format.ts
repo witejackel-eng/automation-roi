@@ -3,7 +3,7 @@
  * as a financial instrument: every currency, percentage and payback figure is
  * rendered with tabular-nums mono numerals, and never NaN / Infinity / null.
  */
-import type { ScenarioResult } from '../calculations/engine';
+import type { ScenarioResult } from './calculations/engine';
 
 /** Currency with comma grouping, no cents unless the value is under $10. */
 export function formatCurrency(

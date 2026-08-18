@@ -90,7 +90,6 @@ export function ResultsView() {
   // here) is respected — re-saving after a reopen updates the same project
   // rather than creating a duplicate.
   const storeSavedProjectId = useApp((s) => s.savedProjectId);
-  const setStoreSavedProjectId = useApp((s) => s.setSavedProjectId);
   const [savedProjectId, setSavedProjectId] = React.useState<string | null>(
     storeSavedProjectId
   );
