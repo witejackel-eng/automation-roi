@@ -17,7 +17,8 @@
  * scripts/seed-qa-org.ts). Set it via env var QA_ORG_ID so the same
  * code runs in dev / staging / prod without hardcoding the id.
  */
-import { requireSuperAdmin } from '@/lib/auth';
+import { requireSuperAdmin, AuthError } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { db } from '@/lib/db';
 import { AdminShell } from '@/app/admin/_components/admin-shell';
 import { Tier } from '@/lib/entitlement';
@@ -29,7 +30,18 @@ const QA_ORG_ID = process.env.QA_ORG_ID;
 const ALLOWED_TIERS: Tier[] = ['free', 'pro', 'agency', 'agency_pro'];
 
 export default async function AdminQaPage() {
-  await requireSuperAdmin();
+  try {
+    await requireSuperAdmin();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      // Defense-in-depth: the middleware should already have redirected
+      // unauthenticated requests away from /admin/**. If we land here,
+      // either the middleware was bypassed or the user is authenticated
+      // but not a Superadmin — redirect to sign-in with an error flag.
+      redirect(`/auth/signin?error=admin_required`);
+    }
+    throw e;
+  }
 
   if (!QA_ORG_ID) {
     return (

@@ -7,14 +7,26 @@
  * prompt/response content, never Share/ShareApproval content beyond
  * engagement counts.
  */
-import { requireSuperAdmin } from '@/lib/auth';
+import { requireSuperAdmin, AuthError } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { listSubscriptionsForAdmin } from '@/lib/admin/operational-queries';
 import { AdminShell } from '@/app/admin/_components/admin-shell';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminSubscriptionsPage() {
-  await requireSuperAdmin();
+  try {
+    await requireSuperAdmin();
+  } catch (e) {
+    if (e instanceof AuthError) {
+      // Defense-in-depth: the middleware should already have redirected
+      // unauthenticated requests away from /admin/**. If we land here,
+      // either the middleware was bypassed or the user is authenticated
+      // but not a Superadmin — redirect to sign-in with an error flag.
+      redirect(`/auth/signin?error=admin_required`);
+    }
+    throw e;
+  }
   const subs = await listSubscriptionsForAdmin();
   return (
     <AdminShell title="Subscriptions">

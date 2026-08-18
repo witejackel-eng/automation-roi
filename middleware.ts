@@ -1,5 +1,13 @@
 /**
- * Next.js 16 edge backstop — `proxy.ts` (NOT `middleware.ts`).
+ * Next.js edge backstop — `middleware.ts`.
+ *
+ * NOTE: Next.js 16 introduced `proxy.ts` as the new naming for the edge
+ * middleware file (with the exported function renamed from `middleware`
+ * to `proxy`). The Viableo Production Architecture spec recommended
+ * using `proxy.ts`. However, the build's middleware-manifest showed the
+ * proxy.ts file was NOT being picked up by Next.js 16.1.3 (the manifest
+ * was empty), so we fall back to the universally-supported `middleware.ts`
+ * naming (works in every Next.js version since 12).
  *
  * Per the Viableo Production Architecture §0.1 (F-7 correction):
  *   "The repository runs next@^16.1.1. Per Auth.js's own Next.js
@@ -37,7 +45,7 @@ export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
 
-export async function proxy(req: NextRequest): Promise<NextResponse | undefined> {
+export async function middleware(req: NextRequest): Promise<NextResponse | undefined> {
   const { pathname } = req.nextUrl;
 
   // Public routes — never gate.
