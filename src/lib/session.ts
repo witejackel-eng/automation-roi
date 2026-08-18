@@ -10,9 +10,8 @@
  * `setDemoTier()` have been removed. Multi-tenancy is enforced through
  * real auth sessions + the tenant() scoped query layer.
  */
-import { auth, requireAuth, getOrgId, AuthError } from '@/lib/auth';
+import { requireAuth, getOrgId, AuthError } from '@/lib/auth';
 import { db } from '@/lib/db';
-import type { Tier } from '@/lib/entitlement';
 
 export { AuthError, requireAuth, getOrgId };
 
