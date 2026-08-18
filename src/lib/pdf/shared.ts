@@ -9,7 +9,7 @@
  * brandColorHex replaces the coral ONLY in the PDF, never in the live app UI.
  * The report is titled "Viableo Business Case" per Section 1/6.
  */
-import type { Style, Styles } from '@react-pdf/renderer';
+import type { Styles } from '@react-pdf/renderer';
 import type { Tier } from '@/lib/entitlement';
 
 export interface Branding {
@@ -145,7 +145,7 @@ export const PDF_STYLES: Styles = {
     fontSize: 10.5,
     color: PDF_COLORS.ink,
     backgroundColor: PDF_COLORS.canvas,
-  } as Style,
+  },
   pageNumber: {
     position: 'absolute',
     bottom: 28,
@@ -158,70 +158,70 @@ export const PDF_STYLES: Styles = {
     borderTopWidth: 0.5,
     borderTopColor: PDF_COLORS.border,
     paddingTop: 6,
-  } as Style,
+  },
   brandRule: {
     height: 4,
     width: '100%',
     marginBottom: 18,
-  } as Style,
+  },
   heading: {
     fontFamily: PDF_DISPLAY,
     fontWeight: 700,
     fontSize: 22,
     color: PDF_COLORS.ink,
     marginBottom: 6,
-  } as Style,
+  },
   subheading: {
     fontFamily: PDF_DISPLAY,
     fontWeight: 600,
     fontSize: 13,
     color: PDF_COLORS.ink,
     marginBottom: 6,
-  } as Style,
+  },
   exhibitTitle: {
     fontFamily: PDF_DISPLAY,
     fontWeight: 600,
     fontSize: 13,
     color: PDF_COLORS.ink,
     marginBottom: 4,
-  } as Style,
+  },
   caption: {
     fontFamily: PDF_SANS,
     fontSize: 8.5,
     color: PDF_COLORS.inkMuted,
     marginBottom: 12,
-  } as Style,
+  },
   body: {
     fontFamily: PDF_SANS,
     fontSize: 10.5,
     color: PDF_COLORS.ink,
     lineHeight: 1.55,
-  } as Style,
+  },
   label: {
     fontFamily: PDF_SANS,
     fontSize: 8.5,
     color: PDF_COLORS.inkMuted,
     marginBottom: 2,
-  } as Style,
+  },
   mono: {
     fontFamily: PDF_MONO,
     fontSize: 10.5,
     color: PDF_COLORS.ink,
-  } as Style,
+  },
   tableHeader: {
     fontFamily: PDF_SANS,
     fontSize: 8.5,
     color: PDF_COLORS.inkMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  } as Style,
+  },
   tableCell: {
     fontFamily: PDF_SANS,
     fontSize: 10,
     color: PDF_COLORS.ink,
     paddingTop: 4,
     paddingBottom: 4,
-  } as Style,
+  },
   tableCellMono: {
     fontFamily: PDF_MONO,
     fontSize: 10,
@@ -229,27 +229,27 @@ export const PDF_STYLES: Styles = {
     paddingTop: 4,
     paddingBottom: 4,
     textAlign: 'right',
-  } as Style,
+  },
   divider: {
     height: 0.5,
     width: '100%',
     backgroundColor: PDF_COLORS.border,
     marginVertical: 8,
-  } as Style,
+  },
   bullet: {
     fontFamily: PDF_SANS,
     fontSize: 10.5,
     color: PDF_COLORS.ink,
     marginBottom: 4,
     marginLeft: 10,
-  } as Style,
+  },
   disclaimer: {
     fontFamily: PDF_SANS,
     fontSize: 8.5,
     color: PDF_COLORS.inkMuted,
     marginTop: 14,
     lineHeight: 1.45,
-  } as Style,
+  },
 };
 
 export const PAGE_MARGIN = 54; // 0.75in @ 72dpi

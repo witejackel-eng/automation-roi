@@ -98,7 +98,7 @@ function findBreakingPoint(
   inputs: CalculatorInputs,
   lever: LeverDef,
   activeScenario: ScenarioName,
-  baseVerdict: Recommendation['recommendation'],
+  baseVerdict: RecommendationResult['recommendation'],
 ): { value: number; direction: 'above' | 'below' } | null {
   // Try sweeping up first, then down.
   const modified = { ...inputs };

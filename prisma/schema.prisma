@@ -6,8 +6,13 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Direct (non-pooled) connection for migrations + introspection on
+  // serverless Postgres (PgBouncer can't run migrations). Falls back to
+  // DATABASE_URL when DIRECT_URL is unset. prisma generate (postinstall)
+  // resolves this lazily — verified to succeed without DIRECT_URL set.
+  directUrl = env("DIRECT_URL")
 }
 
 // ── NextAuth models (Auth.js v4 compatible) ──────────────────────

@@ -122,7 +122,7 @@ export async function getActiveEntitlement(
  */
 export async function checkCaseLimit(
   organizationId: string
-): Promise<{ allowed: boolean; remaining: number; limit: number | Infinity }> {
+): Promise<{ allowed: boolean; remaining: number; limit: number }> {
   const entitlement = await getActiveEntitlement(organizationId);
 
   if (entitlement.tier === 'agency' || entitlement.tier === 'agency_pro') {
