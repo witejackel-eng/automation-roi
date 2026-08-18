@@ -73,7 +73,7 @@ export const metadata: Metadata = {
       "Turn an automation idea into a number your client will actually sign. Model the economics, stress-test the assumptions, walk in with the answer.",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: `${COMPANY_NAME} — ${BRAND_TAGLINE}`,
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     title: `${COMPANY_NAME} — Know what\u2019s worth building.`,
     description:
       "Turn an automation idea into a number your client will actually sign.",
-    images: ["/opengraph-image"],
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

@@ -106,10 +106,6 @@ export const VERDICT_COPY: Record<DecisionKey, { headline: string; subhead: stri
     headline: 'BUILD.',
     subhead: 'The numbers hold up \u2014 even in the worst case.',
   },
-  pilot: {
-    headline: 'PILOT.',
-    subhead: 'The upside is real. The risk needs a smaller bet first.',
-  },
   consider: {
     headline: 'CONSIDER.',
     subhead: 'The math works. The timeline might not.',
@@ -173,34 +169,25 @@ export const TERM = {
 // ── Decision vocabulary (Section 2) ───────────────────────
 // Closed vocabulary: always this order, always uppercase in badges/pills,
 // never rename. The four states form a MECE ladder from strongest
-// commitment (BUILD) to firmest rejection (DON'T BUILD). PILOT sits
-// between BUILD and CONSIDER: the expected case is strong, but the
-// conservative case (or the input confidence) signals material
-// uncertainty that a time-boxed pilot should resolve first.
+// commitment (BUILD) to firmest rejection (DON'T BUILD). CONSIDER covers
+// both the "positive but slow" case and the "material uncertainty" case
+// (where a pilot would be appropriate).
 export const DECISION_LABELS = {
   build: 'BUILD',
-  pilot: 'PILOT',
   consider: 'CONSIDER',
   dont_build: "DON\u2019T BUILD",
 } as const;
 
-export const DECISION_ORDER = ['build', 'pilot', 'consider', 'dont_build'] as const;
+export const DECISION_ORDER = ['build', 'consider', 'dont_build'] as const;
 export type DecisionKey = (typeof DECISION_ORDER)[number];
 
 // ── Decision color tokens (Section 5.1 exception) ─────────
 // Scoped ONLY to the Decision badge component.
-// PILOT uses a muted steel blue — distinct from emerald/amber/crimson
-// so it cannot be confused with the three legacy verdicts.
 export const DECISION_COLORS = {
   build: {
     text: '#1F8A5A',          // muted emerald
     bg: '#E7F4ED',            // ~12% emerald tint
     label: 'BUILD',
-  },
-  pilot: {
-    text: '#3B6E8F',          // muted steel blue
-    bg: '#EAF2F6',            // ~12% steel-blue tint
-    label: 'PILOT',
   },
   consider: {
     text: '#C98A1B',          // muted amber/gold

@@ -82,6 +82,17 @@ export async function DELETE(
   }
 
   const { id: projectId } = await params;
+
+  // Authorization: verify the project belongs to the requesting organization
+  // to prevent IDOR — a user must not revoke shares on another org's project.
+  const project = await db.project.findFirst({
+    where: { id: projectId, organizationId: org.id },
+    select: { id: true },
+  });
+  if (!project) {
+    return NextResponse.json({ error: 'Project not found.' }, { status: 403 });
+  }
+
   // Revoke all shares for this project (set revokedAt).
   await db.share.updateMany({
     where: { projectId, revokedAt: null },

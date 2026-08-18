@@ -66,7 +66,7 @@ const SECTIONS = [
   {
     n: '5',
     label: 'Recommendation',
-    body: 'One of four words: BUILD, PILOT, CONSIDER, DON\u2019T BUILD. The decision the numbers support. One paragraph of context underneath.',
+    body: 'One of three words: BUILD, CONSIDER, DON\u2019T BUILD. The decision the numbers support. One paragraph of context underneath.',
   },
   {
     n: '6',
@@ -167,7 +167,6 @@ export default function ResourceAutomationBusinessCasePage() {
           <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
               { label: DECISION_LABELS.build, when: 'The numbers hold up — even in the floor case.' },
-              { label: DECISION_LABELS.pilot, when: 'The upside is real. The risk needs a smaller bet first.' },
               { label: DECISION_LABELS.consider, when: 'The math works. The timeline might not.' },
               { label: DECISION_LABELS.dont_build, when: 'The numbers do not support it. Better to know now.' },
             ].map((d) => (

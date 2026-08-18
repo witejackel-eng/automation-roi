@@ -9,10 +9,10 @@
  *
  * 2. `recommendWithConfidence({ expected, conservative, confidenceScore })` —
  *    the project-level verdict. Compares the Expected case against the
- *    Conservative case AND the confidence score, returns one of four
- *    verdicts: BUILD / PILOT / CONSIDER / DON'T BUILD. PILOT fires when the
+ *    Conservative case AND the confidence score, returns one of three
+ *    verdicts: BUILD / CONSIDER / DON'T BUILD. CONSIDER fires when the
  *    expected case is strong but the conservative case (or the confidence
- *    score) signals material uncertainty.
+ *    score) signals material uncertainty (previously "PILOT").
  *
  * INVARIANT: never output BUILD when expected.netAnnualBenefit <= 0. Branch 1
  * enforces this first in both functions — keep it first if the branches are
@@ -22,8 +22,8 @@ import type { ScenarioResult, Recommendation } from './engine';
 
 export interface RecommendationResult {
   recommendation: Recommendation;
-  /** Which copy template fired: 'negative' | 'build' | 'pilot' | 'consider' | 'slow'. */
-  reason: 'negative' | 'build' | 'pilot' | 'consider' | 'slow';
+  /** Which copy template fired: 'negative' | 'build' | 'consider' | 'slow'. */
+  reason: 'negative' | 'build' | 'consider' | 'slow';
   copy: string;
 }
 
@@ -138,13 +138,13 @@ function effectiveRoi(r: ScenarioResult): number {
  * 2. conservative ROI > 50% AND conservative payback ≤ 12mo
  *    AND confidence ≥ 60                → BUILD
  * 3. (expected ROI > 50% AND conservative ROI ≤ 50%)
- *    OR confidence 40–59                 → PILOT (material uncertainty)
+ *    OR confidence 40–59                 → CONSIDER (material uncertainty)
  * 4. expected ROI is 0–50%
  *    OR payback > 12mo with positive ROI → CONSIDER
  * 5. else                                → DON'T BUILD
  *
  * Confidence band `[40, 60)` covers the material-uncertainty zone: high
- * enough to act on (PILOT), too low to commit fully (not BUILD). The BUILD
+ * enough to act on (CONSIDER), too low to commit fully (not BUILD). The BUILD
  * branch (2) needs ≥ 60.
  */
 export function recommendWithConfidence(
@@ -190,16 +190,18 @@ export function recommendWithConfidence(
     };
   }
 
-  // Branch 3 — PILOT. Material uncertainty: expected is strong but
-  // conservative isn't, or the confidence band says so.
+  // Branch 3 — CONSIDER (was PILOT). Material uncertainty: expected is
+  // strong but conservative isn't, or the confidence band says so.
+  // PILOT is effectively CONSIDER — the user should narrow scope or
+  // validate assumptions before committing.
   if (
     (expectedRoi > 50 && conservativeRoi <= 50) ||
     (confidenceScore >= 40 && confidenceScore < 60)
   ) {
     return {
-      recommendation: 'pilot',
-      reason: 'pilot',
-      copy: `PILOT — The expected case is strong (${fmtRoi(
+      recommendation: 'consider',
+      reason: 'consider',
+      copy: `CONSIDER — The expected case is strong (${fmtRoi(
         expected.roiPct
       )} ROI, ${fmtCurrency(
         expected.netAnnualBenefit
@@ -207,7 +209,7 @@ export function recommendWithConfidence(
         conservative.roiPct
       )} ROI, ${fmtPayback(
         conservativePayback
-      )} payback). Run a time-boxed pilot to validate the assumptions before committing to the full build.`,
+      )} payback). Narrow the first phase or validate the assumptions before committing to the full build.`,
     };
   }
 

@@ -42,6 +42,7 @@ import {
   calculateAllScenarios,
 } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
+import { computeConfidenceScore, confidenceLabel } from '@/lib/calculations/confidence';
 import { SCENARIO_LABELS, type ScenarioName } from '@/lib/calculations/scenarios';
 import { formatCurrency, formatPayback } from '@/lib/format';
 import {
@@ -82,6 +83,19 @@ import { cn } from '@/lib/utils';
 const APEX_EXPECTED = calculateScenario(APEX_INPUTS, 'expected');
 const APEX_ALL = calculateAllScenarios(APEX_INPUTS);
 const APEX_RECOMMENDATION = recommend(APEX_EXPECTED);
+
+// Representative confidence for the golden-case hero panel.
+// In a real analysis some inputs are estimated — simulate that mix so the
+// confidence bar is visually meaningful (not just 100).
+const APEX_CONFIDENCE = computeConfidenceScore({
+  hourlyLaborCost: 'provided',
+  workloadVolume: 'provided',
+  implementationFee: 'provided',
+  automationCoverage: 'estimated',
+  conversionImprovement: 'estimated',
+  errorCost: 'assumption',
+  otherInputs: 'assumption',
+});
 
 /** Render an ROI% as a multiplier (499% → "5.0×"). */
 function roiAsMultiplier(roiPct: number | null | undefined): string {
@@ -153,6 +167,16 @@ function HeroSection() {
           style={{
             background:
               'radial-gradient(70% 60% at 15% 80%, rgba(255, 22, 75, 0.018) 0%, rgba(255, 22, 75, 0) 55%)',
+          }}
+        />
+        {/* ── Analytical dot-matrix ──
+            Very faint dot grid across the entire hero — communicates
+            intelligence / analysis / measurement. Barely visible. */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(23, 21, 22, 0.04) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
           }}
         />
       </div>
@@ -311,84 +335,95 @@ function HeroSection() {
 }
 
 /**
- * HeroVerdictMock — the single quiet visual object on the right of the hero.
- * A clean, low-contrast mock of the stamped verdict card. Almost monochrome:
- * white surface, hairline border, soft shadow, charcoal type. The only color
- * is the protected emerald BUILD badge (a real product component, previewed).
- * Real Apex golden-case numbers so it's truthful, not decorative.
+ * HeroVerdictMock — Decision Instrument Panel.
  *
- * Wrapped in a motion.div with a refined hover lift — the card rises ~4px
- * and its shadow deepens, communicating it is the focal interactive object
- * of the hero without ever being loud.
+ * The hero should feel like a product, not just a landing page. This panel
+ * visually exposes the five decision signals: annual benefit, ROI, payback,
+ * recommendation, and confidence — all from the real Apex golden case.
+ *
+ * Dark analytical surface with faint dot-grid pattern, monospace tabular
+ * numerals, DecisionBadge for the verdict, and a confidence progress bar.
+ * Light text on charcoal = instrument panel aesthetic.
  */
 function HeroVerdictMock() {
+  const confScore = APEX_CONFIDENCE.score;
+  const confLabel = confidenceLabel(confScore).toUpperCase().replace(' CONFIDENCE', '').replace(' UNCERTAINTY', '');
+
   return (
     <motion.div
-      className="hero-verdict-card w-full max-w-[400px] p-8 md:p-9"
+      className="hero-instrument-panel w-full max-w-[400px] p-8 md:p-9"
       whileHover={{ y: -6 }}
       transition={{ duration: 0.36, ease: EASE_OUT }}
     >
-      {/* Header row — report name + prepared-for. */}
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-          {REPORT_NAME}
+      {/* Header — Viableo / Decision Engine */}
+      <div className="flex items-center gap-2.5">
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#F5F3FF]">
+          Viableo
         </span>
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-brand/40" />
+        <span aria-hidden="true" className="text-[11px] text-[#55505A]">/</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#A8A0B8]">
+          Decision Engine
+        </span>
       </div>
-      <p className="mt-2.5 text-[13px] font-medium text-ink-muted">
-        Prepared for Apex Home Services
-      </p>
 
-      {/* Headline figure — the annual opportunity (the dominant number).
-          Larger clamp range + heavier weight gives it visual primacy inside the card. */}
-      <div className="mt-9">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
-          Annual opportunity
+      {/* Annual benefit — the hero figure */}
+      <div className="mt-8">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#A8A0B8]">
+          Annual benefit
         </p>
-        <p className="mt-2.5 font-mono tnum text-[clamp(2.5rem,5.5vw,3.25rem)] font-bold tracking-[-0.03em] text-ink">
+        <p className="mt-2.5 font-mono tnum text-[clamp(2.5rem,5.5vw,3.25rem)] font-bold tracking-[-0.03em] text-[#F5F3FF]">
           {formatCurrency(APEX_EXPECTED.totalAnnualBenefit)}
         </p>
       </div>
 
-      {/* Verdict — the one stamped answer. */}
-      <div className="mt-8 border-t border-border pt-6">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
-          Verdict
-        </p>
-        <div className="mt-3 flex items-center gap-3">
-          <DecisionBadge
-            decision={APEX_RECOMMENDATION.recommendation}
-            size="lg"
-            animate
-          />
-          <span className="font-mono tnum text-[14px] font-medium text-ink-muted">{formatPayback(APEX_EXPECTED.paybackMonths)} payback</span>
-        </div>
-      </div>
-
-      {/* Two-up supporting figures — slightly larger for better scanability. */}
-      <div className="mt-7 grid grid-cols-2 gap-5 border-t border-border pt-6">
+      {/* ROI + Payback — two-up key figures */}
+      <div className="mt-7 grid grid-cols-2 gap-5">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">
-            First-year ROI
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#A8A0B8]">
+            ROI
           </p>
-          <p className="mt-2 font-mono tnum text-[20px] font-semibold tracking-[-0.02em] text-ink">
+          <p className="mt-2 font-mono tnum text-[20px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
             {roiAsMultiplier(APEX_EXPECTED.roiPct)}
           </p>
         </div>
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">
-            Net benefit
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#A8A0B8]">
+            Payback
           </p>
-          <p className="mt-2 font-mono tnum text-[20px] font-semibold tracking-[-0.02em] text-ink">
-            {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
+          <p className="mt-2 font-mono tnum text-[20px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
+            {formatPayback(APEX_EXPECTED.paybackMonths)}
           </p>
         </div>
       </div>
 
-      {/* Footer — the brand mark. */}
-      <div className="mt-7 flex items-center justify-between border-t border-border pt-5">
-        <Logo variant="compact" style={{ height: 14 }} aria-hidden="true" />
-        <span className="text-[11px] font-medium text-ink-faint">Viableo Analysis</span>
+      {/* Verdict — the stamped decision */}
+      <div className="mt-7 border-t border-[var(--color-surface-analytical-border)] pt-5">
+        <DecisionBadge
+          decision={APEX_RECOMMENDATION.recommendation}
+          size="lg"
+          animate
+        />
+      </div>
+
+      {/* Confidence — progress bar with label */}
+      <div className="mt-6 border-t border-[var(--color-surface-analytical-border)] pt-5">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#A8A0B8]">
+            Confidence
+          </p>
+          <span className="font-mono tnum text-[11px] font-semibold text-[#A8A0B8]">
+            {confScore}
+          </span>
+        </div>
+        <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-[#353034]">
+          <div
+            className="h-full rounded-full bg-[#818CF8] transition-all duration-700"
+            style={{ width: `${confScore}%` }}
+          />
+        </div>
+        <p className="mt-1.5 font-mono tnum text-[11px] font-semibold tracking-[0.04em] text-[#818CF8]">
+          {confLabel}
+        </p>
       </div>
     </motion.div>
   );
@@ -461,22 +496,22 @@ function ProblemStatement() {
 // ════════════════════════════════════════════════════════════════
 function ProductDemo() {
   return (
-    <section className="border-b border-t border-border bg-surface">
+    <section className="surface-analytical border-b border-t border-[var(--color-surface-analytical-border)]">
       <div className="mx-auto w-full max-w-[1100px] px-4 py-28 md:px-6 md:py-36">
         <FadeIn className="mb-16 max-w-[760px]">
-          <p className="mkt-eyebrow">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
+          <p className="mkt-eyebrow text-[#A8A0B8]">
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-[#818CF8]" />
             How it works
           </p>
-          <h2 className="mkt-display-md mt-6">
+          <h2 className="mkt-display-md mt-6 !text-[#F5F3FF]">
             {SOLUTION_HEADLINE}
           </h2>
-          <p className="mt-6 max-w-[600px] text-[17px] leading-[1.65] text-ink-muted md:text-[18px]">
+          <p className="mt-6 max-w-[600px] text-[17px] leading-[1.65] text-[#B8B2C4] md:text-[18px]">
             {SOLUTION_SUBHEAD}
           </p>
         </FadeIn>
         <FadeIn delay={0.1}>
-          <Stepper weight="primary" />
+          <Stepper weight="primary" surface="dark" />
         </FadeIn>
       </div>
     </section>
@@ -604,11 +639,11 @@ function ScenarioModeling() {
   const showDelta = active !== 'expected';
 
   return (
-    <section className="border-b border-t border-border bg-surface">
+    <section className="border-b border-t border-[var(--color-surface-indigo-border)] bg-[var(--color-surface-indigo)]">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-28 md:px-6 md:py-36">
         <FadeIn className="mb-16 max-w-[760px]">
           <p className="mkt-eyebrow">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-[var(--color-indigo-muted)]" />
             Scenario modeling
           </p>
           <h2 className="mkt-display-md mt-6">
@@ -808,30 +843,30 @@ function StressTestTeaser() {
   const startCalculator = useApp((s) => s.startCalculator);
 
   return (
-    <section className="bg-canvas">
+    <section className="surface-analytical border-t border-[var(--color-surface-analytical-border)]">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-28 md:px-6 md:py-40">
         <FadeIn className="mb-16 max-w-[760px]">
-          <p className="mkt-eyebrow">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
+          <p className="mkt-eyebrow text-[#A8A0B8]">
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-brand" />
             Stress test
           </p>
-          <h2 className="mkt-display mt-6">
+          <h2 className="mkt-display mt-6 !text-[#F5F3FF]">
             Try to break the business case.
           </h2>
-          <p className="mt-8 max-w-[600px] text-[17px] leading-[1.65] text-ink-muted md:text-[18px]">
+          <p className="mt-8 max-w-[600px] text-[17px] leading-[1.65] text-[#B8B2C4] md:text-[18px]">
             Drag the sliders. Watch the decision change. Viableo stress-tests every
             assumption so you know exactly where the numbers stop working.
           </p>
         </FadeIn>
 
         <FadeIn delay={0.1} className="grid grid-cols-1 gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-12">
-          {/* Left: mock sliders + quiet breaking-point callout */}
-          <div className="mkt-card-quiet p-8 md:p-10">
+          {/* Left: mock sliders + quiet breaking-point callout — dark surface */}
+          <div className="surface-analytical-raised rounded-xl border border-[var(--color-surface-analytical-border)] p-8 md:p-10">
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#A8A0B8]">
                 Live assumptions
               </p>
-              <p className="text-[11px] text-ink-faint">Apex Home Services</p>
+              <p className="text-[11px] text-[#706B7A]">Apex Home Services</p>
             </div>
 
             <div className="mt-8 space-y-7">
@@ -841,24 +876,25 @@ function StressTestTeaser() {
                   label={s.label}
                   display={s.display}
                   fillPct={s.fillPct}
+                  dark
                 />
               ))}
             </div>
 
-            {/* Breaking-point callout — quiet charcoal border, no emerald/coral. */}
-            <div className="mt-10 rounded-md border border-border-strong bg-canvas p-5">
+            {/* Breaking-point callout — indigo accent on dark surface. */}
+            <div className="mt-10 rounded-md border border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical)] p-5">
               <div className="flex items-start gap-3">
                 <span
-                  className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-ink"
+                  className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-build"
                   aria-hidden="true"
                 >
                   <Check className="size-3 text-white" strokeWidth={3} />
                 </span>
                 <div>
-                  <p className="text-[13px] font-semibold text-ink">Still viable</p>
-                  <p className="mt-1.5 text-[13px] leading-[1.55] text-ink-muted">
+                  <p className="text-[13px] font-semibold text-[#F5F3FF]">Still viable</p>
+                  <p className="mt-1.5 text-[13px] leading-[1.55] text-[#B8B2C4]">
                     Remains above your target payback until implementation costs exceed{' '}
-                    <span className="font-mono tnum font-semibold text-ink">
+                    <span className="font-mono tnum font-semibold text-[#F5F3FF]">
                       $<CountUp value={27400} />
                     </span>
                     .
@@ -868,14 +904,14 @@ function StressTestTeaser() {
             </div>
 
             <ul className="mt-8 space-y-3">
-              <li className="flex items-start gap-3 text-[13px] text-ink-muted">
-                <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-ink-faint" />
+              <li className="flex items-start gap-3 text-[13px] text-[#B8B2C4]">
+                <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-[#706B7A]" />
                 <span>
                   Sweeps every cost and benefit assumption across its plausible range.
                 </span>
               </li>
-              <li className="flex items-start gap-3 text-[13px] text-ink-muted">
-                <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-ink-faint" />
+              <li className="flex items-start gap-3 text-[13px] text-[#B8B2C4]">
+                <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-[#706B7A]" />
                 <span>
                   Flags the precise breaking point where BUILD tips to CONSIDER or
                   DON&rsquo;T BUILD.
@@ -886,21 +922,21 @@ function StressTestTeaser() {
 
           {/* Right: decision-shift column */}
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#A8A0B8]">
               How the decision shifts
             </p>
-            <p className="mt-2 text-[13px] text-ink-faint">
+            <p className="mt-2 text-[13px] text-[#706B7A]">
               As implementation cost climbs from $18k to $36k
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
               {STRESS_SHIFT_ROWS.map((row) => (
-                <MiniDecisionShift key={row.cost} {...row} />
+                <MiniDecisionShift key={row.cost} {...row} dark />
               ))}
             </div>
 
-            <div className="mt-8 rounded-md border border-border bg-surface p-5">
-              <p className="text-[13px] leading-[1.55] text-ink-muted">
+            <div className="mt-8 rounded-md border border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical-raised)] p-5">
+              <p className="text-[13px] leading-[1.55] text-[#B8B2C4]">
                 The full stress test runs 50+ assumption permutations and ranks the
                 inputs by how much they move the verdict.
               </p>
@@ -909,7 +945,7 @@ function StressTestTeaser() {
             <button
               type="button"
               onClick={() => startCalculator()}
-              className="mkt-cta-dark mt-8 w-full justify-center"
+              className="mt-8 inline-flex w-full min-h-[48px] items-center justify-center gap-2 rounded-full bg-brand px-6 text-[14px] font-medium text-white shadow-[0_1px_2px_rgba(255,22,75,0.20)] transition-[transform,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:shadow-[0_10px_24px_-6px_rgba(255,22,75,0.30)]"
             >
               {CTA_PRIMARY}
             </button>
@@ -925,28 +961,30 @@ function MockSlider({
   label,
   display,
   fillPct,
+  dark,
 }: {
   label: string;
   display: string;
   fillPct: number;
+  dark?: boolean;
 }) {
   return (
     <div>
       <div className="flex items-baseline justify-between">
-        <span className="text-[13px] font-medium text-ink">{label}</span>
-        <span className="font-mono tnum text-[13px] font-semibold text-ink">
+        <span className={cn('text-[13px] font-medium', dark ? 'text-[#E8E4F0]' : 'text-ink')}>{label}</span>
+        <span className={cn('font-mono tnum text-[13px] font-semibold', dark ? 'text-[#E8E4F0]' : 'text-ink')}>
           {display}
         </span>
       </div>
-      <div className="relative mt-3 h-1.5 w-full rounded-full border border-border bg-canvas">
+      <div className={cn('relative mt-3 h-1.5 w-full rounded-full border', dark ? 'border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical)]' : 'border-border bg-canvas')}>
         <div
           aria-hidden="true"
-          className="absolute left-0 top-0 h-full rounded-full bg-ink"
+          className={cn('absolute left-0 top-0 h-full rounded-full', dark ? 'bg-[#818CF8]' : 'bg-ink')}
           style={{ width: `${fillPct}%` }}
         />
         <div
           aria-hidden="true"
-          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-surface shadow-floating"
+          className={cn('absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow-floating', dark ? 'border-[#818CF8] bg-[var(--color-surface-analytical-raised)]' : 'border-ink bg-surface')}
           style={{ left: `${fillPct}%` }}
         />
       </div>
@@ -959,24 +997,30 @@ function MiniDecisionShift({
   note,
   decision,
   active,
+  dark,
 }: {
   cost: string;
   note: string;
   decision: 'build' | 'consider' | 'dont_build';
   active: boolean;
+  dark?: boolean;
 }) {
   return (
     <div
       className={cn(
         'flex items-center justify-between rounded-md border p-4 transition-colors',
-        active
-          ? 'border-border-strong bg-surface'
-          : 'border-border bg-surface-raised opacity-80'
+        dark
+          ? active
+            ? 'border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical-raised)]'
+            : 'border-[var(--color-surface-analytical-border)]/50 bg-[var(--color-surface-analytical)] opacity-80'
+          : active
+            ? 'border-border-strong bg-surface'
+            : 'border-border bg-surface-raised opacity-80'
       )}
     >
       <div className="flex items-center gap-3">
-        <span className="font-mono tnum text-[14px] font-semibold text-ink">{cost}</span>
-        <span className="text-[12px] text-ink-muted">{note}</span>
+        <span className={cn('font-mono tnum text-[14px] font-semibold', dark ? 'text-[#F5F3FF]' : 'text-ink')}>{cost}</span>
+        <span className={cn('text-[12px]', dark ? 'text-[#A8A0B8]' : 'text-ink-muted')}>{note}</span>
       </div>
       <DecisionBadge decision={decision} size="sm" />
     </div>
@@ -1304,7 +1348,11 @@ function FinalCTA() {
   const startCalculator = useApp((s) => s.startCalculator);
 
   return (
-    <section className="bg-ink text-white">
+    <section className="bg-[var(--color-ink-deep)] text-white">
+      {/* Coral accent strip — the one sanctioned coral moment on the dark CTA surface. */}
+      <div aria-hidden="true" className="mx-auto w-full max-w-[1100px] px-4 md:px-6">
+        <div className="h-px w-32 rounded-full bg-brand" />
+      </div>
       <div className="mx-auto w-full max-w-[1100px] px-4 py-28 text-center md:px-6 md:py-44">
         <FadeIn>
           <div className="mb-10 flex justify-center">
@@ -1317,12 +1365,11 @@ function FinalCTA() {
             {FINAL_CTA_BODY}
           </p>
           <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            {/* Primary CTA on dark — white bg, charcoal text (piplanning style).
-                Refined hover: soft lift + shadow, no coral. */}
+            {/* Primary CTA on deep ink — coral brand button, white text. */}
             <motion.button
               type="button"
               onClick={() => startCalculator()}
-              className="inline-flex min-h-[52px] items-center gap-2 rounded-sm bg-white px-7 text-[15px] font-medium text-ink shadow-[0_1px_2px_rgba(0,0,0,0.10)] transition-[transform,background-color,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:bg-white/90 hover:shadow-[0_10px_24px_rgba(0,0,0,0.28)]"
+              className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-brand px-8 text-[15px] font-semibold text-white shadow-[0_1px_2px_rgba(255,22,75,0.25)] transition-[transform,background-color,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:bg-brand-hover hover:shadow-[0_10px_24px_-6px_rgba(255,22,75,0.35)]"
               whileHover={{ y: -2 }}
               whileTap={{ y: 0 }}
               transition={{ duration: 0.2, ease: EASE_OUT }}
@@ -1395,7 +1442,7 @@ function MarketingFooter() {
   ];
 
   return (
-    <footer className="bg-ink text-white">
+    <footer className="bg-[var(--color-ink-deep)] text-white">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-24">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-[1.4fr_repeat(5,_1fr)] md:gap-8">
           {/* Brand block */}

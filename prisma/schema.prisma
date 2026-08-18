@@ -1,12 +1,12 @@
-// Automation ROI — data model (Section 6, adapted for SQLite).
-// SQLite stores Json as TEXT; Prisma handles (de)serialization.
+// Automation ROI — data model (Section 6, adapted for PostgreSQL).
+// PostgreSQL is the production datasource; SQLite .env is kept as a dev fallback.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -48,6 +48,7 @@ model Report {
   reportType String // 'client_report' | 'proposal'
   pdfUrl     String
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -62,6 +63,7 @@ model Share {
   projectId  String
   reportId   String?  // optional: link to a specific generated report
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   expiresAt  DateTime? // optional expiry
   revokedAt  DateTime? // set when access is revoked
 
@@ -77,10 +79,13 @@ model License {
   organizationId String
   tier           String    // 'free' | 'pro' | 'agency' | 'agency_pro'
   whopOrderId    String?
+  whopEventId    String?   // idempotency key from Whop webhook event
   purchasedAt    DateTime?
   createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
+  @@unique([whopEventId])
 }

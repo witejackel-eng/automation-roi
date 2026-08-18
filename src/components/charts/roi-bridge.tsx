@@ -31,6 +31,8 @@ const CHART_COLORS = {
   brand: '#FF164B',
   build: '#1F8A5A',
   dontBuild: '#B70F38',
+  indigo: '#4338CA',
+  emerald: '#1F8A5A',
 } as const;
 
 interface RoiBridgeProps {
@@ -146,7 +148,7 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
     {
       name: 'Labor\nsavings',
       range: [Math.max(0, labor - savings), labor],
-      fill: CHART_COLORS.build,
+      fill: CHART_COLORS.emerald,
       labelValue: -savings, // down-step
     },
     {
@@ -154,7 +156,7 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
       range: profitIsZero
         ? [Math.max(0, labor - savings), Math.max(0, labor - savings) + profitSlotHeight]
         : [Math.max(0, labor - savings), Math.max(0, labor - savings) + profit],
-      fill: CHART_COLORS.brand,
+      fill: CHART_COLORS.brand, // coral — the hero metric
       fillOpacity: profitIsZero ? 0.35 : 1,
       labelValue: profit,
     },
@@ -168,7 +170,7 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
     {
       name: 'Net annual\nbenefit',
       range: [0, Math.max(0, net)],
-      fill: net < 0 ? CHART_COLORS.dontBuild : CHART_COLORS.ink,
+      fill: net < 0 ? CHART_COLORS.dontBuild : CHART_COLORS.emerald,
       fillOpacity: net < 0 ? 0.7 : 1,
       labelValue: net,
     },
@@ -192,17 +194,19 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
             margin={{ top: 28, right: 16, bottom: 8, left: 8 }}
           >
             <CartesianGrid
-              strokeDasharray="3 3"
+              strokeDasharray="none"
               vertical={false}
               stroke={CHART_COLORS.border}
+              strokeWidth={1}
             />
             <XAxis
               dataKey="name"
               tick={{
                 fill: CHART_COLORS.inkMuted,
-                fontSize: 12,
+                fontSize: 11,
+                fontFamily: 'var(--font-mono), ui-monospace, monospace',
               }}
-              axisLine={{ stroke: CHART_COLORS.border }}
+              axisLine={false}
               tickLine={false}
               interval={0}
               // Render multi-line names.
@@ -211,7 +215,8 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
             <YAxis
               tick={{
                 fill: CHART_COLORS.inkMuted,
-                fontSize: 13,
+                fontSize: 11,
+                fontFamily: 'var(--font-mono), ui-monospace, monospace',
               }}
               tickFormatter={(v: number) =>
                 formatCurrency(v, { compact: true })

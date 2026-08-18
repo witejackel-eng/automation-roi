@@ -17,6 +17,7 @@ import {
   computeSensitivity,
   stillViableStatement,
 } from '@/lib/calculations/stress-test';
+import { calculateScenario } from '@/lib/calculations/engine';
 import type { CalculatorInputs } from '@/lib/calculations/engine';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
 import { formatCurrency } from '@/lib/format';
@@ -41,6 +42,12 @@ export function StressTestSection({ inputs, activeScenario }: StressTestSectionP
   const viableStatement = React.useMemo(
     () => stillViableStatement(thresholds, inputs),
     [thresholds, inputs]
+  );
+
+  // Compute the expected result for threshold bar visualizations.
+  const expectedResult = React.useMemo(
+    () => calculateScenario(inputs, activeScenario),
+    [inputs, activeScenario]
   );
 
   return (
@@ -74,31 +81,26 @@ export function StressTestSection({ inputs, activeScenario }: StressTestSectionP
         ) : (
           <>
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <ThresholdCard
+              <ThresholdCardWithBar
                 label="Implementation cost"
-                value={
-                  thresholds.implementationFee != null
-                    ? formatCurrency(thresholds.implementationFee)
-                    : 'N/A'
-                }
+                currentValue={inputs.implementationFee}
+                thresholdValue={thresholds.implementationFee}
+                formatValue={(v) => formatCurrency(v)}
                 context="cross this and the return drops below zero"
               />
-              <ThresholdCard
+              <ThresholdCardWithBar
                 label="Automation coverage"
-                value={
-                  thresholds.automationPct != null
-                    ? `${(thresholds.automationPct * 100).toFixed(0)}%`
-                    : 'N/A'
-                }
+                currentValue={inputs.expectedAutomationPct}
+                thresholdValue={thresholds.automationPct}
+                formatValue={(v) => `${Math.round(v * 100)}%`}
                 context="drop below this and the case breaks"
+                inverted
               />
-              <ThresholdCard
+              <ThresholdCardWithBar
                 label="Monthly operating cost"
-                value={
-                  thresholds.monthlyOperatingCost != null
-                    ? formatCurrency(thresholds.monthlyOperatingCost)
-                    : 'N/A'
-                }
+                currentValue={inputs.monthlyAiApiCost + inputs.monthlySoftwareCost}
+                thresholdValue={thresholds.monthlyOperatingCost}
+                formatValue={(v) => formatCurrency(v)}
                 context="AI/API + software, per month"
               />
             </div>
@@ -192,6 +194,76 @@ function ThresholdCard({
         {value}
       </div>
       <div className="mt-1 text-[11px] text-ink-faint">{context}</div>
+    </div>
+  );
+}
+
+/**
+ * ThresholdCardWithBar — enhanced threshold card with a horizontal bar showing
+ * where the current value sits relative to the break-even threshold.
+ *
+ * The bar fills from left to right. For cost variables (implementation fee,
+ * monthly operating cost), the bar shows current/threshold — crossing the
+ * end = decision breaks. For coverage (automationPct), `inverted` flips it
+ * so the bar shows how close to the minimum threshold.
+ */
+function ThresholdCardWithBar({
+  label,
+  currentValue,
+  thresholdValue,
+  formatValue,
+  context,
+  inverted = false,
+}: {
+  label: string;
+  currentValue: number;
+  thresholdValue: number | null;
+  formatValue: (v: number) => string;
+  context: string;
+  /** If true, the threshold is a *minimum* (automation coverage) — bar fills
+   *  from right to left conceptually, and we show distance to the floor. */
+  inverted?: boolean;
+}) {
+  if (thresholdValue == null || thresholdValue <= 0 || !Number.isFinite(currentValue)) {
+    return <ThresholdCard label={label} value="N/A" context={context} />;
+  }
+
+  const ratio = currentValue / thresholdValue;
+  // For inverted (minimum threshold): viable when current >= threshold
+  // For normal (maximum threshold): viable when current <= threshold
+  const isViable = inverted ? currentValue >= thresholdValue : currentValue <= thresholdValue;
+  const barPct = Math.min(Math.max(ratio * 100, 0), 100);
+
+  return (
+    <div className="rounded-md border border-border bg-canvas p-4">
+      <div className="text-[12px] uppercase tracking-[0.005em] text-ink-muted">
+        {label}
+      </div>
+      <div className="mt-2 font-mono tnum text-xl font-bold tracking-[-0.02em] text-ink">
+        {formatValue(currentValue)}
+      </div>
+      <div className="mt-1 text-[11px] text-ink-faint">{context}</div>
+
+      {/* Threshold visualization bar */}
+      <div className="mt-3">
+        <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.04em]">
+          <span className={isViable ? 'text-build' : 'text-dont-build'}>
+            {isViable ? 'STILL VIABLE' : 'DECISION BREAKS'}
+          </span>
+          <span className="font-mono tnum text-ink-muted">
+            {formatValue(thresholdValue)}
+          </span>
+        </div>
+        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface">
+          <div
+            className={cn(
+              'h-full rounded-full transition-all duration-500',
+              isViable ? 'bg-build' : 'bg-dont-build'
+            )}
+            style={{ width: `${barPct}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

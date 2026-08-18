@@ -23,6 +23,8 @@ import { Dot } from './dot';
 interface StepperProps {
   /** "primary" for product demonstration (7.4), "secondary" for agency workflow (7.8). */
   weight?: 'primary' | 'secondary';
+  /** "dark" inverts text/border/bg for dark analytical surfaces. */
+  surface?: 'light' | 'dark';
   className?: string;
 }
 
@@ -45,9 +47,10 @@ const SECONDARY_STEPS: StepDef[] = [
   { icon: FileText, label: 'Close' },
 ];
 
-export function Stepper({ weight = 'primary', className }: StepperProps) {
+export function Stepper({ weight = 'primary', surface = 'light', className }: StepperProps) {
   const steps = weight === 'primary' ? PRIMARY_STEPS : SECONDARY_STEPS;
   const isPrimary = weight === 'primary';
+  const isDark = surface === 'dark';
 
   const [visible, setVisible] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -100,7 +103,9 @@ export function Stepper({ weight = 'primary', className }: StepperProps) {
                   isPrimary ? 'h-12 w-12' : 'h-10 w-10',
                   isDecisionStep
                     ? 'border-build bg-build-bg text-build'
-                    : 'border-border bg-surface text-ink'
+                    : isDark
+                      ? 'border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical-raised)] text-[#F5F3FF]'
+                      : 'border-border bg-surface text-ink'
                 )}
               >
                 {isDecisionStep ? (
@@ -111,7 +116,8 @@ export function Stepper({ weight = 'primary', className }: StepperProps) {
               </div>
               <span
                 className={cn(
-                  'font-medium text-ink',
+                  'font-medium',
+                  isDark ? 'text-[#E8E4F0]' : 'text-ink',
                   isPrimary ? 'text-[13px]' : 'text-[12px]'
                 )}
               >
@@ -128,7 +134,8 @@ export function Stepper({ weight = 'primary', className }: StepperProps) {
               >
                 <div
                   className={cn(
-                    'absolute inset-0 origin-left bg-border',
+                    'absolute inset-0 origin-left',
+                    isDark ? 'bg-[var(--color-surface-analytical-border)]' : 'bg-border',
                     visible && 'stepper-line-draw bg-brand'
                   )}
                 />

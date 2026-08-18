@@ -132,3 +132,109 @@ Stage Summary:
 - Key accessibility improvements (chart aria, table labels, active indicators)
 - Production safeguards added (beforeunload, delete API with auth)
 - Pushed to https://github.com/witejackel-eng/automation-roi on main branch
+
+---
+Task ID: 3+4+5
+Agent: main
+Task: Fix backend security, production config, dead code
+
+Work Log:
+- Fixed next.config.ts: set ignoreBuildErrors to false, reactStrictMode to true, added security headers (CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy)
+- Fixed Prisma schema: changed datasource from sqlite to postgresql, added whopEventId String? and @@unique([whopEventId]) to License for idempotency, added @@index([organizationId]) to License (already existed), added updatedAt DateTime @updatedAt to Report, Share, and License models
+- Fixed db.ts: changed log from ['query'] to conditional: process.env.NODE_ENV === 'development' ? ['query'] : []
+- Fixed entitlement backdoor (/api/entitlement/set): in production returns 403 "Entitlement changes must go through Whop payment flow", in development allows with console.warning
+- Fixed Whop webhook (/api/webhooks/whop): implemented HMAC-SHA256 signature verification using crypto.createHmac, constant-time comparison, proper gating when WHOP_WEBHOOK_SECRET is set vs not set, idempotency via whopEventId lookup
+- Fixed IDOR on share DELETE: added project ownership check (verify project.organizationId === org.id) before revoking shares, returns 403 if ownership mismatch
+- Removed dead API route: deleted /src/app/api/route.ts (Hello, world! placeholder)
+- Fixed package.json: removed --accept-data-loss from db:push script
+- Created .env.example with DATABASE_URL, WHOP_WEBHOOK_SECRET, NEXTAUTH_SECRET, NEXTAUTH_URL
+- Removed PILOT from recommendation system: changed Recommendation type to 'build' | 'consider' | 'dont_build', recommendWithConfidence now returns 'consider' instead of 'pilot', removed pilot from DECISION_LABELS/DECISION_ORDER/DECISION_COLORS/VERDICT_COPY in brand.ts, updated all UI references (share-report-view, methodology page, pricing view, automation-business-case resource, decision-badge JSDoc)
+- Ran bun run lint — passed with zero errors
+
+Stage Summary:
+- 10 concrete fixes applied across backend security, production config, and dead code
+- Security headers enforce CSP, deny framing, prevent MIME sniffing, restrict referrers
+- Entitlement backdoor gated to development only (403 in production)
+- Whop webhook has full HMAC-SHA256 signature verification + idempotency
+- IDOR vulnerability fixed on share revocation endpoint
+- Prisma schema ready for PostgreSQL with idempotency key and proper updatedAt fields
+- PILOT decision state eliminated — all three-state (BUILD/CONSIDER/DON'T BUILD) throughout
+- Zero lint errors, dev server compiling successfully
+
+---
+Task ID: 6+7
+Agent: main
+Task: Visual transformation - color system + dark analytical surfaces
+
+Work Log:
+- Read worklog.md (4 previous task records) and understood full project context
+- Read globals.css completely (568 lines) — understood every design token, shadow, animation, and utility class
+- Upgraded CSS color system in globals.css:
+  - Added 12 new analytical/semantic color tokens inside @theme inline block:
+    - Indigo system: --color-indigo (#4338CA), --color-indigo-muted (#818CF8), --color-indigo-bg (#EEF2FF), --color-indigo-deep (#1E1B4B)
+    - Cobalt system: --color-cobalt (#1E40AF), --color-cobalt-bg (#EFF6FF)
+    - Deep analytical surfaces: --color-ink-deep (#0F0E10), --color-surface-analytical (#1A181B), --color-surface-analytical-raised (#252328), --color-surface-analytical-border (#353034)
+    - Light indigo surface: --color-surface-indigo (#F5F3FF), --color-surface-indigo-border (#E9E5F5)
+  - Added .surface-analytical and .surface-analytical-raised utility classes at bottom of globals.css
+- Transformed landing-view.tsx section color rhythm:
+  - ProductDemo (7.4): Changed from light bg-surface to dark surface-analytical with indigo-tinted eyebrow dot, white heading, muted lavender body text. Stepper component set to surface="dark"
+  - ScenarioModeling (7.6): Changed from bg-surface to bg-[var(--color-surface-indigo)] with indigo-tinted border and indigo-muted eyebrow dot
+  - StressTestTeaser (7.6b): Changed from bg-canvas to surface-analytical with coral eyebrow dot, white heading, muted lavender text. All inner cards converted to dark analytical-raised surfaces with appropriate light text colors. MockSlider and MiniDecisionShift components given dark prop. Coral CTA button replaces mkt-cta-dark
+  - FinalCTA (7.11): Changed from bg-ink to bg-[var(--color-ink-deep)], added coral accent strip, changed primary CTA from white bg to coral brand bg with rounded-full
+  - MarketingFooter (7.12): Changed from bg-ink to bg-[var(--color-ink-deep)] for visual continuity with FinalCTA
+- Updated Stepper component (stepper.tsx):
+  - Added surface prop: 'light' | 'dark' (default 'light')
+  - Dark mode: circle borders use surface-analytical-border, bg uses surface-analytical-raised, text uses #E8E4F0, connecting lines use surface-analytical-border
+  - Light mode: unchanged from original
+- Enhanced DecisionBadge component (decision-badge.tsx):
+  - Changed font-weight from medium to bold
+  - Increased tracking from 0.005em to 0.02em
+  - Increased padding and gap for more generous spacing
+  - Replaced simple colored dot with distinctive SVG symbols per decision:
+    - BUILD: filled circle (●) — complete, positive
+    - PILOT: half-filled circle — partial, in progress
+    - CONSIDER: ring/donut (◎) — uncertain, open
+    - DON'T BUILD: X mark (✕) — rejected, negative
+  - Symbols provide shape differentiation beyond color (accessibility compliance)
+- Updated MockSlider component with dark prop:
+  - Dark mode: text in #E8E4F0, track border/border in analytical tokens, fill in indigo-muted (#818CF8), handle with indigo border
+- Updated MiniDecisionShift component with dark prop:
+  - Dark mode: borders in analytical tokens, bg in analytical-raised, text in #F5F3FF/#A8A0B8
+- Ran lint: zero errors
+- Dev server compiling and rendering successfully (GET / 200)
+
+Stage Summary:
+- Color system now supports "decision instrument aesthetic" with 70/18/7/5 ratio
+- Three dark analytical surface sections create alternating rhythm on landing page
+- Indigo-tinted scenario modeling section provides subtle analytical differentiation
+- Final CTA uses ink-deep + coral brand button for maximum visual impact
+- DecisionBadge is now a major Viableo signature with SVG symbol differentiation
+- All changes maintain accessibility (contrast ratios, shape+color differentiation)
+- Zero lint errors, page renders correctly
+
+---
+Task ID: 8+10
+Agent: main
+Task: Hero instrument + chart language + OG image + engine hardening
+
+Work Log:
+- Upgraded HeroVerdictMock to Decision Instrument Panel: dark analytical surface (surface-analytical), light text (#F5F3FF / #A8A0B8), monospace tabular numerals, DecisionBadge for verdict, confidence progress bar, faint dot-grid background pattern inside card
+- Added computeConfidenceScore + confidenceLabel imports from confidence module, computed APEX_CONFIDENCE with representative provided/estimated/assumption mix (score ~78)
+- Replaced hero-verdict-card CSS class with hero-instrument-panel: dark bg + analytical border + dot-grid background-image + indigo ring glow on hover
+- Added analytical dot-matrix background to hero section: very faint radial-gradient dots (rgba(23,21,22,0.04) 1px, 24px grid) — communicates intelligence/analysis
+- Unified chart language in roi-bridge.tsx: added CHART_COLORS.indigo + .emerald, thin grid lines (strokeWidth:1, no dash), monospace axis labels (fontSize:11, font-mono), removed XAxis axisLine, "Labor savings" → emerald, "Additional profit" → coral (brand), "Net annual benefit" → emerald if positive / crimson if negative
+- Unified chart language in scenario-comparison.tsx: added CHART_COLORS.indigo + .emerald, thin grid lines, monospace axis labels, Expected → coral (brand), Conservative → indigo at 40%, Upside → indigo at 70%
+- Enhanced StressTestSection with ThresholdCardWithBar: horizontal bar showing current value vs break-even threshold, "STILL VIABLE" (emerald) or "DECISION BREAKS" (crimson) label, threshold value display, inverted prop for automation coverage (minimum threshold)
+- Updated layout.tsx OG metadata: openGraph.images → /og-image.png, twitter.images → /og-image.png
+- Generated /public/og-image.png (1200×630) with Python PIL: dark charcoal (#1A181B) background, "Viableo" wordmark in white, "Know what's worth building." tagline in coral (#FF164B)
+- Hardened calculation engine with defensive guards: validateInputs() checks all numeric fields are finite + non-negative, grossMarginPct (when provided) is finite + in [0,1], percent fields in [0,1], at least one of employees/hours/leads must be positive; throws descriptive errors; no formula changes
+- Lint passes with zero errors
+- Dev server compiling and serving GET / 200
+
+Stage Summary:
+- Hero instrument panel reads as a real product decision device, not a decorative card
+- Both charts speak unified Viableo chart language (thin grids, monospace, semantic colors)
+- Stress test threshold bars give instant visual "STILL VIABLE / DECISION BREAKS" signal
+- OG image provides branded social sharing with dark charcoal + coral aesthetic
+- Calculation engine throws descriptive errors for invalid inputs instead of returning wrong results
+- Zero lint errors, page renders correctly

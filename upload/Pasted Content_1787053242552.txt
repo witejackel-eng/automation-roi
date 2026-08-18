@@ -1,0 +1,2013 @@
+# VIABLEO — MASTER PRODUCTION RECOVERY + PRODUCT COMPLETION + VISUAL TRANSFORMATION
+
+Repository:
+https://github.com/witejackel-eng/automation-roi
+
+Current deployment:
+https://automation-roi-delta.vercel.app/
+
+Primary brand:
+Viableo
+
+You are acting as:
+
+* Principal Software Architect
+* Senior Next.js/React/TypeScript Engineer
+* Database Architect
+* Security Engineer
+* SaaS Backend Engineer
+* Product Designer
+* UX/UI Designer
+* Design Systems Architect
+* Accessibility Engineer
+* SEO Engineer
+* QA Engineer
+* Production Release Engineer
+
+Your goal is to take the current Viableo product from its present state to a **fully functional, secure, production-capable, visually distinctive 10/10 product**.
+
+This is a critical task.
+
+Do not treat it as a simple UI improvement.
+
+The existing product already contains a strong calculation engine, recommendation system, scenarios, stress testing, reports, projects, sharing, entitlements, marketing pages, and a significant component architecture.
+
+The biggest current issue is that the production persistence/commercial layer is broken.
+
+The second major issue is that the visual design is too pale, too monochrome, and too similar to a polished SaaS template.
+
+The final result must solve BOTH problems.
+
+---
+
+# 0. MANDATORY EXECUTION PRINCIPLE
+
+## DO NOT START BY RANDOMLY EDITING UI
+
+First:
+
+1. inspect the repository
+2. inspect the current deployment
+3. inspect the current database architecture
+4. inspect all relevant API routes
+5. inspect authentication/session architecture
+6. inspect entitlement/payment architecture
+7. inspect report/file storage
+8. inspect all current Viableo design components
+9. inspect existing motion system
+10. inspect current SEO/metadata/assets
+11. reproduce the known production failures
+12. establish a baseline
+
+Only then implement.
+
+Do not rewrite functioning code merely because you personally prefer a different implementation.
+
+---
+
+# 1. SOURCE-OF-TRUTH QA FINDINGS
+
+The previous full QA identified the following major issues.
+
+Treat these findings as the starting backlog and verify them yourself against the current repository before fixing them.
+
+## P0 — Production database failure
+
+Current Prisma schema uses SQLite.
+
+The deployed application currently has database-backed features returning HTTP 500.
+
+Affected functionality includes:
+
+* projects
+* saving
+* organizations
+* entitlements
+* sharing
+* reports
+* proposals
+* uploads
+* Whop/license persistence
+
+The calculation route works because it does not depend on the database.
+
+This MUST be fixed at the architecture level.
+
+Do NOT patch each route individually.
+
+---
+
+# 2. TARGET PRODUCTION ARCHITECTURE
+
+Use this architecture:
+
+```text
+                    VIABLEO
+                       |
+                  Vercel / Next.js
+                       |
+          +------------+-------------+
+          |                          |
+       App/API                    Marketing
+          |
+    Authentication
+          |
+      Organization
+          |
+     +----+-----+-------------------+
+     |          |                   |
+ Projects    License             Shares
+     |
+ +---+------------------+
+ |                      |
+Reports              Proposals
+ |
+ +----------------------+
+ |
+Vercel Blob
+ |
+ +-- PDFs
+ +-- proposals
+ +-- agency logos
+ +-- uploaded assets
+
+Database:
+Neon PostgreSQL
+via Prisma
+
+Payments:
+Whop
+via verified webhook
+```
+
+---
+
+# 3. DATABASE MIGRATION — SQLITE → POSTGRESQL
+
+## Required outcome
+
+Move production persistence from SQLite to PostgreSQL using Neon.
+
+Use Prisma as the ORM.
+
+Do not keep the local SQLite database as the production persistence layer.
+
+---
+
+## Implementation steps
+
+### Step 1
+
+Create/configure the PostgreSQL database.
+
+Prefer Neon for the initial production deployment.
+
+### Step 2
+
+Convert Prisma datasource from:
+
+```text
+sqlite
+```
+
+to:
+
+```text
+postgresql
+```
+
+### Step 3
+
+Review every Prisma model for PostgreSQL compatibility.
+
+Inspect:
+
+* Organization
+* Project
+* Report
+* Share
+* License
+
+and any additional models currently present.
+
+### Step 4
+
+Improve schema where appropriate.
+
+At minimum consider:
+
+* unique Whop order/event identifiers
+* appropriate foreign-key relationships
+* indexes
+* timestamps
+* organization ownership indexes
+* share lookup indexes
+
+### Step 5
+
+Generate migrations.
+
+Do NOT use destructive development shortcuts in production.
+
+Remove or avoid production workflows based on:
+
+```text
+--accept-data-loss
+```
+
+### Step 6
+
+Generate Prisma client.
+
+### Step 7
+
+Seed required development/demo data.
+
+At minimum:
+
+* demo organization
+* demo license if intentionally required in development
+* golden-case data if required
+
+### Step 8
+
+Configure Vercel production environment variables.
+
+Use the correct production PostgreSQL connection URL.
+
+### Step 9
+
+Verify database connectivity from the deployed application.
+
+### Step 10
+
+Verify persistence across separate requests.
+
+The application must NOT depend on local runtime filesystem state.
+
+---
+
+# 4. DO NOT BREAK LOCAL DEVELOPMENT
+
+Keep development usable.
+
+Recommended structure:
+
+### Development
+
+Can use local development data or the production-compatible database depending on the current project workflow.
+
+### Production
+
+Must use Neon PostgreSQL.
+
+Document the correct environment variables.
+
+Do not accidentally commit:
+
+* database passwords
+* tokens
+* secrets
+* production credentials
+
+---
+
+# 5. FILE STORAGE — MOVE TO VERCEL BLOB
+
+Do NOT keep user-generated files in:
+
+```text
+public/
+```
+
+Do NOT rely on writing persistent files into the Vercel runtime filesystem.
+
+Use Vercel Blob for persistent file storage.
+
+Move:
+
+* generated PDFs
+* generated proposals
+* agency logos
+* uploaded assets
+
+to durable storage.
+
+---
+
+# 6. REPORT DATA ARCHITECTURE
+
+Store report metadata in PostgreSQL.
+
+Conceptually:
+
+```text
+Report
+- id
+- projectId
+- reportType
+- blobPath
+- createdAt
+```
+
+Do not store large binary PDFs directly inside PostgreSQL unless the existing architecture has a compelling reason.
+
+The DB stores metadata.
+
+Blob stores files.
+
+---
+
+# 7. REPORT ACCESS SECURITY
+
+Do not expose private reports as permanent public URLs.
+
+Correct flow:
+
+```text
+user
+ ↓
+authorized report request
+ ↓
+verify organization/project ownership
+ ↓
+retrieve blob
+ ↓
+stream/download file
+```
+
+For intentionally public share links:
+
+```text
+shareId
+ ↓
+validate share
+ ↓
+check expiration
+ ↓
+check revokedAt
+ ↓
+load authorized report/project
+ ↓
+render/share
+```
+
+---
+
+# 8. AUTHENTICATION
+
+The current application uses a single-tenant demo-session concept.
+
+Do not pretend this is sufficient for production.
+
+Implement a proper authentication boundary appropriate to the existing architecture.
+
+The minimum production model should be:
+
+```text
+User
+ ↓
+Organization
+ ↓
+License
+ ↓
+Projects
+```
+
+Every protected request must resolve the current user and organization.
+
+Do NOT rely on a hardcoded organization ID for production authorization.
+
+---
+
+# 9. ORGANIZATION OWNERSHIP
+
+For EVERY protected resource:
+
+* project
+* report
+* proposal
+* share
+* upload
+* license
+
+verify ownership.
+
+Required authorization pattern:
+
+```text
+current authenticated user
+        ↓
+current organization
+        ↓
+resource organizationId
+        ↓
+must match
+        ↓
+perform action
+```
+
+Never trust a client-supplied organization/project ID by itself.
+
+---
+
+# 10. FIX THE SHARE IDOR
+
+Audit every share mutation.
+
+Especially:
+
+```text
+DELETE /api/projects/[id]/share
+```
+
+Ensure the project belongs to the current organization before modifying its shares.
+
+Repeat this audit across:
+
+* project GET
+* project PATCH
+* project DELETE
+* share create
+* share revoke
+* report access
+* proposal access
+* uploads
+
+---
+
+# 11. ENTITLEMENTS — REMOVE THE PUBLIC BACKDOOR
+
+The current `/api/entitlement/set` design is not acceptable for production.
+
+Do NOT allow an anonymous/client request to choose:
+
+```text
+free
+pro
+agency
+agency_pro
+```
+
+and unlock itself.
+
+Replace the public entitlement-setting mechanism with:
+
+### Development
+
+Server-only development/admin override.
+
+### Production
+
+Whop-controlled entitlement.
+
+Architecture:
+
+```text
+Whop checkout
+ ↓
+Whop event
+ ↓
+verify authenticity
+ ↓
+validate event
+ ↓
+idempotency check
+ ↓
+resolve customer
+ ↓
+resolve organization
+ ↓
+create/update License
+ ↓
+application reads License
+```
+
+---
+
+# 12. WHOP WEBHOOK SECURITY
+
+This is mandatory.
+
+Do not merely check whether the webhook signature header exists.
+
+Actually verify the webhook signature using the current Whop mechanism and the correct secret.
+
+Implementation requirements:
+
+* read raw request body correctly
+* verify signature
+* reject invalid signatures
+* validate payload schema
+* handle duplicate events safely
+* update entitlement transactionally
+* return correct HTTP status
+* do not leak secrets
+* log safe diagnostic information only
+
+Add idempotency protection.
+
+A duplicate webhook must not create duplicate licenses or corrupt entitlements.
+
+---
+
+# 13. ENTITLEMENT TEST MATRIX
+
+Test:
+
+### Free
+
+* free features available
+* Pro features locked
+* Agency features locked
+
+### Pro
+
+* correct Pro features available
+* Agency features remain locked
+
+### Agency
+
+* correct Agency features available
+* Agency Pro features remain locked
+
+### Agency Pro
+
+* all entitled capabilities available
+
+### Invalid license
+
+* safe fallback
+* no accidental access
+
+### Expired/revoked license
+
+* correct downgrade/lock behavior
+
+---
+
+# 14. FIX THE PRICING CTA
+
+Current pricing actions can fail silently.
+
+This MUST be fixed.
+
+When a purchase/upgrade action fails:
+
+* user sees an error
+* useful message
+* no silent failure
+* button is not left in a misleading state
+
+When successful:
+
+* show confirmation
+* refresh entitlement
+* unlock correct features
+* make state consistent without requiring a hard refresh
+
+---
+
+# 15. CALCULATOR — DO NOT BREAK WHAT ALREADY WORKS
+
+The existing calculator and calculation engine are strong.
+
+Do not rewrite the formulas without evidence.
+
+Preserve:
+
+* business inputs
+* revenue inputs
+* automation inputs
+* summary
+* calculation engine
+* scenario logic
+* recommendation logic
+* confidence
+* stress test
+* sensitivity
+
+After backend changes, re-run the full golden-case suite.
+
+---
+
+# 16. CALCULATION HARDENING
+
+Make the calculation engine defensive.
+
+Verify all numeric inputs are finite.
+
+Guard against:
+
+* NaN
+* Infinity
+* undefined
+* invalid strings
+* division by zero
+* negative values where invalid
+* extreme values
+
+The engine should remain mathematically deterministic.
+
+---
+
+# 17. GOLDEN CASE MUST REMAIN IDENTICAL
+
+The existing golden case must continue to produce the same expected result unless a verified bug is discovered.
+
+Verify:
+
+* annual benefit
+* ROI
+* payback
+* net benefit
+* recommendation
+* confidence
+* conservative scenario
+* expected scenario
+* upside scenario
+
+Do not change the calculation just to make the UI look better.
+
+---
+
+# 18. RECOMMENDATION SYSTEM
+
+Current intended public vocabulary should remain:
+
+**BUILD**
+
+**CONSIDER**
+
+**DON'T BUILD**
+
+Audit the current PILOT/dead-code logic.
+
+Recommended action:
+
+Remove the unused PILOT system unless there is an intentional product decision to introduce a fourth state.
+
+Do not maintain contradictory recommendation systems.
+
+Ensure:
+
+```text
+calculation
+ ↓
+recommendation
+ ↓
+UI verdict
+ ↓
+report verdict
+ ↓
+shared-result verdict
+```
+
+all use the same source of truth.
+
+---
+
+# 19. CONFIDENCE SYSTEM
+
+Ensure confidence is consistently calculated and represented.
+
+Verify:
+
+* confidence score
+* confidence label
+* relationship to assumptions
+* scenario behavior
+* stress-test behavior
+* result display
+* report display
+* shared display
+
+Never display a confidence value inconsistent with the underlying engine.
+
+---
+
+# 20. SCENARIO MODELING
+
+Verify:
+
+* conservative
+* expected
+* upside/aggressive
+
+whichever names are actually used in the product.
+
+When scenario changes:
+
+* financial metrics update
+* ROI updates
+* payback updates
+* benefit updates
+* recommendation updates where appropriate
+* confidence updates where appropriate
+* charts update
+* labels update
+
+No stale values.
+
+---
+
+# 21. STRESS TEST
+
+Make this one of the product's signature features.
+
+The message should be conceptually:
+
+> **Try to break the decision.**
+
+The interaction should show:
+
+* baseline
+* worsening assumptions
+* threshold/break-even
+* resulting verdict
+
+The actual calculations must drive it.
+
+Do not fake the animation.
+
+---
+
+# 22. SENSITIVITY
+
+Verify:
+
+* relevant variables
+* ranking
+* magnitude
+* bars/visuals
+* responsiveness
+* consistency with calculation engine
+
+---
+
+# 23. RESULTS
+
+Ensure all result surfaces pull from the same result object.
+
+Required:
+
+* recommendation
+* annual benefit
+* ROI
+* payback
+* net benefit
+* confidence
+* scenario analysis
+* assumptions
+* stress test
+* sensitivity
+* charts
+
+Do not duplicate financial formulas in UI components.
+
+---
+
+# 24. PROJECT SAVE / LOAD
+
+Fix the complete lifecycle:
+
+```text
+calculator
+ ↓
+save project
+ ↓
+database
+ ↓
+projects list
+ ↓
+open project
+ ↓
+restore inputs/results
+```
+
+Test after:
+
+* page refresh
+* navigation
+* separate request
+* separate browser session where applicable
+
+No ephemeral-data assumptions in production.
+
+---
+
+# 25. PROJECT MANAGEMENT
+
+Verify:
+
+* create
+* list
+* open
+* update
+* delete if supported
+* correct ownership
+* correct empty state
+* loading states
+* failure states
+
+---
+
+# 26. CLIENT REPORTS
+
+Fix:
+
+* generation
+* DB metadata
+* Blob storage
+* download
+* authorization
+* share integration
+
+Verify report contains:
+
+* client/project name
+* inputs
+* assumptions
+* ROI
+* benefit
+* payback
+* scenarios
+* stress test
+* sensitivity where appropriate
+* recommendation
+* confidence
+* branding
+
+---
+
+# 27. PROPOSALS
+
+Fix the current `implementationApproach` pipeline.
+
+Required:
+
+```text
+UI input
+ ↓
+request body
+ ↓
+API
+ ↓
+proposal model
+ ↓
+PDF
+```
+
+Test with a non-default custom implementation approach and confirm that exact information reaches the generated proposal.
+
+---
+
+# 28. PDF QA
+
+Open generated PDFs and verify:
+
+* no clipping
+* no blank pages
+* no missing fonts
+* no overlapping elements
+* no broken charts
+* correct values
+* correct branding
+* correct page breaks
+* correct filename
+
+Test more than one example.
+
+---
+
+# 29. SHARE LINKS
+
+Required behavior:
+
+### Valid
+
+Loads shared analysis.
+
+### Invalid
+
+Return proper 404/not-found behavior.
+
+### Expired
+
+Clear expiration state.
+
+### Revoked
+
+Clear revoked state.
+
+### Unauthorized mutation
+
+Return appropriate forbidden response.
+
+Do NOT allow share IDs to bypass ownership controls.
+
+---
+
+# 30. UPLOADS
+
+Audit upload implementation.
+
+Preferred safe formats:
+
+* PNG
+* JPEG
+* WebP
+
+Do not accept arbitrary SVG unless safely sanitized.
+
+Validate:
+
+* MIME type
+* extension
+* size
+* upload ownership
+* storage path
+
+Never trust only the filename extension.
+
+---
+
+# 31. RATE LIMITING
+
+Current in-memory rate limiting is insufficient for distributed/serverless production.
+
+At minimum:
+
+* bound local structures for development
+* avoid unbounded Map growth
+
+For production, use an appropriate distributed rate limiter/store if the feature requires meaningful abuse protection.
+
+Apply limits appropriately to:
+
+* calculator API
+* uploads
+* report generation
+* share creation
+* webhook abuse where applicable
+
+---
+
+# 32. PRODUCTION CONFIG
+
+Fix:
+
+```text
+typescript.ignoreBuildErrors
+```
+
+It must not allow silent TypeScript failures in production.
+
+Review:
+
+* strictness
+* React strict mode
+* environment variable handling
+* production logging
+* runtime configuration
+
+---
+
+# 33. PRODUCTION LOGGING
+
+Remove verbose SQL query logging from production.
+
+Use safe structured logs.
+
+Never log:
+
+* secrets
+* payment credentials
+* raw webhook secrets
+* unnecessary client financial data
+* full uploaded content
+
+---
+
+# 34. REMOVE DEAD CODE
+
+Clean up:
+
+* unused PILOT code if removed
+* unused capability flags
+* unused PDF variables
+* unused formatter exports
+* scaffold API route
+* dead imports
+* stale comments
+* outdated implementation notes
+
+Do not leave misleading production code.
+
+---
+
+# 35. TEST INFRASTRUCTURE
+
+Add real automated tests.
+
+At minimum:
+
+### Unit
+
+* calculation engine
+* recommendation
+* confidence
+* scenarios
+* stress test
+* sensitivity
+* validation
+* formatters
+
+### Integration
+
+* projects
+* organizations
+* entitlement
+* reports
+* proposals
+* shares
+* uploads
+* webhook
+
+### E2E
+
+* golden path
+* bad economics path
+* paid path
+* share path
+* authorization path
+
+Add the appropriate test command to package scripts.
+
+---
+
+# 36. NOW THE VISUAL TRANSFORMATION
+
+IMPORTANT:
+
+The existing site is too pale, too monochrome, and too visually conservative.
+
+Do NOT destroy the minimal/premium character.
+
+Instead evolve it into a distinctive:
+
+# DECISION INSTRUMENT AESTHETIC
+
+The visual language should combine:
+
+**editorial sophistication**
+
+*
+
+**financial/analytical precision**
+
+*
+
+**premium product design**
+
+The design should feel unique to Viableo.
+
+---
+
+# 37. NEW VISUAL GOAL
+
+Current problem:
+
+```text
+off-white
++
+black
++
+white
++
+small coral accents
+```
+
+Result:
+
+clean but somewhat generic.
+
+Desired result:
+
+```text
+warm editorial canvas
++
+deep analytical surfaces
++
+Viableo coral
++
+controlled indigo/cobalt
++
+emerald decision state
++
+amber caution state
++
+technical visual patterns
+```
+
+Still refined.
+
+Still restrained.
+
+But much more memorable.
+
+---
+
+# 38. COLOR SYSTEM
+
+Do NOT turn the site into a colorful SaaS dashboard.
+
+Use a disciplined approximate ratio:
+
+```text
+70% warm light surfaces
+18% deep ink / dark surfaces
+7% Viableo coral
+5% analytical/semantic colors
+```
+
+Suggested semantic roles:
+
+### Warm canvas
+
+Primary background.
+
+### Deep ink
+
+Major product surfaces / strong CTA areas / analytical modules.
+
+### Coral
+
+Brand + attention + important interaction.
+
+### Indigo / cobalt
+
+Analysis / scenarios / informational data.
+
+### Emerald
+
+BUILD / positive decision.
+
+### Amber
+
+CONSIDER / caution.
+
+### Crimson
+
+DON'T BUILD / negative decision.
+
+Do not use semantic colors randomly.
+
+---
+
+# 39. SECTION COLOR RHYTHM
+
+Stop making every section essentially white.
+
+Introduce deliberate temperature changes.
+
+Suggested structure:
+
+### Hero
+
+Warm off-white
+
+### Product demonstration
+
+Deep ink section
+
+### Decision framework
+
+Warm canvas
+
+### Scenario modeling
+
+Subtle indigo-tinted analytical surface
+
+### Stress test
+
+Deep charcoal
+
+### Report
+
+Warm/light premium surface
+
+### Pricing
+
+Warm canvas
+
+### Final CTA
+
+Deep ink or carefully controlled coral accent
+
+The page should feel like a journey.
+
+---
+
+# 40. HERO — MAJOR VISUAL UPGRADE
+
+Do NOT simply make the headline bigger.
+
+The hero should feel like a product, not just a landing page.
+
+Keep the core message:
+
+> Know what's worth building.
+
+But upgrade the product panel.
+
+The hero product instrument should visually expose:
+
+* annual benefit
+* ROI
+* payback
+* recommendation
+* confidence
+
+Example conceptual layout:
+
+```text
+VIABLEO / DECISION ENGINE
+
+Annual benefit
+
+$71.8K
+
+ROI              6.3×
+Payback          1.9 mo
+
+● BUILD
+
+Confidence
+HIGH
+```
+
+Use the actual golden-case calculation.
+
+Do not fake the numbers.
+
+---
+
+# 41. HERO VISUAL BACKGROUND
+
+Introduce a very subtle analytical visual layer.
+
+Possibilities:
+
+* dot matrix
+* fine grid
+* faint measurement lines
+* subtle radial glow
+* very low-opacity data geometry
+
+Do NOT use:
+
+* loud futuristic graphics
+* giant blobs
+* meaningless decorative 3D objects
+
+The background should communicate:
+
+> intelligence / analysis / measurement
+
+---
+
+# 42. CREATE A SIGNATURE DECISION GRID
+
+Use the Viableo dot concept as more than decoration.
+
+Create a subtle repeated dot/grid system.
+
+The dot can represent:
+
+* state
+* attention
+* confidence
+* decision
+
+Possible pattern:
+
+```text
+·  ·  ·  ·  ·  ·
+  ·  ·  ·  ·  ·
+·  ·  ●  ·  ·  ·
+  ·  ·  ·  ·  ·
+```
+
+Use it selectively.
+
+Do not cover the whole website with dots.
+
+---
+
+# 43. BUILD / CONSIDER / DON'T BUILD
+
+Make these a major Viableo signature.
+
+Avoid generic colored badges.
+
+Create consistent geometry.
+
+Conceptually:
+
+```text
+● BUILD
+
+◐ CONSIDER
+
+× DON'T BUILD
+```
+
+Use:
+
+* semantic color
+* strong typography
+* shared layout
+* Viableo dot/system language
+
+Color must not be the only differentiator.
+
+---
+
+# 44. PRODUCT SURFACES
+
+Introduce dark analytical surfaces into the product.
+
+Examples:
+
+* result preview
+* scenario visualizer
+* stress test
+* report preview
+
+Use:
+
+* deep charcoal
+* subtle border
+* mono numerals
+* restrained accent
+
+Example:
+
+```text
+┌───────────────────────────────────┐
+│ VIABLEO / DECISION ENGINE         │
+│                                   │
+│ ROI                               │
+│ 6.3×                              │
+│                                   │
+│ PAYBACK        VERDICT            │
+│ 1.9 mo         ● BUILD            │
+└───────────────────────────────────┘
+```
+
+This is one of the easiest ways to break the “pale SaaS template” feel.
+
+---
+
+# 45. SCENARIO ENGINE — SIGNATURE INTERACTION
+
+This should become one of the site's memorable moments.
+
+When the user changes:
+
+**Conservative → Expected → Upside**
+
+smoothly update:
+
+* annual benefit
+* ROI
+* payback
+* verdict
+* confidence
+
+The visual state should clearly respond.
+
+The interaction should make users think:
+
+> “This thing is actually modeling the decision.”
+
+Not:
+
+> “This is just a slider.”
+
+---
+
+# 46. STRESS TEST — SIGNATURE VISUAL
+
+Create a visually stronger presentation for:
+
+> TRY TO BREAK THE DECISION
+
+Show the variable moving toward a break-even threshold.
+
+Example concept:
+
+```text
+Implementation cost
+
+$18K ───────────●──────────── $48K
+
+                 BREAK-EVEN
+
+                 ● STILL VIABLE
+```
+
+If assumptions exceed the threshold:
+
+```text
+× DECISION BREAKS
+```
+
+The actual engine must drive it.
+
+---
+
+# 47. CHART LANGUAGE
+
+Make all charts visually consistent.
+
+Viableo chart language:
+
+* thin lines
+* mono numbers
+* minimal grid
+* restrained labels
+* coral emphasis
+* indigo analysis
+* semantic decision color
+
+Do not let charts look like default Recharts.
+
+---
+
+# 48. MOTION
+
+You already have a motion system.
+
+Reuse it.
+
+Do not create a second animation architecture.
+
+The new visual design should use motion for:
+
+* scenario transitions
+* number changes
+* verdict changes
+* hover states
+* hero arrival
+* section continuity
+
+Do NOT make everything animate.
+
+---
+
+# 49. MOTION PHILOSOPHY
+
+Motion should feel:
+
+* intelligent
+* fast
+* smooth
+* deliberate
+* premium
+
+Avoid:
+
+* bounce
+* overshoot
+* gratuitous parallax
+* floating objects
+* excessive blur animation
+* continuous movement
+
+Respect reduced-motion preferences.
+
+---
+
+# 50. MOBILE VISUAL DESIGN
+
+Do not simply shrink desktop.
+
+Design mobile intentionally.
+
+Ensure:
+
+* hero remains powerful
+* product instrument remains legible
+* decision state is prominent
+* scenario control is easy to operate
+* charts remain understandable
+* dark surfaces don't overwhelm
+* section color rhythm remains coherent
+
+Test:
+
+320px
+360px
+390px
+430px
+
+---
+
+# 51. HEADER
+
+Refine rather than replace.
+
+Make it:
+
+* smaller
+* cleaner
+* more intentional
+* visually aligned with the new color system
+
+The header should not compete with the hero.
+
+---
+
+# 52. FAVICON
+
+Create a complete production favicon system.
+
+Required:
+
+* favicon.svg
+* favicon.ico
+* favicon-16.png
+* favicon-32.png
+* apple-touch-icon.png
+
+Use a simplified Viableo symbol.
+
+Do NOT use the entire wordmark at tiny sizes.
+
+The symbol should visually connect to the dot/decision identity.
+
+Verify every asset returns HTTP 200.
+
+---
+
+# 53. OPEN GRAPH IMAGE
+
+The OG image currently exists but must be reviewed against the new visual direction.
+
+Target:
+
+1200 × 630.
+
+Use:
+
+* Viableo branding
+* warm/dark contrast
+* strong headline
+* concise supporting line
+* small analytical product visualization
+* ROI/verdict motif
+
+It should look distinctive when shared on:
+
+* LinkedIn
+* X
+* Slack
+* Discord
+* WhatsApp
+* messaging previews
+
+Do not use a random screenshot.
+
+---
+
+# 54. SEO
+
+Verify:
+
+* title
+* description
+* canonical
+* Open Graph
+* Twitter/X metadata
+* robots
+* sitemap
+* structured data
+* manifest
+
+Use one authoritative production brand domain.
+
+Preview deployments should not become the canonical identity.
+
+---
+
+# 55. ACCESSIBILITY
+
+All new visual changes must maintain:
+
+* keyboard navigation
+* focus indicators
+* semantic HTML
+* contrast
+* screen-reader clarity
+* form accessibility
+* slider accessibility
+* reduced-motion support
+* touch targets
+
+Do not sacrifice accessibility for visual impact.
+
+---
+
+# 56. PERFORMANCE
+
+The visual upgrade must remain performant.
+
+Avoid:
+
+* huge images
+* unnecessary JS
+* expensive canvas effects
+* continuous animation
+* excessive backdrop blur
+* excessive client components
+
+Prefer:
+
+* CSS gradients
+* CSS patterns
+* transform/opacity motion
+* lightweight SVG
+* existing components
+
+---
+
+# 57. FUNCTIONAL REGRESSION RULE
+
+After the visual transformation, re-run all functionality tests.
+
+The visual pass is NOT complete until:
+
+* calculator still works
+* scenarios still work
+* stress test still works
+* projects still work
+* save/load works
+* reports work
+* proposals work
+* shares work
+* entitlement works
+* Whop works
+* uploads work
+* APIs work
+* auth works
+
+Do not let visual work regress functionality.
+
+---
+
+# 58. FINAL END-TO-END GOLDEN JOURNEY
+
+Perform this exact journey after all changes:
+
+```text
+1. Visit homepage
+
+2. Understand product
+
+3. Start calculator
+
+4. Enter business inputs
+
+5. Enter revenue inputs
+
+6. Enter automation inputs
+
+7. Review summary
+
+8. Calculate
+
+9. Verify ROI
+
+10. Verify payback
+
+11. Verify annual benefit
+
+12. Verify recommendation
+
+13. Verify confidence
+
+14. Change scenario
+
+15. Verify all dependent metrics change
+
+16. Run stress test
+
+17. Review sensitivity
+
+18. Save project
+
+19. Reload application
+
+20. Reopen saved project
+
+21. Generate client report
+
+22. Download report
+
+23. Verify report content
+
+24. Create share link
+
+25. Open share link
+
+26. Verify same metrics
+
+27. Verify same verdict
+
+28. Verify expiration/revocation behavior
+
+29. Verify entitlement
+
+30. Verify paid feature access
+```
+
+No silent failures.
+
+---
+
+# 59. SECURITY JOURNEY
+
+Perform:
+
+```text
+User A
+ ↓
+attempts User B project
+ ↓
+DENIED
+```
+
+Then:
+
+```text
+forged Whop webhook
+ ↓
+DENIED
+```
+
+Then:
+
+```text
+anonymous entitlement mutation
+ ↓
+DENIED
+```
+
+Then:
+
+```text
+invalid share
+ ↓
+404
+```
+
+Then:
+
+```text
+expired share
+ ↓
+expired state
+```
+
+---
+
+# 60. PRODUCTION VALIDATION
+
+Before completion, run:
+
+* TypeScript
+* lint
+* build
+* production start
+* unit tests
+* integration tests
+* E2E tests
+* route checks
+* API checks
+* responsive checks
+* console error checks
+* accessibility checks
+
+No critical errors.
+
+---
+
+# 61. VISUAL QA
+
+Perform a visual review at:
+
+* 320
+* 390
+* 430
+* 768
+* 1024
+* 1280
+* 1440
+* 1536
+* 1920
+
+Audit:
+
+* alignment
+* spacing
+* typography
+* colors
+* card surfaces
+* shadows
+* interaction
+* motion
+* responsive hierarchy
+* overflow
+
+---
+
+# 62. FINAL DESIGN TEST
+
+Ask:
+
+### Does Viableo still look premium?
+
+Yes.
+
+### Does it now have color and personality?
+
+Yes.
+
+### Does it still feel restrained?
+
+Yes.
+
+### Does it look like generic SaaS?
+
+No.
+
+### Does it look like a financial/decision instrument?
+
+Yes.
+
+### Is the product itself visible immediately?
+
+Yes.
+
+### Does the visual system feel uniquely Viableo?
+
+Yes.
+
+---
+
+# 63. DEFINITION OF DONE
+
+Do not declare completion until:
+
+* [ ] SQLite production dependency removed
+* [ ] Neon PostgreSQL operational
+* [ ] Prisma migration complete
+* [ ] production DB connected
+* [ ] persistent data survives requests/deployments
+* [ ] Blob storage operational
+* [ ] reports stored safely
+* [ ] uploaded assets stored safely
+* [ ] authentication implemented appropriately
+* [ ] organization authorization implemented
+* [ ] IDOR issues fixed
+* [ ] entitlement backdoor removed
+* [ ] Whop webhook cryptographically verified
+* [ ] webhook idempotency implemented
+* [ ] pricing CTA failures surfaced
+* [ ] proposal implementationApproach fixed
+* [ ] PILOT dead code resolved
+* [ ] calculation engine hardened
+* [ ] projects fully functional
+* [ ] save/load functional
+* [ ] reports functional
+* [ ] proposals functional
+* [ ] shares functional
+* [ ] invalid shares return proper not-found state
+* [ ] uploads functional
+* [ ] entitlement flows functional
+* [ ] tests added
+* [ ] build passes
+* [ ] TypeScript passes
+* [ ] lint passes
+* [ ] no critical console errors
+* [ ] favicon complete
+* [ ] OG image complete
+* [ ] SEO verified
+* [ ] mobile verified
+* [ ] accessibility verified
+* [ ] visual identity upgraded
+* [ ] color system upgraded
+* [ ] dark analytical surfaces added
+* [ ] decision system strengthened
+* [ ] scenario interaction elevated
+* [ ] stress-test visualization elevated
+* [ ] chart language unified
+* [ ] performance remains strong
+
+---
+
+# 64. IMPORTANT — WHAT NOT TO DO
+
+DO NOT:
+
+* rewrite the calculation engine unnecessarily
+* replace the entire application
+* remove working product capabilities
+* create duplicate motion systems
+* create duplicate state systems
+* add random colors everywhere
+* add excessive gradients
+* add fake data
+* hardcode production entitlements
+* leave SQLite as production persistence
+* store private PDFs permanently in `public/`
+* expose secrets
+* claim something is tested when it wasn't
+
+---
+
+# 65. FINAL REPORT
+
+When finished, report:
+
+## 1. Architecture
+
+What changed from SQLite/local persistence to production infrastructure.
+
+## 2. Backend
+
+What DB/API changes were made.
+
+## 3. Security
+
+What authentication, authorization, entitlement and webhook protections were added.
+
+## 4. Product functionality
+
+What was fixed and verified.
+
+## 5. Storage
+
+How PDFs, proposals and uploads are stored.
+
+## 6. Visual design
+
+How the site changed from pale/minimal to distinctive Viableo.
+
+## 7. Brand
+
+How the dot, decision states, color system and instrument aesthetic were strengthened.
+
+## 8. SEO/assets
+
+Favicon, OG image, metadata, sitemap, robots.
+
+## 9. Testing
+
+List actual tests run and their outcomes.
+
+## 10. Remaining issues
+
+Only genuine unresolved issues.
+
+Do not claim 100% completion unless the relevant tests were actually run.
+
+---
+
+# FINAL NORTH STAR
+
+Viableo must become:
+
+**beautiful enough to remember**
+
+and
+
+**reliable enough to trust with a real client's money.**
+
+The visual experience should say:
+
+> **We think carefully.**
+
+The product should demonstrate:
+
+> **We calculate carefully.**
+
+The system should prove:
+
+> **We protect the result.**
+
+And the final user experience should leave the user thinking:
+
+> **“This isn't just an ROI calculator. This is how I decide whether an automation deserves to exist.”**

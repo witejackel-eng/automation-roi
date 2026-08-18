@@ -114,11 +114,9 @@ export function ShareReportView({
               <p className="mt-3 max-w-[480px] text-[16px] leading-[1.55] text-ink-muted">
                 {recommendation === 'build'
                   ? 'The numbers hold up \u2014 even in the worst case.'
-                  : recommendation === 'pilot'
-                    ? 'The upside is real. The risk needs a smaller bet first.'
-                    : recommendation === 'consider'
-                      ? 'The math works. The timeline might not.'
-                      : 'The numbers don\u2019t support it. Better to know now than after the invoice.'}
+                  : recommendation === 'consider'
+                    ? 'The math works. The timeline might not.'
+                    : 'The numbers don\u2019t support it. Better to know now than after the invoice.'}
               </p>
             </div>
           </div>

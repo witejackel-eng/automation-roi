@@ -206,13 +206,13 @@ export default function MethodologyPage() {
         <Section className="bg-surface">
           <SectionHeading
             eyebrow="The recommendation"
-            title="Four words. One verdict."
+            title="Three words. One verdict."
           >
             <p>
-              Viableo collapses every analysis into one of four decisions. The
+              Viableo collapses every analysis into one of three decisions. The
               ladder runs from strongest commitment to firmest rejection. The
               expected case drives it, the conservative case guards it, and the
-              confidence score decides whether you commit or pilot first.
+              confidence score decides whether you commit or consider first.
             </p>
           </SectionHeading>
 
@@ -224,16 +224,10 @@ export default function MethodologyPage() {
               means="Commit to the build. The math holds up even in the floor case."
             />
             <DecisionCard
-              label={DECISION_LABELS.pilot}
-              tone="pilot"
-              when="The expected case is strong, but the conservative case is weaker — or confidence sits in the 40–59 band."
-              means="Run a time-boxed pilot. Validate the assumptions before the full build."
-            />
-            <DecisionCard
               label={DECISION_LABELS.consider}
               tone="consider"
-              when="ROI is positive but small (0–50%), or payback stretches past 12 months."
-              means="Narrow the first phase. Renegotiate implementation cost. Try again."
+              when="ROI is positive but the conservative case is weaker, confidence sits in the 40–59 band, or payback stretches past 12 months."
+              means="Narrow the first phase. Validate assumptions. Renegotiate implementation cost."
             />
             <DecisionCard
               label={DECISION_LABELS.dont_build}
@@ -403,21 +397,17 @@ function DecisionCard({
   means,
 }: {
   label: string;
-  tone: 'build' | 'pilot' | 'consider' | 'dont_build';
+  tone: 'build' | 'consider' | 'dont_build';
   when: string;
   means: string;
 }) {
-  // Pilot uses a muted steel blue — per brand.ts DECISION_COLORS.pilot (#3B6E8F).
-  // The CSS theme exposes build/consider/dont_build tokens but not pilot, so we
-  // reference the pilot hex directly here. Scoped only to this dot indicator.
+  // The dot color matches the decision badge palette.
   const dotColor =
     tone === 'build'
       ? 'bg-[#1F8A5A]'
-      : tone === 'pilot'
-        ? 'bg-[#3B6E8F]'
-        : tone === 'consider'
-          ? 'bg-[#C98A1B]'
-          : 'bg-[#B70F38]';
+      : tone === 'consider'
+        ? 'bg-[#C98A1B]'
+        : 'bg-[#B70F38]';
   return (
     <article className="rounded-md border border-border bg-canvas p-6 md:p-8">
       <div className="flex items-center gap-3">

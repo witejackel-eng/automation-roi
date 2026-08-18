@@ -43,7 +43,7 @@ interface Plan {
 const FEATURES: Record<Tier, string[]> = {
   free: [
     'Calculator + all three scenarios',
-    'BUILD / PILOT / CONSIDER / DON\u2019T BUILD recommendation',
+    'BUILD / CONSIDER / DON\u2019T BUILD recommendation',
     'Live business-case panel',
     'No saved projects',
     'No PDF export',

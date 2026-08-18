@@ -10,6 +10,82 @@ import {
   type ScenarioName,
 } from './scenarios';
 
+// ── Input validation helpers ──────────────────────────────────────────
+
+/** All numeric fields that must be finite and non-negative. */
+const REQUIRED_NUMERIC_FIELDS: Array<keyof CalculatorInputs> = [
+  'employeesAffected',
+  'hoursPerWeek',
+  'hourlyCost',
+  'leadsPerMonth',
+  'averageCustomerValue',
+  'expectedAutomationPct',
+  'expectedConversionImprovementPct',
+  'implementationFee',
+  'monthlyAiApiCost',
+  'monthlySoftwareCost',
+  'otherAnnualCost',
+];
+
+/** Fields that must be in [0, 1] when provided. */
+const PERCENT_FIELDS: Array<keyof CalculatorInputs> = [
+  'expectedAutomationPct',
+  'expectedConversionImprovementPct',
+];
+
+/**
+ * Validate all numeric inputs before calculation.
+ * Throws a descriptive error if any input is invalid.
+ * Does NOT change formulas — purely defensive.
+ */
+function validateInputs(inputs: CalculatorInputs): void {
+  for (const field of REQUIRED_NUMERIC_FIELDS) {
+    const value = inputs[field];
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      throw new Error(
+        `Invalid input: "${field}" must be a finite number, got ${value}.`
+      );
+    }
+    if (value < 0) {
+      throw new Error(
+        `Invalid input: "${field}" must be non-negative, got ${value}.`
+      );
+    }
+  }
+
+  // grossMarginPct is optional, but if provided must be valid
+  if (inputs.grossMarginPct != null) {
+    if (typeof inputs.grossMarginPct !== 'number' || !Number.isFinite(inputs.grossMarginPct)) {
+      throw new Error(
+        `Invalid input: "grossMarginPct" must be a finite number when provided, got ${inputs.grossMarginPct}.`
+      );
+    }
+    if (inputs.grossMarginPct < 0 || inputs.grossMarginPct > 1) {
+      throw new Error(
+        `Invalid input: "grossMarginPct" must be in [0, 1], got ${inputs.grossMarginPct}.`
+      );
+    }
+  }
+
+  // Percentage fields must be in [0, 1]
+  for (const field of PERCENT_FIELDS) {
+    const value = inputs[field] as number;
+    if (value > 1) {
+      throw new Error(
+        `Invalid input: "${field}" must be in [0, 1] (a decimal percentage), got ${value}.`
+      );
+    }
+  }
+
+  // Guard against zero employees × zero hours producing trivially zero results
+  // that would cause misleading ROI/payback outputs.
+  if (inputs.employeesAffected === 0 && inputs.hoursPerWeek === 0 && inputs.leadsPerMonth === 0) {
+    throw new Error(
+      'Invalid input: at least one of employeesAffected, hoursPerWeek, or leadsPerMonth must be positive to produce a meaningful result.'
+    );
+  }
+}
+
 export interface CalculatorInputs {
   clientName: string;
   employeesAffected: number;
@@ -49,7 +125,7 @@ export interface ScenarioResult {
   isRevenueOpportunityOnly: boolean; // true when grossMarginPct omitted
 }
 
-export type Recommendation = 'build' | 'pilot' | 'consider' | 'dont_build';
+export type Recommendation = 'build' | 'consider' | 'dont_build';
 
 /**
  * Compute a single scenario. Pure: same inputs in, same numbers out.
@@ -58,6 +134,9 @@ export function calculateScenario(
   inputs: CalculatorInputs,
   scenario: ScenarioName
 ): ScenarioResult {
+  // Defensive: validate before any math runs.
+  validateInputs(inputs);
+
   const { automationPct, conversionImprovementPct } = resolveScenarioAssumptions(
     inputs.expectedAutomationPct,
     inputs.expectedConversionImprovementPct,

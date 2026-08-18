@@ -29,6 +29,8 @@ const CHART_COLORS = {
   ink: '#171516',
   inkMuted: '#727076',
   brand: '#FF164B',
+  indigo: '#4338CA',
+  emerald: '#1F8A5A',
 } as const;
 
 interface ScenarioComparisonProps {
@@ -134,11 +136,13 @@ export function ScenarioComparison({
 
   const data: ChartDatum[] = SCENARIO_ORDER.map((name) => {
     const r = results[name];
+    const isExpected = name === 'expected';
+    const isUpside = name === 'upside';
     return {
       name: SCENARIO_LABELS[name],
       value: r.totalAnnualBenefit,
-      fill: CHART_COLORS.brand,
-      fillOpacity: name === 'expected' ? 1 : 0.4,
+      fill: isExpected ? CHART_COLORS.brand : CHART_COLORS.indigo,
+      fillOpacity: isExpected ? 1 : isUpside ? 0.7 : 0.4,
       paybackMonths: r.paybackMonths,
     };
   });
@@ -165,24 +169,27 @@ export function ScenarioComparison({
             margin={{ top: 32, right: 16, bottom: 0, left: 8 }}
           >
             <CartesianGrid
-              strokeDasharray="3 3"
+              strokeDasharray="none"
               vertical={false}
               stroke={CHART_COLORS.border}
+              strokeWidth={1}
             />
             <XAxis
               dataKey="name"
               tick={{
                 fill: CHART_COLORS.inkMuted,
-                fontSize: 13,
+                fontSize: 11,
+                fontFamily: 'var(--font-mono), ui-monospace, monospace',
               }}
-              axisLine={{ stroke: CHART_COLORS.border }}
+              axisLine={false}
               tickLine={false}
               interval={0}
             />
             <YAxis
               tick={{
                 fill: CHART_COLORS.inkMuted,
-                fontSize: 13,
+                fontSize: 11,
+                fontFamily: 'var(--font-mono), ui-monospace, monospace',
               }}
               tickFormatter={(v: number) =>
                 formatCurrency(v, { compact: true })
@@ -210,8 +217,8 @@ export function ScenarioComparison({
         </ResponsiveContainer>
       </div>
       <p className="text-[13px] text-ink-muted mt-4">
-        Metric: {metricLabel}. Conservative and Upside bars rendered in the
-        same brand hue at reduced opacity; Expected at full intensity.
+        Metric: {metricLabel}. Expected bar in coral (brand); Conservative
+        at 40% indigo; Upside at 70% indigo.
       </p>
     </div>
   );
