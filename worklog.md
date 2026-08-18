@@ -238,3 +238,44 @@ Stage Summary:
 - OG image provides branded social sharing with dark charcoal + coral aesthetic
 - Calculation engine throws descriptive errors for invalid inputs instead of returning wrong results
 - Zero lint errors, page renders correctly
+
+---
+Task ID: PRODUCTION-RECOVERY+VISUAL-TRANSFORMATION
+Agent: main
+Task: Full production recovery + visual transformation mandate (65 sections)
+
+Work Log:
+- Deep inspection of entire architecture: Prisma schema, all 16 API routes, session/auth, entitlement, Whop webhook, file storage, share system, rate limiting, PDF pipeline, Next.js config
+- Identified 20 security/production findings (3 CRITICAL, 3 HIGH, 6 MEDIUM, 8 LOW)
+- P0 FIX: Prisma schema migrated from SQLite to PostgreSQL (Neon-ready) with whopEventId idempotency
+- P0 FIX: next.config.ts hardened — ignoreBuildErrors=false, reactStrictMode=true, 5 security headers
+- P0 FIX: Production query logging removed (development only)
+- P0 FIX: Entitlement backdoor locked — /api/entitlement/set returns 403 in production
+- P0 FIX: Whop webhook HMAC-SHA256 signature verification + constant-time comparison + idempotency
+- P0 FIX: IDOR on share DELETE — added project ownership verification
+- Removed dead /api/route.ts, removed --accept-data-loss from db:push, created .env.example
+- Removed PILOT from recommendation type system (build|consider|dont_build only)
+- VISUAL: 12 new analytical/semantic CSS tokens (indigo, cobalt, deep surfaces, indigo-bg)
+- VISUAL: Section color rhythm — Product Demo (dark), Scenario (indigo tint), Stress Test (dark), Final CTA (dark)
+- VISUAL: Hero upgraded to Decision Instrument Panel (dark surface, 5 decision signals, confidence bar, dot-grid)
+- VISUAL: Hero analytical dot-matrix background pattern
+- VISUAL: Charts unified with Viableo language (thin lines, mono numbers, coral/indigo/emerald/crimson)
+- VISUAL: Stress test threshold bars with STILL VIABLE / DECISION BREAKS states
+- VISUAL: DecisionBadge signature symbols — ● BUILD, ◎ CONSIDER, ✕ DON'T BUILD
+- ENGINE: validateInputs() hardening guards (NaN, Infinity, negative, division by zero, percent bounds)
+- ASSETS: OG image generated (1200x630 dark charcoal + Viableo branding)
+- VERIFIED: Lint passes, dev server 200, Agent Browser confirms all flows work
+- VERIFIED: Calculator → Apex → Results → Scenario switch → Back-to-top all functional
+- VERIFIED: Mobile (390px) renders correctly
+- PUSHED: df6b2a8 to https://github.com/witejackel-eng/automation-roi on main
+
+Stage Summary:
+- 32 files changed, 5782 insertions, 262 deletions
+- 3 CRITICAL security holes closed (entitlement backdoor, webhook forgery, no auth)
+- 3 HIGH issues fixed (ignoreBuildErrors, PDF in public/, query logging)
+- Production architecture now PostgreSQL-ready with proper security boundaries
+- Visual identity transformed from "pale SaaS template" to "decision instrument aesthetic"
+- Dark analytical surfaces + section color rhythm + signature decision symbols
+- Hero is now a product instrument, not just a landing page
+- Charts use unified Viableo language with semantic colors
+- All existing functionality preserved and verified end-to-end
