@@ -134,49 +134,65 @@ function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-canvas">
-      {/* Single ultra-soft ambient gradient — barely perceptible warmth in the
-          upper-right, never a loud shape. Reinforces the verdict card as the
-          focal object. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(60% 50% at 78% 18%, rgba(23, 21, 22, 0.035) 0%, rgba(23, 21, 22, 0) 70%)',
-        }}
-      />
+      {/* ── Ambient depth layer ──
+          Two overlapping radial gradients create a subtle warm atmospheric
+          depth. The upper-right glow is slightly warmer (charcoal tint) to
+          frame the verdict card. The lower-left is a barely-there warm wash
+          that adds dimension without being a "shape". Together they make the
+          canvas feel like a real surface, not a flat white void. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(55% 55% at 75% 20%, rgba(23, 21, 22, 0.055) 0%, rgba(23, 21, 22, 0) 65%)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(70% 60% at 15% 80%, rgba(255, 22, 75, 0.018) 0%, rgba(255, 22, 75, 0) 55%)',
+          }}
+        />
+      </div>
+
       <div className="relative mx-auto w-full max-w-[1200px] px-4 md:px-6">
         {/* Two-column hero: headline + CTAs left, verdict-card mock right.
             Stacks gracefully on mobile (mock drops below the fold). */}
-        <div className="grid grid-cols-1 items-center gap-12 py-24 md:py-32 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:py-40">
+        <div className="grid grid-cols-1 items-center gap-16 py-28 md:py-36 lg:grid-cols-[1.15fr_0.85fr] lg:gap-20 lg:py-44">
           {/* ── Left column: headline + CTAs (staggered entrance) ── */}
           <motion.div
-            className="max-w-[640px]"
+            className="max-w-[680px]"
             initial="hidden"
             animate="visible"
             variants={{
               hidden: {},
-              visible: { transition: { staggerChildren: 0.09, delayChildren: 0.12 } },
+              visible: { transition: { staggerChildren: 0.11, delayChildren: 0.15 } },
             }}
           >
-            {/* Tiny quiet eyebrow — single charcoal dot. */}
+            {/* Eyebrow — coral dot accent (the one sanctioned coral moment on
+                the marketing hero) + uppercase label. */}
             <motion.p
               className="mkt-eyebrow"
               variants={{
-                hidden: { opacity: 0, y: 14 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.56, ease: EASE_OUT } },
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_OUT } },
               }}
             >
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-brand" />
               Built for automation agencies
             </motion.p>
 
-            {/* MASSIVE tight bold headline — fully black, no coral highlight. */}
+            {/* DOMINANT headline — significantly larger clamp range, ultra-tight
+                tracking, compressed line-height. The headline IS the page.
+                Fluid from 3.25rem mobile → 8.5rem desktop — fills the viewport
+                with authority. */}
             <motion.h1
-              className="mkt-display mt-8"
+              className="mt-7 font-display font-extrabold leading-[0.88] tracking-[-0.045em] text-ink [font-size:clamp(3.25rem,9.5vw,8.5rem)] [text-wrap:balance]"
               variants={{
-                hidden: { opacity: 0, y: 18 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.66, ease: EASE_OUT } },
+                hidden: { opacity: 0, y: 24 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.76, ease: EASE_OUT } },
               }}
             >
               Know what&rsquo;s
@@ -184,30 +200,30 @@ function HeroSection() {
               worth building.
             </motion.h1>
 
-            {/* Short quiet subcopy. */}
+            {/* Supporting subcopy — slightly larger, more breathing room. */}
             <motion.p
-              className="mt-8 max-w-[520px] text-[17px] leading-[1.55] text-ink-muted md:text-[19px]"
+              className="mt-9 max-w-[540px] text-[18px] leading-[1.6] text-ink-muted md:text-[20px]"
               variants={{
-                hidden: { opacity: 0, y: 14 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.56, ease: EASE_OUT } },
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_OUT } },
               }}
             >
               {HERO_SUBHEAD}
             </motion.p>
 
-            {/* Two CTAs only: dark primary + text-link secondary. */}
+            {/* Two CTAs: dark primary + text-link secondary. */}
             <motion.div
-              className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center"
+              className="mt-11 flex flex-col gap-4 sm:flex-row sm:items-center"
               variants={{
-                hidden: { opacity: 0, y: 14 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.56, ease: EASE_OUT } },
+                hidden: { opacity: 0, y: 18 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE_OUT } },
               }}
             >
               <motion.button
                 type="button"
                 onClick={() => startCalculator()}
                 className="mkt-cta-dark"
-                whileHover={{ y: -1.5 }}
+                whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
                 transition={{ duration: 0.2, ease: EASE_OUT }}
               >
@@ -217,7 +233,7 @@ function HeroSection() {
                 type="button"
                 onClick={() => startCalculator(APEX_INPUTS)}
                 className="link-underline inline-flex min-h-[48px] items-center gap-1.5 px-2 text-[15px] font-medium text-ink transition-opacity duration-hover hover:opacity-70"
-                whileHover={{ x: 2 }}
+                whileHover={{ x: 3 }}
                 transition={{ duration: 0.22, ease: EASE_OUT }}
               >
                 {HERO_CTA_SECONDARY}
@@ -226,17 +242,17 @@ function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* ── Right column: quiet verdict-card mock ──
+          {/* ── Right column: premium verdict-card mock ──
               The single elegant visual object balancing the composition.
               Almost monochrome; the only color is the protected emerald
               BUILD badge (a product component, reused here as a preview).
-              Entrance: fade-in + subtle rise, delayed so it lands after
-              the text. Hover: refined lift + deeper shadow (premium). */}
+              Entrance: fade-in + rise, delayed so it lands after the text.
+              Hover: refined lift + deeper shadow (premium). */}
           <motion.div
             className="lg:justify-self-end"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.42 }}
+            initial={{ opacity: 0, y: 32, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.8, ease: EASE_OUT, delay: 0.5 }}
           >
             <HeroVerdictMock />
           </motion.div>
@@ -249,9 +265,9 @@ function HeroSection() {
       <FadeIn
         as="div"
         className="relative border-t border-border"
-        delay={0.1}
+        delay={0.15}
       >
-        <div className="mx-auto w-full max-w-[1200px] px-4 py-12 md:px-6 md:py-16">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-14 md:px-6 md:py-18">
           <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-ink-faint">
             Live example · Apex Home Services booking automation
           </p>
@@ -308,33 +324,34 @@ function HeroSection() {
 function HeroVerdictMock() {
   return (
     <motion.div
-      className="mkt-verdict-mock w-full max-w-[380px] p-7 md:p-8"
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.32, ease: EASE_OUT }}
+      className="hero-verdict-card w-full max-w-[400px] p-8 md:p-9"
+      whileHover={{ y: -6 }}
+      transition={{ duration: 0.36, ease: EASE_OUT }}
     >
       {/* Header row — report name + prepared-for. */}
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
           {REPORT_NAME}
         </span>
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-faint" />
+        <span aria-hidden="true" className="size-1.5 rounded-full bg-brand/40" />
       </div>
-      <p className="mt-2 text-[13px] text-ink-muted">
+      <p className="mt-2.5 text-[13px] font-medium text-ink-muted">
         Prepared for Apex Home Services
       </p>
 
-      {/* Headline figure — the annual opportunity (the dominant number). */}
-      <div className="mt-8">
+      {/* Headline figure — the annual opportunity (the dominant number).
+          Larger clamp range + heavier weight gives it visual primacy inside the card. */}
+      <div className="mt-9">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
           Annual opportunity
         </p>
-        <p className="mt-2 font-mono tnum text-[clamp(2.25rem,5vw,3rem)] font-bold tracking-[-0.03em] text-ink">
+        <p className="mt-2.5 font-mono tnum text-[clamp(2.5rem,5.5vw,3.25rem)] font-bold tracking-[-0.03em] text-ink">
           {formatCurrency(APEX_EXPECTED.totalAnnualBenefit)}
         </p>
       </div>
 
       {/* Verdict — the one stamped answer. */}
-      <div className="mt-7 border-t border-border pt-6">
+      <div className="mt-8 border-t border-border pt-6">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-faint">
           Verdict
         </p>
@@ -344,17 +361,17 @@ function HeroVerdictMock() {
             size="lg"
             animate
           />
-          <span className="font-mono tnum text-[13px] text-ink-muted">{formatPayback(APEX_EXPECTED.paybackMonths)} payback</span>
+          <span className="font-mono tnum text-[14px] font-medium text-ink-muted">{formatPayback(APEX_EXPECTED.paybackMonths)} payback</span>
         </div>
       </div>
 
-      {/* Two-up supporting figures. */}
-      <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
+      {/* Two-up supporting figures — slightly larger for better scanability. */}
+      <div className="mt-7 grid grid-cols-2 gap-5 border-t border-border pt-6">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">
             First-year ROI
           </p>
-          <p className="mt-1.5 font-mono tnum text-[18px] font-semibold tracking-[-0.02em] text-ink">
+          <p className="mt-2 font-mono tnum text-[20px] font-semibold tracking-[-0.02em] text-ink">
             {roiAsMultiplier(APEX_EXPECTED.roiPct)}
           </p>
         </div>
@@ -362,29 +379,30 @@ function HeroVerdictMock() {
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted">
             Net benefit
           </p>
-          <p className="mt-1.5 font-mono tnum text-[18px] font-semibold tracking-[-0.02em] text-ink">
+          <p className="mt-2 font-mono tnum text-[20px] font-semibold tracking-[-0.02em] text-ink">
             {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
           </p>
         </div>
       </div>
 
-      {/* Footer — the brand mark, quiet. */}
+      {/* Footer — the brand mark. */}
       <div className="mt-7 flex items-center justify-between border-t border-border pt-5">
         <Logo variant="compact" style={{ height: 14 }} aria-hidden="true" />
-        <span className="text-[11px] text-ink-faint">Viableo Analysis</span>
+        <span className="text-[11px] font-medium text-ink-faint">Viableo Analysis</span>
       </div>
     </motion.div>
   );
 }
 
-/** A quiet stat — huge mono number + tiny uppercase label, no card chrome. */
+/** A commanding stat — large mono number + uppercase label, no card chrome.
+    Slightly larger clamp than before so the proof row has visual weight. */
 function HeroStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="font-mono tnum text-[clamp(2.5rem,5vw,3.5rem)] font-bold tracking-[-0.03em] text-ink">
+      <p className="font-mono tnum text-[clamp(2.75rem,5.5vw,3.75rem)] font-bold tracking-[-0.03em] text-ink">
         {value}
       </p>
-      <p className="mt-2 text-[12px] font-medium uppercase tracking-[0.14em] text-ink-muted">
+      <p className="mt-2.5 text-[12px] font-medium uppercase tracking-[0.14em] text-ink-muted">
         {label}
       </p>
     </div>
