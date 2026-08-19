@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'proposal')) {
     return NextResponse.json(
-      { error: 'Proposal generation requires Pro or higher.', requiredTier: 'pro' },
+      { error: 'Proposal generation requires Pro or higher.', requiredTier: 'case_pack' },
       { status: 403 }
     );
   }

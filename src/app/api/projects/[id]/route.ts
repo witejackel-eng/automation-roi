@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
-      { error: 'Saved projects require Pro or higher.', requiredTier: 'pro' },
+      { error: 'Saved projects require Pro or higher.', requiredTier: 'case_pack' },
       { status: 403 }
     );
   }
@@ -59,7 +59,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: str
   const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
-      { error: 'Saved projects require Pro or higher.', requiredTier: 'pro' },
+      { error: 'Saved projects require Pro or higher.', requiredTier: 'case_pack' },
       { status: 403 }
     );
   }

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
-      { error: 'Saving projects requires Pro or higher.', requiredTier: 'pro' },
+      { error: 'Saving projects requires Pro or higher.', requiredTier: 'case_pack' },
       { status: 403 }
     );
   }
