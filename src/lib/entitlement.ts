@@ -13,18 +13,18 @@
 import { db } from '@/lib/db';
 import { tenant } from '@/lib/tenant';
 
-export type Tier = 'free' | 'pro' | 'agency' | 'agency_pro';
+export type Tier = 'free' | 'case_pack' | 'agency' | 'agency_pro';
 
 export const TIER_RANK: Record<Tier, number> = {
   free: 0,
-  pro: 1,
+  case_pack: 1,
   agency: 2,
   agency_pro: 3,
 };
 
 export const TIER_LABEL: Record<Tier, string> = {
   free: 'Free',
-  pro: 'Pro',
+  case_pack: 'Case Pack',
   agency: 'Agency',
   agency_pro: 'Agency Pro',
 };
@@ -150,7 +150,9 @@ export async function checkCaseLimit(
     },
   });
 
-  const limit = entitlement.tier === 'free' ? 1 : 5;
+  // case_pack is pay-per-case: 1 case per purchase (not monthly reset).
+  // Free gets 1 case/month. Agency+ are unlimited (handled above).
+  const limit = entitlement.tier === 'free' ? 1 : 1;
   const remaining = Math.max(0, limit - caseCount);
 
   return { allowed: caseCount < limit, remaining, limit };

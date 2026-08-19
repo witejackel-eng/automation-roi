@@ -73,6 +73,7 @@ const whopWebhookSchema = z.object({
   id: z.string().optional(),          // event id (envelope)
   type: z.string().optional(),        // e.g. 'payment.succeeded', 'membership.activated'
   created_at: z.union([z.number(), z.string()]).optional(),
+  timestamp: z.string().datetime().optional(),
   data: z.object({
     id: z.string().optional(),         // resource id (membership.id or payment.id)
     // Membership-shaped fields
