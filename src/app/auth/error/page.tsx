@@ -47,7 +47,7 @@ function ProviderButtons() {
   );
 }
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -85,5 +85,13 @@ export default function AuthErrorPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <AuthErrorContent />
+    </React.Suspense>
   );
 }
