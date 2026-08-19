@@ -64,11 +64,13 @@ export default function SignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="demo@viableo.app"
+                data-testid="dev-email-input"
                 className="w-full rounded-lg border border-border bg-canvas px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={loading || !email}
+                data-testid="dev-signin-submit"
                 className="w-full rounded-lg bg-ink px-4 py-2 text-sm font-medium text-canvas transition-colors hover:bg-ink/90 disabled:opacity-50"
               >
                 Sign in with email (dev)

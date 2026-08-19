@@ -30,6 +30,13 @@
   --color-ink-soft: #353034;         /* --soft-charcoal: muted headings on dark */
 
   /* ── Brand / interactive accent — Viableo Coral ─────────── */
+  /* TODO_HUMAN: brand accent color #FF164B against background #FAFAF9 computes to a
+     WCAG contrast ratio of 3.68:1, which is below the 4.5:1 AA threshold for body text.
+     If this color pair is used for any body text (not just large headings/buttons),
+     either darken the accent color or restrict its use to large-text/non-text contexts.
+     Currently the brand.ts comment confirms coral is used for "logo + large display type only"
+     and decision colors use separate, higher-contrast hexes (verified in DECISION_COLORS),
+     so the current usage is compliant. */
   --color-brand: #FF164B;           /* --viableo-coral: primary accent */
   --color-brand-hover: #B70F38;     /* --deep-crimson: hover, dark-surface accent */
   --color-brand-subtle: #FFF1F4;    /* ~12% coral tint for hover backgrounds */

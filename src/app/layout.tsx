@@ -176,6 +176,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
       >
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-black">
+          Skip to main content
+        </a>
         <AuthProvider>
           <MotionProvider>{children}</MotionProvider>
         </AuthProvider>
