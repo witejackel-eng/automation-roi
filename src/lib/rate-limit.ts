@@ -86,6 +86,26 @@ export async function checkShareViewRateLimit(identifier: string): Promise<boole
   }
 }
 
+// ── AI rate limiter (dedicated) ─────────────────────────────
+
+const aiLimiter: Ratelimit | null = hasRedis
+  ? new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(10, '1 m'),
+      prefix: 'viableo:ai',
+    })
+  : null;
+
+export async function checkAiRateLimit(orgId: string): Promise<boolean> {
+  if (!aiLimiter) return true;
+  try {
+    const { success } = await aiLimiter.limit(orgId);
+    return success;
+  } catch {
+    return true;
+  }
+}
+
 // ── Public API ───────────────────────────────────────────────────
 
 /**

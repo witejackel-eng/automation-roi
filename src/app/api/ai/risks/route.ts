@@ -49,6 +49,12 @@ export async function POST(req: NextRequest) {
     throw e;
   }
 
+  // AI rate limit (per-org, 10/min).
+  const { checkAiRateLimit } = await import('@/lib/rate-limit');
+  if (auth.organizationId && !(await checkAiRateLimit(auth.organizationId))) {
+    return NextResponse.json({ error: 'Too many AI requests. Please wait.' }, { status: 429 });
+  }
+
   // ── Graceful degradation when ZAI_API_KEY is unset ──────────────
   if (!process.env.ZAI_API_KEY) {
     return NextResponse.json(

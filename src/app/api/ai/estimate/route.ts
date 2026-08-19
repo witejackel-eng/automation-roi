@@ -75,6 +75,12 @@ export async function POST(req: NextRequest) {
     throw e;
   }
 
+  // AI rate limit (per-org, 10/min).
+  const { checkAiRateLimit } = await import('@/lib/rate-limit');
+  if (auth.organizationId && !(await checkAiRateLimit(auth.organizationId))) {
+    return NextResponse.json({ error: 'Too many AI requests. Please wait.' }, { status: 429 });
+  }
+
   // ── Graceful degradation when ZAI_API_KEY is unset ──────────────
   // Per src/lib/env.ts, ZAI_API_KEY is optional — its absence is not a
   // misconfiguration, just an unavailable feature. Return a typed 503
