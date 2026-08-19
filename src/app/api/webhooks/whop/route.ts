@@ -244,29 +244,35 @@ export async function POST(req: NextRequest) {
   }
 
   if (!tier) {
-    // DO NOT silently default to a paid tier (revenue-integrity risk)
-    // or to free (could downgrade a legitimate paying customer whose
-    // plan simply isn't mapped yet). Log a WEBHOOK_ERROR and leave the
-    // org's tier unchanged for manual review.
-    logSystemEvent({
-      eventType: 'WEBHOOK_ERROR',
-      severity: 'error',
-      organizationId,
-      metadata: {
-        reason: 'unknown_plan_id',
-        whopPlanId: whopPlanId ?? null,
-        whopProductId: whopProductId ?? null,
-        type: parsed.type ?? null,
-      },
-    }).catch(() => { /* observability must never fail the request */ });
-    return NextResponse.json(
-      {
-        error: 'Unknown plan/product id — add a PlanMapping row for it before retrying.',
-        whopPlanId: whopPlanId ?? null,
-        whopProductId: whopProductId ?? null,
-      },
-      { status: 422 },
-    );
+    // For membership.deactivated, no plan mapping is needed —
+    // we downgrade to 'free' regardless.
+    if (parsed.type === 'membership.deactivated') {
+      tier = 'free';
+    } else {
+      // DO NOT silently default to a paid tier (revenue-integrity risk)
+      // or to free (could downgrade a legitimate paying customer whose
+      // plan simply isn't mapped yet). Log a WEBHOOK_ERROR and leave the
+      // org's tier unchanged for manual review.
+      logSystemEvent({
+        eventType: 'WEBHOOK_ERROR',
+        severity: 'error',
+        organizationId,
+        metadata: {
+          reason: 'unknown_plan_id',
+          whopPlanId: whopPlanId ?? null,
+          whopProductId: whopProductId ?? null,
+          type: parsed.type ?? null,
+        },
+      }).catch(() => { /* observability must never fail the request */ });
+      return NextResponse.json(
+        {
+          error: 'Unknown plan/product id — add a PlanMapping row for it before retrying.',
+          whopPlanId: whopPlanId ?? null,
+          whopProductId: whopProductId ?? null,
+        },
+        { status: 422 },
+      );
+    }
   }
 
   // ── Event-type dispatch ─────────────────────────────────────────
@@ -378,6 +384,23 @@ export async function POST(req: NextRequest) {
     await db.license.create({
       data: { organizationId, tier, whopEventId: eventId, purchasedAt: new Date() },
     });
+  }
+
+  // ── Event-specific lifecycle transitions ───────────────────
+  // Downgrade License.tier to 'free' on deactivation or full refund.
+  const isDeactivation = type === 'membership.deactivated';
+  const isFullRefund = isRefundEvent && parsed.data.amount && parsed.data.amount > 0;
+  if (isDeactivation || isFullRefund) {
+    const existingLicense = await db.license.findFirst({
+      where: { organizationId },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (existingLicense && existingLicense.tier !== 'free') {
+      await db.license.update({
+        where: { id: existingLicense.id },
+        data: { tier: 'free', whopEventId: eventId },
+      });
+    }
   }
 
   // ── Event emission (fire-and-forget) ───────────────────────────
