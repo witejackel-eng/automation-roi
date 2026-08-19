@@ -1,9 +1,10 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function BillingCompletePage() {
+function BillingCompleteContent() {
   const params = useSearchParams();
   const status = params.get('status');
   const isSuccess = status === 'success';
@@ -23,5 +24,13 @@ export default function BillingCompletePage() {
       )}
       <Link href="/start?start=1">Go to your dashboard</Link>
     </div>
+  );
+}
+
+export default function BillingCompletePage() {
+  return (
+    <Suspense>
+      <BillingCompleteContent />
+    </Suspense>
   );
 }
