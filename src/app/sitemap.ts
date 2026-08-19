@@ -5,7 +5,7 @@
  */
 import type { MetadataRoute } from 'next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://viableo.app';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://automation-roi-delta.vercel.app';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

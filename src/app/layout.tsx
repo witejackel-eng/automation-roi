@@ -10,7 +10,7 @@ import {
   BRAND_TAGLINE,
 } from "@/lib/brand";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://viableo.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://automation-roi-delta.vercel.app';
 
 // Inter is the primary body family (Section 5.2).
 const inter = Inter({

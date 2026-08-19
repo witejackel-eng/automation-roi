@@ -14,7 +14,7 @@ import { COMPANY_NAME, PRODUCT_NAME } from '@/lib/brand';
  * The application (calculator / results / projects / settings / pricing views)
  * lives at /start, reached via `<Link href="/start?start=1">` from every CTA.
  */
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://automation-roi-delta.vercel.app';
 
 export const metadata: Metadata = {
   title: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
