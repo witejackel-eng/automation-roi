@@ -112,7 +112,7 @@ model Organization {
   shareEvents    ShareEvent[]
   subscriptions  Subscription[]
   payments       Payment[]
-  clients        Client[]
+  // clients        Client[]  // Uncomment after running migration: add_agency_tier_schema
 }
 
 // ── Projects ─────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ model Organization {
 model Project {
   id             String   @id @default(cuid())
   organizationId String
-  clientId       String?
+  // clientId       String?  // Uncomment after running migration: add_agency_tier_schema
   clientName     String
   inputs         String // serialized CalculatorInputs (JSON)
   results        String // serialized ScenarioResult x3 (JSON)
@@ -131,12 +131,12 @@ model Project {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   reports      Report[]
   shares       Share[]
-  caseVersions CaseVersion[]
-  challenges   Challenge[]
-  client       Client?        @relation(fields: [clientId], references: [id])
+  // caseVersions CaseVersion[]  // Uncomment after running migration
+  // challenges   Challenge[]  // Uncomment after running migration
+  // client       Client?        @relation(fields: [clientId], references: [id])
 
   @@index([organizationId])
-  @@index([clientId])
+  // @@index([clientId])  // Uncomment after running migration
 }
 
 model Report {
@@ -359,58 +359,60 @@ model AuditLog {
 }
 
 // ── Agency Tier: Versioning, Challenges, Clients ─────────────────
+// UNCOMMENT THESE MODELS AFTER RUNNING: bunx prisma migrate dev --name add_agency_tier_schema
+// They require a live PostgreSQL database for the migration.
 
-model CaseVersion {
-  id                String   @id @default(cuid())
-  projectId         String
-  createdAt         DateTime @default(now())
-  inputHash         String
-  results           Json     @db.JsonB
-  verdict           String
-  confidenceScore   Int
-  createdBy         String
-  source            String   @default("wizard")
-  parentVersionId   String?
-  
-  project           Project  @relation(fields: [projectId], references: [id], name: "caseVersions")
-  
-  @@index([projectId])
-  @@index([inputHash])
-}
+// model CaseVersion {
+//   id                String   @id @default(cuid())
+//   projectId         String
+//   createdAt         DateTime @default(now())
+//   inputHash         String
+//   results           Json     @db.JsonB
+//   verdict           String
+//   confidenceScore   Int
+//   createdBy         String
+//   source            String   @default("wizard")
+//   parentVersionId   String?
+// 
+//   project           Project  @relation(fields: [projectId], references: [id], name: "caseVersions")
+// 
+//   @@index([projectId])
+//   @@index([inputHash])
+// }
 
-model Challenge {
-  id                   String    @id @default(cuid())
-  projectId            String
-  parentVersionId      String
-  challengedVersionId  String
-  challengedField      String
-  previousValue        Float
-  newValue             Float
-  challengedBy         String?
-  challengedAt         DateTime  @default(now())
-  status               String    @default("pending")
-  respondedAt          DateTime?
-  respondedBy           String?
-  responseNote          String?
-  note                 String?
-  
-  project               Project   @relation(fields: [projectId], references: [id], name: "challenges")
-  
-  @@index([projectId])
-  @@index([status])
-}
+// model Challenge {
+//   id                   String    @id @default(cuid())
+//   projectId            String
+//   parentVersionId      String
+//   challengedVersionId  String
+//   challengedField      String
+//   previousValue        Float
+//   newValue             Float
+//   challengedBy         String?
+//   challengedAt         DateTime  @default(now())
+//   status               String    @default("pending")
+//   respondedAt          DateTime?
+//   respondedBy           String?
+//   responseNote          String?
+//   note                 String?
+// 
+//   project               Project   @relation(fields: [projectId], references: [id], name: "challenges")
+// 
+//   @@index([projectId])
+//   @@index([status])
+// }
 
-model Client {
-  id                String   @id @default(cuid())
-  organizationId    String
-  name              String
-  industry          String?
-  defaultAssumptions Json?    @db.JsonB
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  organization      Organization @relation(fields: [organizationId], references: [id], name: "clients")
-  projects          Project[]
-  
-  @@index([organizationId])
-}
+// model Client {
+//   id                String   @id @default(cuid())
+//   organizationId    String
+//   name              String
+//   industry          String?
+//   defaultAssumptions Json?    @db.JsonB
+//   createdAt         DateTime @default(now())
+//   updatedAt         DateTime @updatedAt
+//   
+//   organization      Organization @relation(fields: [organizationId], references: [id], name: "clients")
+//   projects          Project[]
+// 
+//   @@index([organizationId])
+// }
