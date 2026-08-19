@@ -22,6 +22,8 @@ const ENV_VARS: EnvVar[] = [
   { name: 'GITHUB_SECRET', required: isProduction, description: 'GitHub OAuth App client secret' },
   { name: 'BLOB_READ_WRITE_TOKEN', required: isProduction, description: 'Vercel Blob read/write token, for uploads/branding assets' },
   { name: 'WHOP_WEBHOOK_SECRET', required: isProduction, description: 'Whop webhook signing secret (ws_...), required in production per Prompt 2' },
+  { name: 'WHOP_API_KEY', required: isProduction, description: 'Whop company-level API key for server-side checkout session creation' },
+  { name: 'WHOP_COMPANY_ID', required: isProduction, description: 'Whop company ID (biz_...) for checkout session creation' },
   { name: 'NEXT_PUBLIC_SITE_URL', required: isProduction, description: 'Public canonical site URL used by metadata/OG tags' },
   { name: 'SUPERADMIN_BOOTSTRAP_TOKEN', required: isProduction, description: 'Shared secret required by scripts/bootstrap-superadmin.ts' },
   { name: 'UPSTASH_REDIS_REST_URL', required: false, description: 'Optional distributed rate limiting' },
