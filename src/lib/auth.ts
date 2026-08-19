@@ -30,6 +30,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { db } from '@/lib/db';
 import { logSystemEvent } from '@/lib/observability/system-event';
+import { ensureUserHasOrganization } from '@/lib/org-bootstrap';
 
 export const authOptions = {
   adapter: PrismaAdapter(db),
@@ -117,6 +118,13 @@ export const authOptions = {
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
+  },
+  events: {
+    async signIn({ user }) {
+      if (user.id) {
+        await ensureUserHasOrganization(user.id, user.email);
+      }
+    },
   },
 };
 
