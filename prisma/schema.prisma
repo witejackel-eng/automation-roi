@@ -232,10 +232,13 @@ model Subscription {
   // membership lifecycle. Nullable so a subscription can exist briefly
   // before the webhook that carries the membership id arrives.
   whopMembershipId   String?   @unique
-  // Internal plan key, e.g. "pro_monthly". Distinct from the raw
+  // Timestamp of the last processed webhook event for this subscription,
+  // used to reject out-of-order / replayed events.
+  lastWebhookEventAt DateTime?
+  // Internal plan key, e.g. "case_pack". Distinct from the raw
   // Whop plan id (see PlanMapping).
   planKey            String
-  // 'free' | 'pro' | 'agency' | 'agency_pro' — derived via PlanMapping.
+  // 'free' | 'case_pack' | 'agency' | 'agency_pro' — derived via PlanMapping.
   tier               String
   // Mirrors Whop MembershipStatus:
   // trialing|active|past_due|completed|canceled|expired|unresolved|drafted|canceling

@@ -286,6 +286,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, unhandled: true, type });
   }
 
+  // ── Out-of-order webhook protection ───────────────────
+  const incomingTimestamp = parsed.timestamp ?? parsed.created_at;
+  let incomingDate: Date | null = null;
+  if (incomingTimestamp) {
+    // Accept both ISO string and numeric (unix seconds) formats.
+    incomingDate = new Date(typeof incomingTimestamp === 'number' ? incomingTimestamp * 1000 : incomingTimestamp);
+  }
+
   // ── Upsert chain ────────────────────────────────────────────────
   // Order: Subscription upsert → Payment append (if payment event) →
   // License.tier upsert (derived cache, keeps the existing
@@ -308,6 +316,24 @@ export async function POST(req: NextRequest) {
   let subscription: { id: string; organizationId: string } | null = null;
 
   if (membershipId) {
+    // Out-of-order guard: if we have a prior subscription for this
+    // membership and the incoming event is older, skip it.
+    if (incomingDate) {
+      const existingSub = await db.subscription.findUnique({
+        where: { whopMembershipId: membershipId },
+        select: { lastWebhookEventAt: true },
+      });
+      if (existingSub?.lastWebhookEventAt && incomingDate <= existingSub.lastWebhookEventAt) {
+        logSystemEvent({
+          eventType: 'WEBHOOK_STALE_EVENT_IGNORED',
+          severity: 'warn',
+          organizationId,
+          metadata: { reason: 'stale_event', incomingTs: incomingDate.toISOString(), storedTs: existingSub.lastWebhookEventAt.toISOString(), type },
+        }).catch(() => {});
+        return NextResponse.json({ ok: true, stale: true });
+      }
+    }
+
     // Phase 6 (F-6 fix): upsert Subscription through tenant() so the
     // organizationId is structurally enforced (the upsert's `create`
     // branch sets it; the `update` branch is matched on
@@ -329,8 +355,9 @@ export async function POST(req: NextRequest) {
           : null,
         cancelAtPeriodEnd: parsed.data.cancel_at_period_end ?? false,
         canceledAt: parsed.data.canceled_at ? new Date(parsed.data.canceled_at) : null,
+        ...(incomingDate ? { lastWebhookEventAt: incomingDate } : {}),
       },
-      update: subscriptionData,
+      update: { ...subscriptionData, ...(incomingDate ? { lastWebhookEventAt: incomingDate } : {}) },
       select: { id: true, organizationId: true },
     });
   }
