@@ -71,6 +71,20 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     const { Proposal } = await import('@/lib/pdf/proposal');
     const { registerFonts } = await import('@/lib/pdf/fonts');
     registerFonts();
+    // Output-integrity guard (Prompt 3, Task 3.1): the values passed to the
+    // PDF renderer MUST be exactly what is persisted — never a fresh
+    // recalculation.
+    const persistedResultsCheck = JSON.parse(project.results) as typeof results;
+    if (JSON.stringify(persistedResultsCheck) !== JSON.stringify(results)) {
+      const { logSystemEvent } = await import('@/lib/observability/system-event');
+      await logSystemEvent({
+        eventType: 'OUTPUT_INTEGRITY_VIOLATION',
+        organizationId: org.id,
+        severity: 'error',
+        metadata: { projectId: id, route: 'proposal' },
+      });
+      return NextResponse.json({ error: 'Internal error: output integrity check failed.' }, { status: 500 });
+    }
     pdfBuffer = await renderToBuffer(
       <Proposal
         inputs={inputs}
