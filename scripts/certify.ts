@@ -12,7 +12,9 @@
  *   3. bun run typecheck                     (tsc --noEmit)
  *   4. bun run lint                          (eslint .)
  *   5. bun run build                         (prisma generate + migrate-or-warn + next build)
- *   6. prisma migrate deploy against scratch (migration integrity)
+ *   6. Tenant isolation tests               (cross-tenant data-layer + API-layer isolation)
+ *   7. Output-consistency tests             (byte-identical financial output regression)
+ *   8. E2E smoke tests                       (Playwright 24-step customer journey + failure paths)
  *
  * The composite report is what the founder should require before
  * considering any release final. "Production ready" means this
@@ -54,6 +56,21 @@ const GATES: Gate[] = [
     name: 'build',
     command: 'bun run build',
     description: 'prisma generate + migrate-or-warn.sh + next build',
+  },
+  {
+    name: 'tenant-isolation',
+    command: 'bun run test src/lib/tenant/__tests__/ src/app/api/__tests__/cross-tenant-api-isolation.test.ts src/app/api/admin/__tests__/admin-authz.test.ts',
+    description: 'Cross-tenant isolation + admin authz static analysis',
+  },
+  {
+    name: 'output-consistency',
+    command: 'bun run test src/lib/calculations/__tests__/output-consistency.test.ts',
+    description: 'Byte-identical financial output regression test',
+  },
+  {
+    name: 'e2e',
+    command: 'bun run e2e',
+    description: 'Playwright E2E smoke suite (24-step journey + failure paths)',
   },
 ];
 
