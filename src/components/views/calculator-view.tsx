@@ -9,7 +9,7 @@
  * pre-fill from the Apex example) and the `setCalculation` action onto the
  * Wizard's props. Viableo voice lives inside the Wizard and its step copy.
  */
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { Wizard, type WizardCompletePayload } from '@/components/calculator/wizard';
 import { useApp } from '@/lib/store';
@@ -34,34 +34,34 @@ export function CalculatorView() {
 
   // ── Autosave / Draft recovery ──────────────────────────────────────
   const DRAFT_KEY = `viableo-draft-${savedProjectId ?? 'new'}`;
-  const [draft, setDraft] = useState<{ inputs: typeof APEX_INPUTS; savedAt: string } | null>(null);
-  const draftRestored = useRef(false);
+  const [draftDismissed, setDraftDismissed] = useState(false);
 
-  // On mount, check for a recovered draft.
-  useEffect(() => {
+  // Check for a recovered draft on mount via lazy initializer.
+  const [draft, setDraft] = useState<{ inputs: typeof APEX_INPUTS; savedAt: string } | null>(() => {
+    if (typeof window === 'undefined') return null;
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as { inputs: typeof APEX_INPUTS; savedAt: string };
-        if (parsed.inputs && parsed.savedAt) {
-          setDraft(parsed);
-        }
+        if (parsed.inputs && parsed.savedAt) return parsed;
       }
     } catch {
       /* ignore corrupt drafts */
     }
-  }, [DRAFT_KEY]);
+    return null;
+  });
 
   const restoreDraft = useCallback(() => {
-    if (draft && !draftRestored.current) {
-      draftRestored.current = true;
+    if (draft && !draftDismissed) {
+      setDraftDismissed(true);
       startCalculator(draft.inputs);
       setDraft(null);
       localStorage.removeItem(DRAFT_KEY);
     }
-  }, [draft, DRAFT_KEY, startCalculator]);
+  }, [draft, draftDismissed, DRAFT_KEY, startCalculator]);
 
   const discardDraft = useCallback(() => {
+    setDraftDismissed(true);
     setDraft(null);
     localStorage.removeItem(DRAFT_KEY);
   }, [DRAFT_KEY]);
@@ -84,7 +84,7 @@ export function CalculatorView() {
 
   return (
     <>
-      {draft && !draftRestored.current && (
+      {draft && !draftDismissed && (
         <Alert className="mb-4">
           <AlertDescription>
             We recovered an unsaved draft from{' '}

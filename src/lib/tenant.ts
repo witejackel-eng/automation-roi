@@ -57,6 +57,13 @@ export function tenant(orgId: string) {
         }),
       delete: (args: { id: string }) =>
         db.project.delete({ where: { id: args.id, organizationId: orgId } }),
+      update: (args: { where: { id: string } } & Omit<Prisma.ProjectUpdateArgs, 'where'> & {
+        data: Prisma.ProjectUpdateArgs['data'];
+      }) =>
+        db.project.update({
+          ...(args as unknown as Prisma.ProjectUpdateArgs),
+          where: { id: args.where.id, organizationId: orgId },
+        }),
       count: (args?: Omit<Prisma.ProjectCountArgs, 'where'> & {
         where?: Omit<Prisma.ProjectCountArgs['where'], 'organizationId'>;
       }) =>
