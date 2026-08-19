@@ -239,8 +239,7 @@ export async function assertEntitlement(
  * handler keeps License in sync with Subscription (the source of truth).
  */
 export async function getOrgEntitlement(orgId: string): Promise<Entitlement> {
-  const license = await db.license.findFirst({
-    where: { organizationId: orgId },
+  const license = await tenant(orgId).licenses.findFirst({
     orderBy: { createdAt: 'desc' },
   });
   const tier = (license?.tier as Tier) ?? 'free';
