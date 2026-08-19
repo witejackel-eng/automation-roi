@@ -61,6 +61,7 @@ export async function POST(
     data: {
       shareId,
       projectId,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       // Note: Share has no organizationId column directly — it is
       // org-scoped transitively through Project. The project row was
       // already verified to belong to this org by the findUnique call

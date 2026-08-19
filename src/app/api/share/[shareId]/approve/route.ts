@@ -8,7 +8,8 @@
  *          email (optional), comment (optional).
  *
  * Creates a ShareApproval record and updates the Share's decisionState to
- * 'approved' or 'changes_requested'.
+ * 'approved' or 'changes_requested'. All three writes are wrapped in a
+ * single Prisma transaction for atomicity.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
@@ -76,40 +77,58 @@ export async function POST(
     return NextResponse.json({ error: 'name is required.' }, { status: 422 });
   }
 
-  // Create the ShareApproval record.
-  const approval = await db.shareApproval.create({
-    data: {
-      shareId: share.id,
-      action,
-      name: name.trim(),
-      email: email?.trim() || null,
-      comment: comment?.trim() || null,
-    },
-  });
-
-  // Update the Share's decisionState.
   const decisionState = action === 'approve' ? 'approved' : 'changes_requested';
-  await db.share.update({
-    where: { id: share.id },
-    data: { decisionState },
+
+  // Wrap all three writes in a single transaction for atomicity.
+  const approval = await db.$transaction(async (tx) => {
+    const created = await tx.shareApproval.create({
+      data: {
+        shareId: share.id,
+        action,
+        name: name.trim(),
+        email: email?.trim() || null,
+        comment: comment?.trim() || null,
+      },
+    });
+
+    await tx.share.update({
+      where: { id: share.id },
+      data: { decisionState },
+    });
+
+    // Also record an 'approval' ShareEvent for the engagement timeline.
+    const project = await tx.project.findUnique({
+      where: { id: share.projectId },
+      select: { organizationId: true },
+    });
+    if (project) {
+      await tx.shareEvent.create({
+        data: {
+          shareId: share.id,
+          organizationId: project.organizationId,
+          eventType: 'approval',
+          section: null,
+          value: null,
+          metadata: JSON.stringify({ action, name: name.trim(), approvalId: created.id }),
+        },
+      });
+    }
+
+    return created;
   });
 
-  // Also record an 'approval' ShareEvent for the engagement timeline.
+  // Emit a SystemEvent for the approval (fire-and-forget).
   const project = await db.project.findUnique({
     where: { id: share.projectId },
     select: { organizationId: true },
   });
   if (project) {
-    await db.shareEvent.create({
-      data: {
-        shareId: share.id,
-        organizationId: project.organizationId,
-        eventType: 'approval',
-        section: null,
-        value: null,
-        metadata: JSON.stringify({ action, name: name.trim(), approvalId: approval.id }),
-      },
-    });
+    const { logSystemEvent } = await import('@/lib/observability/system-event');
+    await logSystemEvent({
+      eventType: action === 'approve' ? 'SHARE_APPROVED' : 'SHARE_CHANGES_REQUESTED',
+      organizationId: project.organizationId,
+      metadata: { shareId, action, approvalId: approval.id },
+    }).catch(() => {});
   }
 
   return NextResponse.json({

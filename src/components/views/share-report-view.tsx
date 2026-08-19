@@ -144,7 +144,7 @@ export function ShareReportView({
     };
   }, [shareId]);
 
-  // Track time-on-page with beforeunload handler.
+  // Track time-on-page with beforeunload handler and visibilitychange.
   React.useEffect(() => {
     const handleUnload = () => {
       const secondsOnPage = (Date.now() - mountTimeRef.current) / 1000;
@@ -158,8 +158,25 @@ export function ShareReportView({
       }
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        const secondsOnPage = (Date.now() - mountTimeRef.current) / 1000;
+        const payload = JSON.stringify({
+          eventType: 'time_on_page',
+          value: Math.round(secondsOnPage),
+        });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(`/api/share/${shareId}/event`, payload);
+        }
+      }
+    };
+
     window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [shareId]);
 
   // ── Approval handler (Phase 2.2) ────────────────────────────────
