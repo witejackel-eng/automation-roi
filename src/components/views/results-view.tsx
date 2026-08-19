@@ -375,7 +375,7 @@ export function ResultsView() {
             <span className="text-[11px] uppercase tracking-wide text-ink-muted">
               {TERM.decision}
             </span>
-            <DecisionBadge decision={activeDecision} size="lg" animate />
+            <DecisionBadge decision={activeDecision} size="lg" animate data-testid="recommendation-result" />
           </div>
         </div>
 
@@ -594,6 +594,7 @@ export function ResultsView() {
             onClick={handleReport}
             loading={reportLoading}
             icon={<FileText className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+            data-testid="generate-report-button"
           >
             Generate Client Report
           </EntitlementButton>
@@ -603,6 +604,7 @@ export function ResultsView() {
             onClick={handleProposal}
             loading={proposalLoading}
             icon={<FileSignature className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+            data-testid="generate-proposal-button"
           >
             Generate Proposal
           </EntitlementButton>
@@ -612,6 +614,7 @@ export function ResultsView() {
             onClick={handleShare}
             loading={shareLoading}
             icon={<Share2 className="size-4" strokeWidth={1.75} aria-hidden="true" />}
+            data-testid="create-share-link-button"
           >
             Create share link
           </EntitlementButton>
