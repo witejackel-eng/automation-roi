@@ -23,6 +23,9 @@ export const runtime = 'nodejs';
 const ALLOWED: Tier[] = ['free', 'case_pack', 'agency', 'agency_pro'];
 
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
   try {
     // ── Auth: require authenticated session with owner role ──────────
     const auth = await requireAuth();
@@ -34,14 +37,6 @@ export async function POST(req: NextRequest) {
     }
 
     const org = await requireOrg();
-
-    // ── Production guard ──────────────────────────────────────────
-    if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json(
-        { error: 'Entitlement changes must go through Whop payment flow.' },
-        { status: 403 }
-      );
-    }
 
     // ── Dev guard: optional bearer token ─────────────────────────
     const devSecret = process.env.DEV_ENTITLEMENT_SECRET;
