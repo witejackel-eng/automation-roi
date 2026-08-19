@@ -112,6 +112,7 @@ model Organization {
   shareEvents    ShareEvent[]
   subscriptions  Subscription[]
   payments       Payment[]
+  clients        Client[]
 }
 
 // ── Projects ─────────────────────────────────────────────────────
@@ -119,6 +120,7 @@ model Organization {
 model Project {
   id             String   @id @default(cuid())
   organizationId String
+  clientId       String?
   clientName     String
   inputs         String // serialized CalculatorInputs (JSON)
   results        String // serialized ScenarioResult x3 (JSON)
@@ -129,8 +131,12 @@ model Project {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   reports      Report[]
   shares       Share[]
+  caseVersions CaseVersion[]
+  challenges   Challenge[]
+  client       Client?        @relation(fields: [clientId], references: [id])
 
   @@index([organizationId])
+  @@index([clientId])
 }
 
 model Report {
@@ -350,4 +356,61 @@ model AuditLog {
   @@index([action])
   @@index([targetType, targetId])
   @@index([createdAt])
+}
+
+// ── Agency Tier: Versioning, Challenges, Clients ─────────────────
+
+model CaseVersion {
+  id                String   @id @default(cuid())
+  projectId         String
+  createdAt         DateTime @default(now())
+  inputHash         String
+  results           Json     @db.JsonB
+  verdict           String
+  confidenceScore   Int
+  createdBy         String
+  source            String   @default("wizard")
+  parentVersionId   String?
+  
+  project           Project  @relation(fields: [projectId], references: [id], name: "caseVersions")
+  
+  @@index([projectId])
+  @@index([inputHash])
+}
+
+model Challenge {
+  id                   String    @id @default(cuid())
+  projectId            String
+  parentVersionId      String
+  challengedVersionId  String
+  challengedField      String
+  previousValue        Float
+  newValue             Float
+  challengedBy         String?
+  challengedAt         DateTime  @default(now())
+  status               String    @default("pending")
+  respondedAt          DateTime?
+  respondedBy           String?
+  responseNote          String?
+  note                 String?
+  
+  project               Project   @relation(fields: [projectId], references: [id], name: "challenges")
+  
+  @@index([projectId])
+  @@index([status])
+}
+
+model Client {
+  id                String   @id @default(cuid())
+  organizationId    String
+  name              String
+  industry          String?
+  defaultAssumptions Json?    @db.JsonB
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  organization      Organization @relation(fields: [organizationId], references: [id], name: "clients")
+  projects          Project[]
+  
+  @@index([organizationId])
 }
