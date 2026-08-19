@@ -26,7 +26,7 @@
   /* ── Text ────────────────────────────────────────────────── */
   --color-ink: #171516;              /* --charcoal: primary text, nav */
   --color-ink-muted: #727076;        /* --mid-gray: tertiary, borders */
-  --color-ink-faint: #A8A5AA;        /* lighter mid-gray for captions */
+  --color-ink-faint: #635F6B;          /* corrected: 5.95 on canvas. Was #A8A5AA (2.33 FAIL). */
   --color-ink-soft: #353034;         /* --soft-charcoal: muted headings on dark */
 
   /* ── Brand / interactive accent — Viableo Coral ─────────── */
@@ -36,14 +36,27 @@
   --color-brand-foreground: #FFFFFF;
   --color-crimson: #B70F38;         /* explicit deep-crimson token */
 
-  /* ── Decision semantics (Section 5.1 exception) ─────────── */
-  /* Scoped ONLY to the Decision badge component. */
-  --color-build: #1F8A5A;           /* muted emerald */
-  --color-build-bg: #E7F4ED;        /* ~12% emerald tint */
-  --color-consider: #C98A1B;        /* muted amber/gold */
-  --color-consider-bg: #FBF1E0;     /* ~12% amber tint */
-  --color-dont-build: #B70F38;      /* reuses deep crimson — no new color */
-  --color-dont-build-bg: #FBE9EE;   /* ~12% crimson tint */
+  /* ── CTA fills (mandate §4.4 — primary CTA was #FF164B, white-on = 3.84 FAIL) ── */
+  /* Promote the already-existing #B70F38 to the resting fill (white-on = 6.69 PASS). */
+  --color-brand-cta: #B70F38;       /* primary CTA resting fill */
+  --color-brand-cta-hover: #8F0526; /* primary CTA hover (white-on = 9.47) */
+
+  /* ── Decision semantics — single verdict palette (mandate §4.4) ─────────── */
+  /* Re-pointed to the brand.ts DECISION_COLORS text hexes. Fixes two AA failures. */
+  /* build: #0D6B3F on #E7F4ED = 5.81 (was #1F8A5A = 3.83 FAIL) */
+  --color-build: #0D6B3F;
+  --color-build-bg: #E7F4ED;
+  /* consider: #8B5E0A on #FBF1E0 = 5.07 (was #C98A1B = 2.63 FAIL) */
+  --color-consider: #8B5E0A;
+  --color-consider-bg: #FBF1E0;
+  /* dont_build: #9B0A2E on #FBE9EE = 7.26 (was #B70F38 = 5.73 PASS — now deeper crimson) */
+  --color-dont-build: #9B0A2E;
+  --color-dont-build-bg: #FBE9EE;
+
+  /* Dark-surface verdict tints (mandate §4.4 — new, measured on #1A181B) */
+  --color-build-dark: #34D399;       /* 9.18 on #1A181B */
+  --color-consider-dark: #FBBF24;    /* 10.57 on #1A181B */
+  --color-dont-build-dark: #F87171;  /* 6.38 on #1A181B */
 
   /* ── Analytical / Semantic Colors ─────────────────────── */
   --color-indigo: #4338CA;          /* analysis, scenarios, data surfaces */
@@ -197,10 +210,9 @@
   :focus-visible {
     outline-offset: 2px;
   }
-  /* Disable motion/react animations */
+  /* Disable motion/react animations. .reveal-on-scroll and .hero-rise were
+     removed (zero usages in src/ — mandate P2-9). */
   .reveal-on-enter,
-  .reveal-on-scroll,
-  .hero-rise,
   .dot-drop,
   .count-pulse,
   .stepper-line-draw {

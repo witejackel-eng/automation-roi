@@ -26,6 +26,7 @@ import {
   BRAND_TAGLINE,
   CTA_PRIMARY,
   NAV_LABELS,
+  DATA_HANDLING_LINE,
 } from '@/lib/brand';
 
 const NAV_LINKS = [
@@ -40,9 +41,9 @@ const FOOTER_COLUMNS = [
   {
     title: 'Product',
     links: [
-      { href: '/?start=1', label: 'Calculator' },
+      { href: '/start?start=1', label: 'Run a case' },
       { href: '/pricing', label: 'Pricing' },
-      { href: '/?start=1&example=apex', label: 'See an example' },
+      { href: '/start?start=1&example=apex', label: 'See an example' },
     ],
   },
   {
@@ -67,6 +68,8 @@ const FOOTER_COLUMNS = [
     title: 'Company',
     links: [
       { href: '/methodology', label: 'Methodology' },
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
     ],
   },
 ];
@@ -172,7 +175,7 @@ function MarketingTopNav() {
           transition={{ duration: 0.56, ease: [0.16, 1, 0.3, 1], delay: 0.16 }}
         >
           <motion.a
-            href="/?start=1"
+            href="/start?start=1"
             className="mkt-cta-dark shrink-0"
             whileHover={{ y: -1.5 }}
             whileTap={{ y: 0 }}
@@ -211,7 +214,7 @@ function MarketingTopNav() {
                 );
               })}
               <a
-                href="/?start=1"
+                href="/start?start=1"
                 className="mkt-mobile-menu-link"
                 onClick={() => setMenuOpen(false)}
               >
@@ -233,17 +236,17 @@ function MarketingFooter() {
           {/* Brand column */}
           <div className="col-span-2">
             <Logo variant="reverse" />
-            <p className="mt-5 max-w-[260px] text-[14px] leading-[1.6] text-white/55">
+            <p className="mt-5 max-w-[260px] text-[14px] leading-[1.6] text-[#A5A0AE]">
               {BRAND_TAGLINE}
             </p>
-            <p className="mt-3 max-w-[260px] text-[12px] leading-[1.5] text-white/35">
-              Figures are estimates, not financial advice.
+            <p className="mt-3 max-w-[260px] text-[12px] leading-[1.5] text-[#A5A0AE]">
+              {DATA_HANDLING_LINE}
             </p>
           </div>
           {/* Link columns */}
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.title}>
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#A5A0AE]">
                 {col.title}
               </h3>
               <ul className="mt-4 space-y-2.5">
@@ -261,14 +264,14 @@ function MarketingFooter() {
             </div>
           ))}
         </div>
-        <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-white/35 md:flex-row md:items-center md:justify-between">
+        <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-[#A5A0AE] md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2.5">
             <span>{COMPANY_NAME}</span>
             <span aria-hidden="true" className="size-1 rounded-full bg-white/25" />
             <span>{new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-2.5">
-            <span>Automation Investment Intelligence</span>
+            <span>Figures are estimates, not financial advice.</span>
           </div>
         </div>
       </div>

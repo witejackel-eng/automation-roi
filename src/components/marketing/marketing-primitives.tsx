@@ -23,7 +23,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://viableo.app';
 export function PrimaryCTA({ className }: { className?: string }) {
   return (
     <a
-      href="/?start=1"
+      href="/start?start=1"
       className={cn('mkt-cta-dark', className)}
     >
       {CTA_PRIMARY}
@@ -35,7 +35,7 @@ export function PrimaryCTA({ className }: { className?: string }) {
 export function SecondaryCTA({ className }: { className?: string }) {
   return (
     <a
-      href="/?start=1&example=apex"
+      href="/start?start=1&example=apex"
       className={cn(
         'link-underline inline-flex min-h-[44px] items-center gap-1.5 px-2',
         'text-[15px] font-medium text-ink',

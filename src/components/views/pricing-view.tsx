@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Pricing view — sparse, typography-first redesign (piplanning.io-inspired).
  *
@@ -14,20 +12,33 @@
  *   - Cards feel premium and airy: 32px padding, generous line-height,
  *     clear hierarchy, quiet borders.
  *
- * Activation logic is UNCHANGED: POST /api/entitlement/set, then dispatch
- * `entitlement:refresh` so AppRoot re-fetches. Whop integration untouched.
+ * Headline / subhead / footnote are imported from `brand.ts` so this view
+ * cannot drift from the marketing surface.
+ *
+ * CTAs (P0-9 fix): the previous flow POSTed to a gated internal endpoint that
+ * returns 403 in production ("Entitlement changes must go through Whop
+ * payment flow"). A repo-wide grep found NO Whop checkout URL. The honest
+ * interim state, per the mandate:
+ *   - Free tier → /start?start=1 (a real, working path)
+ *   - Paid tiers (Case pack / Agency / Agency Pro) → mailto:hello@viableo.app
+ *     with the CTA label "Contact to buy"
+ * Every CTA is a real <Link> (or <a href> for mailto). Nothing on this page
+ * posts to a gated endpoint or returns a 403.
  */
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Check, ArrowRight } from 'lucide-react';
-import { useTier } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { PRICING_TIERS, COMPANY_NAME, CTA_PRIMARY } from '@/lib/brand';
-import type { Tier } from '@/lib/entitlement';
+import {
+  PRICING_TIERS,
+  PRICING_HEADLINE,
+  PRICING_SUBHEAD,
+  PRICING_FOOTNOTE,
+  CTA_PRIMARY,
+} from '@/lib/brand';
 
 interface Plan {
-  tier: Tier;
+  key: string;
   name: string;
   price: string;
   cadence: string;
@@ -35,96 +46,81 @@ interface Plan {
   positioning: string;
   features: string[];
   popular?: boolean;
+  ctaHref: string;
+  ctaLabel: string;
 }
 
 // Per-tier feature lists — local to this view. Names / prices / cadence /
-// "Most popular" / one-line identity all come from PRICING_TIERS so the
-// canonical brand config stays the source of truth.
-const FEATURES: Record<Tier, string[]> = {
+// "Most popular" / one-line identity / blurb all come from PRICING_TIERS so
+// the canonical brand config stays the source of truth.
+//
+// P0-8: the Free tier features list says "Watermarked document" — matching
+// the brand.ts blurb ("Watermarked document"). It does NOT say "No PDF
+// export". The Free tier exports a watermarked document; it does not gate
+// the PDF behind a paywall and lie about it.
+//
+// P0-7: keys match PRICING_TIERS keys exactly (free / case_pack / agency /
+// agency_pro). The previous `pro` key caused `FEATURES[t.key]` to return
+// undefined and crash the page (dev log: TypeError at pricing-view.tsx:203).
+const FEATURES: Record<string, string[]> = {
   free: [
     'Calculator + all three scenarios',
     'BUILD / CONSIDER / DON\u2019T BUILD recommendation',
     'Live business-case panel',
-    'No saved projects',
-    'No PDF export',
+    'Confidence score on the recommendation',
+    'Watermarked document',
   ],
-  pro: [
-    'Everything in Free',
+  case_pack: [
+    'Everything in Free, unwatermarked',
+    'One case credit, no expiry',
     'Saved projects',
     'Client report PDF',
-    'Proposal generator',
     'Why-this-recommendation breakdown',
   ],
   agency: [
-    'Everything in Pro',
+    'Everything in Case pack',
+    'Unlimited cases',
     'Agency branding on PDFs',
     'Reusable client templates',
     'Client history dashboard',
-    'Unlimited client reports',
   ],
   agency_pro: [
     'Everything in Agency',
     'White-label PDFs',
     'Team seats',
     'Client-facing share links',
-    'Priority support',
+    'Per-client history \u2014 re-open any case',
   ],
 };
 
-const PLANS: Plan[] = PRICING_TIERS.map((t) => ({
-  tier: t.key as Tier,
-  name: t.name,
-  price: t.price,
-  cadence: t.cadence,
-  identity: t.identity,
-  positioning: t.blurb,
-  features: FEATURES[t.key as Tier],
-  popular: t.popular,
-}));
+// Honest interim CTA routing (mandate §VERIFY BEFORE IMPLEMENTATION):
+// No Whop checkout URL exists in the repo. Free tier links to the live
+// calculator; paid tiers link to an honestly-labelled contact route.
+const FREE_CTA_HREF = '/start?start=1';
+const PAID_CTA_HREF = 'mailto:hello@viableo.app?subject=Viableo%20pricing';
+const PAID_CTA_LABEL = 'Contact to buy';
+
+const PLANS: Plan[] = PRICING_TIERS.map((t) => {
+  const isFree = t.key === 'free';
+  return {
+    key: t.key,
+    name: t.name,
+    price: t.price,
+    cadence: t.cadence,
+    identity: t.identity,
+    positioning: t.blurb,
+    features: FEATURES[t.key] ?? [],
+    popular: t.popular,
+    ctaHref: isFree ? FREE_CTA_HREF : PAID_CTA_HREF,
+    ctaLabel: isFree ? `Choose ${t.name}` : PAID_CTA_LABEL,
+  };
+});
+
+// Split the single-string PRICING_HEADLINE ("One price. Yours forever.") into
+// two lines for visual impact, without hardcoding either sentence.
+const HEADLINE_LINES = PRICING_HEADLINE.split('. ');
 
 export function PricingView() {
-  const currentTier = useTier();
-  const { toast } = useToast();
-  const router = useRouter();
-
-  const handleSelect = React.useCallback(
-    async (plan: Plan) => {
-      try {
-        const res = await fetch('/api/entitlement/set', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tier: plan.tier }),
-        });
-        if (!res.ok) {
-          toast({
-            title: 'Could not update plan.',
-            description: 'Try again in a moment.',
-            variant: 'destructive',
-          });
-          return;
-        }
-        toast({
-          title: `${plan.name} plan activated.`,
-          description:
-            plan.tier === 'free'
-              ? 'You\u2019re on the Free tier.'
-              : 'Premium capabilities are now unlocked.',
-        });
-        // Reload entitlement in the store via a fresh fetch (handled by AppRoot effect).
-        window.dispatchEvent(new CustomEvent('entitlement:refresh'));
-        // Navigate to the app (the / route with ?start=1 auto-launches the calculator).
-        router.push('/?start=1');
-      } catch {
-        toast({
-          title: 'Could not reach the service.',
-          description: 'Check your connection.',
-          variant: 'destructive',
-        });
-      }
-    },
-    [toast, router]
-  );
-
   return (
     <div className="w-full bg-canvas">
       {/* ── Hero band — massive headline + short quiet subcopy ─────────── */}
@@ -136,14 +132,16 @@ export function PricingView() {
               Pricing
             </p>
             <h1 className="mkt-display mt-8">
-              One price.
-              <br />
-              Yours forever.
+              {HEADLINE_LINES.map((line, i) => (
+                <React.Fragment key={i}>
+                  {line}
+                  {i < HEADLINE_LINES.length - 1 ? '.' : ''}
+                  {i < HEADLINE_LINES.length - 1 ? <br /> : null}
+                </React.Fragment>
+              ))}
             </h1>
             <p className="mt-10 max-w-[600px] text-[17px] leading-[1.6] text-ink-muted md:text-[19px]">
-              Start free. Pay once when you{"\u2019"}re ready to save, export, or brand a report.
-              No monthly seat count, no renewal surprise. {COMPANY_NAME} handles activation
-              via Whop; the demo activates each tier instantly.
+              {PRICING_SUBHEAD}
             </p>
           </div>
         </div>
@@ -154,10 +152,16 @@ export function PricingView() {
         <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-28">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {PLANS.map((plan) => {
-              const isCurrent = currentTier === plan.tier;
+              const isMailto = plan.ctaHref.startsWith('mailto:');
+              const ctaClass = cn(
+                'mt-8 inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-sm text-[14px] font-medium transition-colors duration-hover',
+                plan.popular
+                  ? 'bg-ink text-white hover:bg-ink-soft'
+                  : 'border border-border-strong bg-surface-raised text-ink hover:bg-surface'
+              );
               return (
                 <div
-                  key={plan.tier}
+                  key={plan.key}
                   className={cn(
                     'mkt-card-quiet relative flex flex-col p-8',
                     plan.popular && 'mkt-lift'
@@ -212,36 +216,32 @@ export function PricingView() {
                     ))}
                   </ul>
 
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(plan)}
-                    disabled={isCurrent}
-                    className={cn(
-                      'mt-8 inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-sm text-[14px] font-medium transition-colors duration-hover',
-                      isCurrent
-                        ? 'cursor-default border border-border bg-surface text-ink-muted opacity-60'
-                        : plan.popular
-                          ? 'bg-ink text-white hover:bg-ink-soft'
-                          : 'border border-border-strong bg-surface-raised text-ink hover:bg-surface'
-                    )}
-                  >
-                    {isCurrent ? (
-                      'Current plan'
-                    ) : (
-                      <>
-                        Choose {plan.name}
-                        <ArrowRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
-                      </>
-                    )}
-                  </button>
+                  {isMailto ? (
+                    <a
+                      href={plan.ctaHref}
+                      className={ctaClass}
+                      aria-label={`${plan.name} \u2014 ${plan.ctaLabel}`}
+                    >
+                      {plan.ctaLabel}
+                      <ArrowRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
+                    </a>
+                  ) : (
+                    <Link
+                      href={plan.ctaHref}
+                      className={ctaClass}
+                      aria-label={`${plan.name} \u2014 ${plan.ctaLabel}`}
+                    >
+                      {plan.ctaLabel}
+                      <ArrowRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
+                    </Link>
+                  )}
                 </div>
               );
             })}
           </div>
 
           <p className="mt-16 text-center text-[13px] text-ink-faint">
-            Prices in USD, one-time. This demo activates each tier instantly; in production, Whop verifies
-            the purchase before the license is written.
+            {PRICING_FOOTNOTE}
           </p>
         </div>
       </section>
@@ -256,9 +256,9 @@ export function PricingView() {
             Run the numbers before you commit the build.
           </p>
           <div className="mt-10">
-            <a href="/?start=1" className="mkt-cta-dark">
+            <Link href="/start?start=1" className="mkt-cta-dark">
               {CTA_PRIMARY}
-            </a>
+            </Link>
           </div>
         </div>
       </section>

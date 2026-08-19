@@ -20,8 +20,11 @@
  * — the edge layer can be misconfigured, skipped in certain deploy
  * configurations, or simply is not where the security decision lives.
  *
- * Two protected route groups:
- *   /app/**     — authenticated org workspace (any logged-in user)
+ * Two route groups:
+ *   /app/**     — DEPRECATED. No /app/** routes exist; /app redirects to
+ *                 the new client route /start (mandate P0-10). Kept as a
+ *                 redirect so stale links / old middleware references don't
+ *                 dead-end at a 404 or a signin loop.
  *   /admin/**   — Superadmin control plane (Agent 2 builds the actual
  *                 routes; this backstop is already written generically
  *                 enough that it does not need to change when those
@@ -29,7 +32,8 @@
  *                 for any path starting with /admin).
  *
  * Public routes that MUST NOT be gated:
- *   /              — marketing landing page
+ *   /              — marketing landing page (server component)
+ *   /start/**       — the client application (view-switcher, public)
  *   /r/[shareId]   — public share-link client view (the opaque shareId
  *                    IS the access credential — no auth)
  *   /auth/**       — sign-in / error pages
@@ -48,9 +52,10 @@ export const config = {
 export async function middleware(req: NextRequest): Promise<NextResponse | undefined> {
   const { pathname } = req.nextUrl;
 
-  // Public routes — never gate.
+  // Public routes — never gate. /start is the new public client app route.
   if (
     pathname === '/' ||
+    pathname.startsWith('/start') ||
     pathname.startsWith('/r/') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/api/') ||
@@ -59,12 +64,21 @@ export async function middleware(req: NextRequest): Promise<NextResponse | undef
     return NextResponse.next();
   }
 
-  // Two protected route groups.
-  const isAppRoute = pathname.startsWith('/app');
+  // /app/** is deprecated — no routes exist there. Redirect to /start
+  // (the new client app route) so stale links don't dead-end at a 404
+  // or a signin loop. Per mandate P0-10: do NOT move the switcher behind
+  // the auth gate until there is somewhere to land.
+  if (pathname === '/app' || pathname.startsWith('/app/')) {
+    const startUrl = new URL('/start', req.url);
+    startUrl.searchParams.set('start', '1');
+    return NextResponse.redirect(startUrl);
+  }
+
+  // The only remaining protected group is /admin/**.
   const isAdminRoute = pathname.startsWith('/admin');
 
-  if (!isAppRoute && !isAdminRoute) {
-    // Marketing routes (/, /pricing, /solutions, etc.) — public.
+  if (!isAdminRoute) {
+    // Marketing routes (/, /pricing, /solutions, /privacy, /terms, etc.) — public.
     return NextResponse.next();
   }
 
@@ -75,16 +89,6 @@ export async function middleware(req: NextRequest): Promise<NextResponse | undef
     req,
     secret: process.env.NEXTAUTH_SECRET,
   });
-
-  // ── /app/** — any authenticated user ─────────────────────────
-  if (isAppRoute) {
-    if (!token) {
-      const signInUrl = new URL('/auth/signin', req.url);
-      signInUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(signInUrl);
-    }
-    return NextResponse.next();
-  }
 
   // ── /admin/** — Superadmin only ───────────────────────────────
   // Written generically so it does not need to change when Agent 2

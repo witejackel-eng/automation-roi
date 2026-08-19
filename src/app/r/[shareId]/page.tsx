@@ -36,12 +36,23 @@ export const metadata: Metadata = {
   },
 };
 
+// A valid shareId is a 24-hex string (12 random bytes). Validate the
+// format BEFORE touching the database so an obviously-invalid path like
+// /r/example short-circuits to a clean 404 instead of hitting the DB
+// (and potentially 500ing on a Prisma coercion error). Matches the
+// hardening in src/app/api/share/[shareId]/route.ts.
+const SHARE_ID_RE = /^[0-9a-f]{24}$/;
+
 export default async function SharePage({
   params,
 }: {
   params: Promise<{ shareId: string }>;
 }) {
   const { shareId } = await params;
+
+  if (!SHARE_ID_RE.test(shareId)) {
+    notFound();
+  }
 
   const share = await db.share.findUnique({
     where: { shareId },

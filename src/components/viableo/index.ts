@@ -21,6 +21,7 @@ export { ConfidenceExplained } from './confidence-explained';
 export { VerdictReveal } from './verdict-reveal';
 export { RecurringEconomicsView } from './recurring-economics-view';
 export { ClientHistoryReuse } from './client-history-reuse';
+export { ThresholdLine, type ThresholdLineProps, type ThresholdScale, type Favourable } from './threshold-line';
 
 // Phase 4 — AI features (z-ai-web-dev-sdk, server-side only)
 export { AiRisksSummary } from './ai-risks-summary';

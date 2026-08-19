@@ -2,34 +2,33 @@
  * Viableo brand constants — the canonical source of truth for terminology,
  * taglines, and decision vocabulary across every surface (web app, PDF, metadata).
  *
- * Per the Viableo Brand spec (Sections 1–4, 6) + the Copywriting Voice Spec
- * (Steve Jobs style). Company = Viableo. Product = Automation ROI. These are
- * NEVER collapsed.
+ * Company = Viableo. Product = Automation ROI. These are NEVER collapsed.
  *
- * Voice rules applied (Voice Spec §1):
+ * Voice rules:
  *  - One headline per screen. Everything else supports it.
  *  - Rule of three. Three steps, three reasons, three risks.
  *  - Benefit before feature. Name the pain before the fix.
  *  - Short, plain sentences. ~10–15 words. Fragments allowed when they land harder.
  *  - Second person, active voice, present tense.
- *  - Banned words (§2): revolutionize, unlock the power of, cutting-edge, leverage,
- *    seamless, empower, game-changing, next-generation, robust, best-in-class, etc.
+ *  - Banned words: see the Voice spec §2 for the full list. The homepage copy
+ *    is clean of them (verified by grep). Do not reintroduce marketing adjectives
+ *    that signal a $5 calculator framing rather than a $3,000 determination.
+ *
+ * Per the Viableo Final Research, Strategy, and ZAI Implementation Prompt
+ * (Part 5 §F — Exact Copy). Every string the homepage ships is sourced here.
  */
 
-// ── Names (Section 1, 6) ────────────────────────────────────
+// ── Names ───────────────────────────────────────────────────
 export const COMPANY_NAME = 'Viableo';
 export const PRODUCT_NAME = 'Automation ROI';
-export const APP_TITLE = 'Viableo — Automation ROI';       // browser tab title
-export const REPORT_NAME = 'Viableo Business Case';        // generated PDF report
+export const APP_TITLE = 'Viableo — Automation ROI';
+export const REPORT_NAME = 'Viableo Business Case';
 export const MARKETPLACE_TITLE = 'Viableo — Automation ROI';
 
-// ── Taglines (Voice Spec §3 — the one sentence + three beats) ──
-// The single idea the entire product builds around.
+// ── Taglines ────────────────────────────────────────────────
 export const BRAND_TAGLINE = 'Know what\u2019s worth building.';
-// Product promise (master spec §1).
 export const PRODUCT_HEADLINE = 'Prove the value before you build.';
 
-// The three beats — Viableo's roadmap, used on the homepage + onboarding.
 export const THREE_BEATS = [
   'See the return.',
   'Break it on purpose.',
@@ -41,66 +40,239 @@ export const THREE_BEATS_EXPLAINED = [
   { beat: 'Walk in with the answer.', detail: 'Leave the meeting with a report they can actually sign.' },
 ] as const;
 
-// Alternate secondary taglines (social / ads — never the primary).
 export const ALT_TAGLINES = [
   'Smarter automation decisions.',
   'From idea to investment clarity.',
   'The economic lens for automation.',
 ] as const;
 
-// ── Pronunciation (Section 1) ──────────────────────────────
 export const PRONUNCIATION = 'VY-uh-blee-oh (rhymes with "viable" + "oh")';
 
-// ── Messaging (Voice Spec §4, §5) ──────────────────────────
-// Hero headline (§5.1): the single sentence. Everything supports it.
+// ── Hero (Section F — Hero) ─────────────────────────────────
+export const HERO_EYEBROW = 'Automation ROI by Viableo';
 export const HERO_HEADLINE = 'Know what\u2019s worth building.';
-// Hero supporting copy (§5.1): benefit before feature, names the outcome.
 export const HERO_SUBHEAD =
-  'Viableo turns an automation idea into a number your client will actually sign.';
-// Hero primary CTA (§5.1).
-export const HERO_CTA_PRIMARY = 'Start free analysis \u2192';
-// Hero secondary CTA (§5.1).
-export const HERO_CTA_SECONDARY = 'See it work \u2192';
+  'Viableo takes an automation scope and returns a verdict \u2014 build it or don\u2019t \u2014 the fee where that verdict flips, and a document your client can check line by line.';
+export const HERO_CTA_PRIMARY = 'Run your first case \u2014 free';
+export const HERO_CTA_SECONDARY = 'See a completed case';
+// Stat labels for the hero (E1 visual).
+export const HERO_STAT_LABELS = {
+  net: 'Expected first-year net',
+  payback: 'Payback',
+  holdsUntil: 'Answer holds until',
+} as const;
 
-// Problem section (§5.2): name the pain before the product.
-export const PROBLEM_HEADLINE = 'Clients don\u2019t trust agency-generated numbers.';
-export const PROBLEM_BODY =
-  'A spreadsheet with your logo doesn\u2019t count as proof. Clients ask \u201chow do you know?\u201d and \u201cwhat if it doesn\u2019t work?\u201d and you need a defensible answer \u2014 not just a bigger number.';
-
-// Solution section (§5.3): the product, in one sentence + the three beats.
-export const SOLUTION_HEADLINE = 'Viableo turns automation ideas into decisions.';
-export const SOLUTION_SUBHEAD = 'See the return. Break it on purpose. Walk in with the answer.';
-
-// Antagonist (§4): the pain the product removes.
-export const ANTAGONIST =
-  'Every agency already believes an automation will pay off. Belief doesn\u2019t survive a client asking "how do you know?"';
-
-// Final CTA (§5.11).
-export const FINAL_CTA_HEADLINE = 'Build what pays back.';
-export const FINAL_CTA_BODY = 'Run the numbers before you commit the build.';
-export const FINAL_CTA_PRIMARY = 'Start free analysis \u2192';
-export const FINAL_CTA_SECONDARY = 'See an example \u2192';
-
-// ── CTA labels (Voice Spec §62 — microcopy) ──────────────
-// CTA is "Start free analysis", NEVER "Start free trial".
-export const CTA_PRIMARY = 'Start free analysis \u2192';
-export const CTA_SECONDARY = 'See an example \u2192';
-// Action microcopy (§62).
+// ── CTAs (microcopy) ─────────────────────────────────────────
+// Primary CTA label, used by marketing-primitives PrimaryCTA + homepage hero/close.
+export const CTA_PRIMARY = 'Run your first case \u2014 free';
+export const CTA_SECONDARY = 'See a completed case';
 export const ACTION_SEE_OPPORTUNITY = 'See the opportunity \u2192';
 export const ACTION_CREATE_BUSINESS_CASE = 'Create business case \u2192';
 export const ACTION_STRESS_TEST = 'Stress-test the case \u2192';
 export const ACTION_NEW_ANALYSIS = 'New analysis \u2192';
 export const ACTION_SAVE_ANALYSIS = 'Save analysis';
 
-// ── Guided journey first screen (§5.5) ───────────────────
+// ── Problem (Section F — Problem, E2) ────────────────────────
+export const PROBLEM_HEADLINE = 'Building it is the easy part.';
+export const PROBLEM_SUBHEAD =
+  'Deciding whether it\u2019s worth building \u2014 and defending that decision to a client who is benchmarking your quote against two other bids \u2014 is where automation projects go wrong.';
+export const PROBLEM_PARAS = [
+  'You scope it by feel. You quote it by feel. Then the client asks why it costs what it costs, and whether they should just hire someone instead.',
+  'You do not have a number you can stand behind, because you built the number the same afternoon you built the quote.',
+  'And the part you always underestimate \u2014 keeping it running after handover \u2014 never makes it into the figure at all.',
+] as const;
+export const PROBLEM_BODY = PROBLEM_PARAS[0]; // back-compat for any consumer expecting a single string
+
+// ── Consequence (Section F — Consequence, E3) ───────────────
+export const CONSEQUENCE_HEADLINE = 'The cost of guessing lands on you.';
+export const CONSEQUENCE_SUBHEAD =
+  'Not on the client. On your margin, your weekends, and your renewal rate.';
+export const CONSEQUENCE_ITEMS = [
+  {
+    heading: 'Your estimates are wrong and you know it.',
+    body: 'One agency measured itself \u201Cmissing 95% of our internal estimates,\u201D improving to \u201Capproximately 60%.\u201D',
+    source: { label: 'r/agency', href: 'https://www.reddit.com/r/agency/comments/1ivaew8/is_there_a_better_way_to_create_proposals/' },
+  },
+  {
+    heading: 'Upkeep runs several times what you quoted.',
+    body: 'Practitioners report actual maintenance of \u201C7 to 9 hours per month\u201D against a 2-hour estimate, and call the common 2\u20133 hour expectation \u201Coverly optimistic.\u201D',
+    source: { label: 'r/n8n', href: 'https://www.reddit.com/r/n8n/comments/1tot6ou/how_do_you_actually_charge_clients_for_n8n_upkeep/' },
+  },
+  {
+    heading: 'Half of what you build stops being used.',
+    body: 'One builder found that of 50 automations delivered in a year, \u201Conly about half were being used consistently,\u201D with clients still paying hosting on systems untouched for weeks.',
+    source: { label: 'r/n8n', href: 'https://www.reddit.com/r/n8n/comments/1pe314d/i_built_50_automations_that_clients_never_used/' },
+  },
+] as const;
+export const CONSEQUENCE_CLOSING =
+  'In its own delivery experience, EY reported seeing \u201Cas many as 30 to 50% of initial RPA projects fail\u201D \u2014 and named the absence of a business case as a leading cause.';
+export const CONSEQUENCE_CLOSING_SOURCE = {
+  label: 'EY, Get ready for robots, 2016',
+  href: 'https://www.eyfinancialservicesthoughtgallery.ie/wp-content/uploads/2016/11/ey-get-ready-for-robots.pdf',
+};
+
+// ── What Viableo does (Section F, E4) ───────────────────────
+export const WHAT_HEADLINE = 'Four questions, answered before you quote.';
+export const WHAT_SUBHEAD =
+  'One scope in. Four answers out. Every figure traced to an input you can see.';
+export const WHAT_ITEMS = [
+  { q: 'Is it worth building?', a: 'A verdict: BUILD, CONSIDER, or DON\u2019T BUILD.' },
+  { q: 'Where does that stop being true?', a: 'The implementation fee at which the answer flips.' },
+  { q: 'How much should you trust it?', a: 'A confidence score, driven by how much of your input is measured rather than assumed.' },
+  { q: 'What do you hand the client?', a: 'A document with every number traced to a labelled input.' },
+] as const;
+export const WHAT_LINK = 'See how the math works';
+export const WHAT_LINK_HREF = '/methodology';
+
+// ── Verdict (Section F, E5) ──────────────────────────────────
+export const VERDICT_HEADLINE = 'It will tell you not to build.';
+export const VERDICT_SUBHEAD =
+  'The rules are published, they are applied the same way every time, and they will return a no.';
+export const VERDICT_GATE_INTRO = 'BUILD requires all three:';
+export const VERDICT_GATES = [
+  'Conservative-case ROI above 50%.',
+  'Conservative-case payback within 12 months.',
+  'A confidence score of at least 60.',
+] as const;
+export const VERDICT_GATE_NOTE =
+  'A confidence score between 40 and 59 returns CONSIDER regardless of how good the economics look.';
+export const VERDICT_CLOSING =
+  'That last rule is the one most tools would leave out. A model that cannot say \u201Cyour inputs are too soft to justify this yet\u201D is not giving you a decision. It is agreeing with you.';
+export const VERDICT_BAND_LABELS = [
+  { range: '80 and above', label: 'High' },
+  { range: '60 to 79', label: 'Moderate' },
+  { range: '40 to 59', label: 'Material uncertainty' },
+  { range: 'Below 40', label: 'Low' },
+] as const;
+
+// ── Break it on purpose (Section F, E6) ─────────────────────
+export const BREAK_HEADLINE = 'Try to break it.';
+// Subhead interpolates PERMUTATION_COUNT (64) at render time — do not hardcode.
+export const BREAK_SUBHEAD_TEMPLATE =
+  'Viableo varies every material assumption across {PERMUTATION_COUNT} permutations and reports the point where the answer changes.';
+export const BREAK_THREE_POINT_LABEL = 'Conservative \u00B7 Expected \u00B7 Upside';
+export const BREAK_BREAKING_POINT_LABEL = 'The answer holds until the implementation fee passes';
+export const BREAK_SENSITIVITY_HEADING = 'What moves the answer most';
+export const BREAK_SENSITIVITY_UNIT_LABEL = 'percentage points of ROI swing at \u00B120%';
+export const BREAK_LINK = 'Run this on your own case';
+export const BREAK_LINK_HREF = '/start?start=1';
+
+// ── Client report (Section F, E7) ───────────────────────────
+export const CLIENT_REPORT_HEADLINE = 'What your client actually receives.';
+export const CLIENT_REPORT_SUBHEAD =
+  'Every figure traced to an input, and every input labelled by how you got it \u2014 measured, estimated, or assumed. So a sceptical client can check your work instead of taking your word.';
+export const CLIENT_REPORT_WEIGHTING_LINE =
+  'Measured inputs count in full. Estimated inputs count at 0.6. Assumptions count at 0.3.';
+export const CLIENT_REPORT_CONSEQUENCE_LINE =
+  'Guess more, and the confidence score falls. That is deliberate.';
+export const CLIENT_REPORT_CTA = 'See a completed case';
+export const CLIENT_REPORT_CTA_HREF = '/start?start=1&example=apex';
+
+// ── Proof (Section F, E8) ───────────────────────────────────
+export const PROOF_HEADLINE = 'No black box. Open the math.';
+export const PROOF_SUBHEAD =
+  'One worked case, computed live from published inputs. The same inputs return the same answer, every time, for anyone who runs it.';
+export const PROOF_PARAS = [
+  'Every figure on this page is computed when the page is built, from the reference case inputs published on the methodology page. Nothing here is typed in by hand. If the model changes, these numbers change with it.',
+  'That matters because the obvious alternative does not offer it. Research on language models found that at temperature zero, one thousand completions of the same prompt produced eighty different outputs, and separate work measured raw-output repeatability at zero percent across ten repeated runs of the same mathematical questions. A number you cannot reproduce is a number you cannot defend.',
+] as const;
+export const PROOF_SOURCES = [
+  { label: 'Thinking Machines Lab', href: 'https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/' },
+  { label: 'Atil et al.', href: 'https://arxiv.org/html/2408.04667v5' },
+] as const;
+export const PROOF_CTA = 'Read the methodology';
+export const PROOF_CTA_HREF = '/methodology';
+
+// ── Where it fits (Section F, E9) ───────────────────────────
+export const WHERE_HEADLINE = 'Where it sits in your process.';
+export const WHERE_SUBHEAD =
+  'Between the discovery call and the quote. One pass, before you commit a number to writing.';
+
+// ── Comparison (Section F, E10) ─────────────────────────────
+export const COMPARISON_HEADLINE = 'Why not a spreadsheet or a chat model?';
+export const COMPARISON_SUBHEAD =
+  'Both will give you a number. Neither will give you the same number twice, or tell you when to walk away.';
+// Scarce-only rows. ROI math, payback, PDF export, share links, white-labelling,
+// report generation speed are all free elsewhere (mandate §2.9) and are NOT
+// claimed as differentiation. ComparisonTable reads this constant.
+export const COMPARISON_ROWS = [
+  { need: 'A verdict that can be no', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'A stated breaking point', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'A confidence score on the recommendation', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+  { need: 'Reproducible \u2014 same inputs, same answer', generic: false, spreadsheet: true, genericRoi: false, viableo: true },
+  { need: 'Maintenance-adjusted costs', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
+] as const;
+
+// ── Pricing (Section F + K, E11) ─────────────────────────────
+export const PRICING_HEADLINE = 'One price. Yours forever.';
+export const PRICING_SUBHEAD =
+  'Pay once per case, or once for unlimited cases. No renewal, no seat count, no surprise.';
+export const PRICING_FOOTNOTE = 'One-time. Not a subscription.';
+export const DATA_HANDLING_LINE =
+  'Viableo needs no client-identifying data to return a verdict. Hours, rates, volumes, and a fee are enough.';
+// One-time pricing — matches the headline, sub-copy, footnote, meta description,
+// and JSON-LD offers. The previous $29/mo, $79/mo, $790/yr subscription framing
+// contradicted the rest of the page; this is the single source of truth.
+export const PRICING_TIERS = [
+  {
+    key: 'free',
+    name: 'Free',
+    price: '$0',
+    cadence: 'one-time',
+    popular: false,
+    identity: 'Try it once.',
+    blurb: 'One case. Full analytical rigor \u2014 confidence scoring, stress test, scenarios. Watermarked document.',
+    casesPerMonth: 1,
+  },
+  {
+    key: 'case_pack',
+    name: 'Case pack',
+    price: '$39',
+    cadence: 'per case',
+    popular: false,
+    identity: 'Full document.',
+    blurb: 'Full document, no watermark. Buy a case credit when you need it.',
+    casesPerMonth: 1,
+  },
+  {
+    key: 'agency',
+    name: 'Agency',
+    price: '$249',
+    cadence: 'one-time',
+    popular: false,
+    identity: 'Unlimited cases.',
+    blurb: 'Unlimited cases. Your branding on every document.',
+    casesPerMonth: Infinity,
+  },
+  {
+    key: 'agency_pro',
+    name: 'Agency Pro',
+    price: '$499',
+    cadence: 'one-time',
+    popular: false,
+    identity: 'Make it yours.',
+    blurb: 'Unlimited cases, branding, and client history \u2014 kept per client so you can re-open a case.',
+    casesPerMonth: Infinity,
+  },
+] as const;
+
+// ── Close (Section F, E12) ──────────────────────────────────
+export const FINAL_CTA_HEADLINE = 'Build what pays back.';
+export const FINAL_CTA_BODY =
+  'Run one case. If the answer is don\u2019t build, you have saved yourself a project.';
+export const FINAL_CTA_PRIMARY = 'Run your first case \u2014 free';
+export const FINAL_CTA_PRIMARY_HREF = '/start?start=1';
+export const FINAL_CTA_SECONDARY = ''; // E12: one CTA only. Kept for back-compat, intentionally empty.
+export const FINAL_CTA_SECONDARY_HREF = '';
+
+// ── Guided journey (calculator wizard — unchanged) ─────────
 export const JOURNEY_HEADLINE = 'Let\u2019s find out if this is worth building.';
 export const JOURNEY_SUBHEAD =
   'Answer a few questions. Viableo does the math, tests it against reality, and tells you what the numbers support.';
 export const JOURNEY_CTA_PRIMARY = 'Start analysis \u2192';
 export const JOURNEY_CTA_SECONDARY = 'See an example';
 
-// ── Verdict copy (Voice Spec §5.9) ───────────────────────
-// The headline IS the verdict. One line of context underneath.
+// ── Verdict copy (per-verdict headline + subhead, used by DecisionBadge) ─
 export const VERDICT_COPY: Record<DecisionKey, { headline: string; subhead: string }> = {
   build: {
     headline: 'BUILD.',
@@ -116,18 +288,14 @@ export const VERDICT_COPY: Record<DecisionKey, { headline: string; subhead: stri
   },
 };
 
-// ── Stress test copy (§5.11) ────────────────────────────
+// ── Stress test copy (legacy constants kept for calculator view) ─
 export const STRESS_TEST_HEADLINE = 'Try to break it.';
 export const STRESS_TEST_SUBHEAD =
   'Move the assumptions. We\u2019ll tell you the second this stops making sense.';
-
-// ── Break-even copy (§5.12) ─────────────────────────────
 export const BREAK_EVEN_HEADLINE = 'Here\u2019s where it stops making sense.';
-
-// ── "What could go wrong?" (§5.13) ──────────────────────
 export const SENSITIVITY_HEADLINE = 'Before you build, know what could go wrong.';
 
-// ── Empty states (§5.16, §49) ────────────────────────────
+// ── Empty states (calculator views — unchanged) ─────────────
 export const EMPTY_PROJECTS_HEADLINE = 'Your next business case starts here.';
 export const EMPTY_PROJECTS_BODY =
   'Save an analysis to build a library of client opportunities.';
@@ -135,43 +303,46 @@ export const EMPTY_REPORTS_HEADLINE = 'No business cases yet.';
 export const EMPTY_REPORTS_BODY =
   'Run an analysis and create your first client-ready report.';
 
-// ── Error states (§5.15, §48) ───────────────────────────
+// ── Error states (unchanged) ────────────────────────────────
 export const ERROR_REPORT_TITLE = 'We couldn\u2019t generate the business case.';
 export const ERROR_REPORT_BODY = 'Your analysis is safe.';
 export const ERROR_GENERIC_TITLE = 'We couldn\u2019t complete that.';
 export const ERROR_GENERIC_BODY = 'Nothing is lost. Try again.';
 
-// ── Loading states (§5.14) ──────────────────────────────
+// ── Loading states (unchanged) ──────────────────────────────
 export const LOADING_STEPS = [
   'Calculating your opportunity\u2026',
   'Testing conservative assumptions\u2026',
   'Preparing your recommendation\u2026',
 ] as const;
 
-// ── Methodology / trust (§5.19, §14) ────────────────────
-export const METHODOLOGY_HEADLINE = 'No black box. Just the math.';
+// ── Methodology / trust ─────────────────────────────────────
+export const METHODOLOGY_HEADLINE = 'No black box. Open the math.';
 export const METHODOLOGY_BODY =
   'Every number on this page traces back to an input you can see. Estimates are labeled. Assumptions are labeled. Nothing is hidden to make the story better.';
 export const TRUST_HEADLINE = 'Built for people who sell automation.';
 export const TRUST_BODY =
   'Model the economics behind n8n workflows, Make scenarios, Zapier automations, AI agents and operational workflows.';
 
-// ── Proprietary terminology (Section 2) ───────────────────
+// ── Antagonist (internal — used in sales decks, not the homepage) ─
+export const ANTAGONIST =
+  'Every agency already believes an automation will pay off. Belief doesn\u2019t survive a client asking "how do you know?"';
+
+// ── Solution (legacy — kept for /start LandingView fallback; superseded on / by WHAT_*) ─
+export const SOLUTION_HEADLINE = 'Viableo turns automation ideas into decisions.';
+export const SOLUTION_SUBHEAD = 'See the return. Break it on purpose. Walk in with the answer.';
+
+// ── Proprietary terminology ────────────────────────────────
 export const TERM = {
   analysis: 'Viableo Analysis',
   score: 'Viableo Score',
   scenarios: 'Viableo Scenarios',
   decision: 'Viableo Decision',
   businessCase: 'Viableo Business Case',
-  benchmark: 'Viableo Benchmark', // reserved — future feature, do not build
+  benchmark: 'Viableo Benchmark',
 } as const;
 
-// ── Decision vocabulary (Section 2) ───────────────────────
-// Closed vocabulary: always this order, always uppercase in badges/pills,
-// never rename. The four states form a MECE ladder from strongest
-// commitment (BUILD) to firmest rejection (DON'T BUILD). CONSIDER covers
-// both the "positive but slow" case and the "material uncertainty" case
-// (where a pilot would be appropriate).
+// ── Decision vocabulary ─────────────────────────────────────
 export const DECISION_LABELS = {
   build: 'BUILD',
   consider: 'CONSIDER',
@@ -181,68 +352,72 @@ export const DECISION_LABELS = {
 export const DECISION_ORDER = ['build', 'consider', 'dont_build'] as const;
 export type DecisionKey = (typeof DECISION_ORDER)[number];
 
-// ── Decision color tokens (Section 5.1 exception) ─────────
-// Scoped ONLY to the Decision badge component.
-//
-// Phase 1.3 — Decision-color saturation fix.
-// The old pastel tints undermined DON'T BUILD authority. New colors:
-//   - Higher saturation, deeper text, higher-contrast backgrounds
-//   - DON'T BUILD reads with the SAME visual authority as BUILD
-//   - All text-on-bg combinations pass WCAG AA (≥4.5:1 for normal text)
-//
-// Three SEMANTICALLY SEPARATE color roles — never mix:
-//   VERDICT colors: emerald / amber / crimson (BUILD / CONSIDER / DON'T BUILD only)
+// ── Decision color tokens ───────────────────────────────────
+// Scoped ONLY to DecisionBadge + verdict surfaces. Three SEMANTICALLY SEPARATE
+// color roles — never mix:
+//   VERDICT colors: emerald / amber / crimson (BUILD / CONSIDER / DON'T BUILD)
 //   UI ACCENT:      indigo/cobalt family (sliders, links, focus rings, active states)
-//   BRAND ACCENT:   Viableo coral (#FF164B) — logo and marketing only, never in decisions
+//   BRAND ACCENT:   Viableo coral (#FF164B) — logo + large display type only
+//
+// Measured contrast ratios (computed against the bg hex below, per mandate §4.4):
+//   build    #0D6B3F on #D1F2DF = 5.48 (was claimed 7.2 — corrected)
+//   consider #8B5E0A on #FDE9B0 = 4.71 (was claimed 5.8 — corrected)
+//   dont_build #9B0A2E on #FDDEE5 = 6.61 (was claimed 7.0 — corrected)
+// All pass WCAG AA (≥4.5:1 for normal text). globals.css verdict vars are
+// re-pointed to these same hexes so there is exactly ONE verdict palette.
 export const DECISION_COLORS = {
   build: {
-    text: '#0D6B3F',          // saturated emerald — 7.2:1 on bg
-    bg: '#D1F2DF',            // 22% emerald tint — strong contrast
-    border: '#0D6B3F',        // matching border for badge weight
+    text: '#0D6B3F',
+    bg: '#D1F2DF',
+    border: '#0D6B3F',
     label: 'BUILD',
   },
   consider: {
-    text: '#8B5E0A',          // saturated amber — 5.8:1 on bg
-    bg: '#FDE9B0',            // 25% amber tint — clear visibility
-    border: '#8B5E0A',        // matching border
+    text: '#8B5E0A',
+    bg: '#FDE9B0',
+    border: '#8B5E0A',
     label: 'CONSIDER',
   },
   dont_build: {
-    text: '#9B0A2E',          // deep saturated crimson — 7.0:1 on bg
-    bg: '#FDDEE5',            // 18% crimson tint — same visual weight as BUILD
-    border: '#9B0A2E',        // matching border — no softening
+    text: '#9B0A2E',
+    bg: '#FDDEE5',
+    border: '#9B0A2E',
     label: "DON\u2019T BUILD",
   },
 } as const;
 
-// ── UI accent colors (indigo/cobalt family) ────────────────
-// Used for interactive elements: sliders, links, focus rings, active states.
-// NEVER used for verdicts (those use DECISION_COLORS).
-// NEVER used for brand/marketing (that's coral #FF164B).
+// Dark-surface verdict tints (mandate §4.4 — new, measured on #1A181B):
+//   build #34D399 = 9.18 · consider #FBBF24 = 10.57 · dont_build #F87171 = 6.38
+export const DECISION_COLORS_DARK = {
+  build: '#34D399',
+  consider: '#FBBF24',
+  dont_build: '#F87171',
+} as const;
+
+// ── UI accent colors (indigo/cobalt family) ─────────────────
+// NEVER used for verdicts. NEVER used for brand/marketing.
+// On light surfaces use `primary` #4338CA (7.57 on canvas). `muted` #818CF8
+// (2.86 on canvas, 5.91 on #1A181B) is light-surface FORBIDDEN; dark-surface ONLY.
 export const UI_ACCENT = {
-  primary: '#4338CA',       // indigo-700
-  muted: '#818CF8',         // indigo-400
-  bg: '#EEF2FF',            // indigo-50
-  deep: '#1E1B4B',          // indigo-950
-  border: '#C7D2FE',        // indigo-200
+  primary: '#4338CA',
+  muted: '#818CF8',
+  bg: '#EEF2FF',
+  deep: '#1E1B4B',
+  border: '#C7D2FE',
 } as const;
 
-// ── Deep analytical surface tokens ─────────────────────────
-// Dark, data-dense panels for decision/results experience.
+// ── Deep analytical surface tokens ──────────────────────────
+// textMuted corrected from #A8A0B8 to #9B96A5 (6.13 on #1A181B per mandate §4.4).
 export const ANALYTICAL_SURFACE = {
-  bg: '#1A181B',            // near-black warm
-  raised: '#252328',        // slightly lighter for cards
-  border: '#353034',        // subtle border
-  text: '#F5F3FF',          // high-contrast light text
-  textMuted: '#A8A0B8',     // muted secondary text
-  textFaint: '#6B6577',     // very muted for labels
+  bg: '#1A181B',
+  raised: '#252328',
+  border: '#353034',
+  text: '#F5F3FF',
+  textMuted: '#9B96A5',
+  textFaint: '#6B6577',
 } as const;
 
-// ── Confidence (Section 11) — re-export for convenience ──
-// The confidence module is the source of truth for the input weights and
-// status multipliers. Re-exported here so brand-facing consumers can pull
-// them alongside the decision vocabulary without reaching into the
-// calculations directory.
+// ── Confidence re-exports (Section 11) ──────────────────────
 export {
   CONFIDENCE_WEIGHTS,
   STATUS_MULTIPLIERS,
@@ -250,11 +425,7 @@ export {
   type InputConfidence,
 } from './calculations/confidence';
 
-// ── Product demonstration steps (Section 16, 7.4) ────────
-// Voice Spec §3: the three beats map to the product journey, but the
-// master spec §16 shows a 6-stage process. We use the 4-step visual
-// (idea → analysis → decision → business case) which is the rule-of-three
-// compressed into a single arc.
+// ── Product demonstration steps (legacy) ────────────────────
 export const PRODUCT_STEPS = [
   { stage: 1, label: 'Viableo Decision', icon: 'decision' as const },
   { stage: 2, label: 'Business Case', icon: 'report' as const },
@@ -262,12 +433,13 @@ export const PRODUCT_STEPS = [
   { stage: 4, label: 'Approved', icon: 'decision' as const },
 ] as const;
 
-// ── Agency workflow (Section 7.8) ──────────────────────────
+// ── Agency workflow (Section 7.8 — used by E9 Stepper) ──────
 export const AGENCY_WORKFLOW = ['Discover', 'Prove', 'Propose', 'Close'] as const;
 
-// ── Trust positioning (§14 — NO fake endorsements) ────────
-// Do NOT imply official integrations. These describe who the product is
-// built for, not logos we can show.
+// ── Trust positioning (§14 — NO fake endorsements) ─────────
+// These describe WHO the product is built for, not logos we can show.
+// TrustBar on the old LandingView used this; the new homepage E1 does NOT
+// render a TrustBar (no customers to cite — mandate §3.8 / §L).
 export const TRUST_POSITIONING = [
   'n8n workflows',
   'Make scenarios',
@@ -276,67 +448,10 @@ export const TRUST_POSITIONING = [
   'Operational workflows',
 ] as const;
 
-// ── Comparison table (Section 7.9) ────────────────────────
-export const COMPARISON_ROWS = [
-  { need: 'Labor savings', generic: false, spreadsheet: true, genericRoi: true, viableo: true },
-  { need: 'Revenue opportunity', generic: false, spreadsheet: true, genericRoi: true, viableo: true },
-  { need: 'Scenario analysis', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
-  { need: 'Payback calculation', generic: false, spreadsheet: true, genericRoi: true, viableo: true },
-  { need: 'BUILD / DON\u2019T BUILD', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
-  { need: 'Stress-test & breaking point', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
-  { need: 'Client-ready report', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
-  { need: 'Agency branding', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
-] as const;
-
-// ── Pricing tiers (Phase 6 — case-based hybrid model) ────
-// The value metric is a CASE (one full idea → decision → business-case run).
-// Free/paid boundary: free keeps analytical rigor (confidence + stress test).
-// Gate the CLIENT-FACING OUTPUTS instead: PDF, proposal, share-link approval, white-label.
-export const PRICING_TIERS = [
-  {
-    key: 'free',
-    name: 'Free',
-    price: '$0',
-    cadence: 'forever',
-    popular: false,
-    identity: 'Try it once.',
-    blurb: '1 active case. Full analytical rigor — confidence scoring, stress test, scenarios. Watermarked PDF.',
-    casesPerMonth: 1,
-  },
-  {
-    key: 'pro',
-    name: 'Pro',
-    price: '$29',
-    cadence: '/month',
-    popular: false,
-    identity: 'Build the case.',
-    blurb: '5 cases/month included, $9/case overage. Unwatermarked PDF + proposal + share links.',
-    casesPerMonth: 5,
-    overagePrice: '$9/case',
-  },
-  {
-    key: 'agency',
-    name: 'Agency',
-    price: '$79',
-    cadence: '/month',
-    popular: true,
-    identity: 'Close the deal.',
-    blurb: 'Unlimited cases. Multi-seat. Client history. Share-link approval tracking. Benchmarking.',
-    casesPerMonth: Infinity,
-  },
-  {
-    key: 'agency_pro',
-    name: 'Agency Pro',
-    price: '$790',
-    cadence: '/year',
-    popular: false,
-    identity: 'Make it yours.',
-    blurb: 'Annual contract. White-label. API/webhook access. Dedicated support. Everything in Agency.',
-    casesPerMonth: Infinity,
-  },
-] as const;
-
-// ── Navigation labels ────────────────────────────────────
+// ── Navigation labels ────────────────────────────────────────
+// Trimmed per mandate P1-10: calculator/projects/reports/settings were stale
+// labels for an app shell the marketing site cannot reach. The app lives at
+// /start now; "Calculator" nav points there.
 export const NAV_LABELS = {
   home: 'Home',
   pricing: 'Pricing',
@@ -344,8 +459,4 @@ export const NAV_LABELS = {
   automationRoi: 'Automation ROI',
   solutions: 'Solutions',
   resources: 'Resources',
-  calculator: 'Calculator',
-  projects: 'Projects',
-  reports: 'Reports',
-  settings: 'Settings',
 } as const;

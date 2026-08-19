@@ -42,9 +42,15 @@ import {
   calculateAllScenarios,
 } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
+import {
+  computeBreakEven,
+  computeSensitivity,
+  stillViableStatement,
+  PERMUTATION_COUNT,
+} from '@/lib/calculations/stress-test';
 import { computeConfidenceScore, confidenceLabel } from '@/lib/calculations/confidence';
 import { SCENARIO_LABELS, type ScenarioName } from '@/lib/calculations/scenarios';
-import { formatCurrency, formatPayback } from '@/lib/format';
+import { formatCurrency, formatPayback, formatPercentagePoints } from '@/lib/format';
 import {
   Logo,
   DotRule,
@@ -83,6 +89,17 @@ import { cn } from '@/lib/utils';
 const APEX_EXPECTED = calculateScenario(APEX_INPUTS, 'expected');
 const APEX_ALL = calculateAllScenarios(APEX_INPUTS);
 const APEX_RECOMMENDATION = recommend(APEX_EXPECTED);
+// P0-2..6: every previously-hardcoded number is now derived from the engine.
+const APEX_BREAK_EVEN = computeBreakEven(APEX_INPUTS);
+const APEX_SENSITIVITY = computeSensitivity(APEX_INPUTS);
+const APEX_STILL_VIABLE = stillViableStatement(APEX_BREAK_EVEN, APEX_INPUTS);
+const BREAK_POINT_FEE = APEX_BREAK_EVEN.implementationFee ?? 0; // $149,860
+// Verdict ladder boundaries — derived by solving the payback equation, NOT hardcoded.
+// payback = 12*implFee / (benefit - recurring - implFee); solve for implFee at payback=12 and 24.
+const _APEX_BENEFIT = APEX_EXPECTED.totalAnnualBenefit;
+const _APEX_RECURRING = APEX_EXPECTED.annualRecurringCost;
+const LADDER_BUILD_TO_CONSIDER = Math.round((12 * (_APEX_BENEFIT - _APEX_RECURRING)) / (12 + 12));
+const LADDER_CONSIDER_TO_DONT_BUILD = Math.round((24 * (_APEX_BENEFIT - _APEX_RECURRING)) / (12 + 24));
 
 // Representative confidence for the golden-case hero panel.
 // In a real analysis some inputs are estimated — simulate that mix so the
@@ -131,7 +148,6 @@ export function LandingView() {
       <ComparisonSection />
       <PricingTeaser />
       <FinalCTA />
-      <MarketingFooter />
     </main>
   );
 }
@@ -797,11 +813,14 @@ function formatDelta(
 // ════════════════════════════════════════════════════════════════
 // Section 7.6b — Stress-test teaser (charcoal slider mockups)
 // ════════════════════════════════════════════════════════════════
+// P0-5: fillPct values derived from the engine, not arbitrary. Implementation
+// cost as a share of its break-even; monthly operating cost as a share of its
+// break-even; automation coverage is its own percentage.
 const STRESS_MOCK_SLIDERS = [
   {
     label: 'Implementation cost',
     display: formatCurrency(APEX_INPUTS.implementationFee),
-    fillPct: 30,
+    fillPct: Math.round((APEX_INPUTS.implementationFee / (APEX_BREAK_EVEN.implementationFee ?? 1)) * 100),
   },
   {
     label: 'Automation coverage',
@@ -810,31 +829,43 @@ const STRESS_MOCK_SLIDERS = [
   },
   {
     label: 'Monthly operating cost',
-    display: formatCurrency(
-      APEX_INPUTS.monthlyAiApiCost + APEX_INPUTS.monthlySoftwareCost
+    display: formatCurrency(APEX_INPUTS.monthlyAiApiCost + APEX_INPUTS.monthlySoftwareCost),
+    fillPct: Math.round(
+      ((APEX_INPUTS.monthlyAiApiCost + APEX_INPUTS.monthlySoftwareCost) /
+        (APEX_BREAK_EVEN.monthlyOperatingCost ?? 1)) *
+        100
     ),
-    fillPct: 26,
   },
 ] as const;
 
-/** Decision shift across three implementation-cost tiers — Apex golden-case framing. */
-const STRESS_SHIFT_ROWS = [
+/**
+ * Decision shift across three implementation-cost tiers — Apex golden-case framing.
+ * P0-3: every row is derived from the engine. The three fees are the current
+ * Apex implementation fee, the BUILD→CONSIDER boundary, and the CONSIDER→DON'T
+ * BUILD boundary. The decisions come from recommend() at each fee.
+ */
+const STRESS_SHIFT_ROWS: Array<{
+  cost: string;
+  note: string;
+  decision: 'build' | 'consider' | 'dont_build';
+  active: boolean;
+}> = [
   {
-    cost: '$18k',
+    cost: formatCurrency(APEX_INPUTS.implementationFee),
     note: 'current',
-    decision: 'build' as const,
+    decision: APEX_RECOMMENDATION.recommendation,
     active: true,
   },
   {
-    cost: '$27k',
-    note: 'breaking point',
-    decision: 'consider' as const,
+    cost: formatCurrency(LADDER_BUILD_TO_CONSIDER),
+    note: 'BUILD → CONSIDER',
+    decision: 'consider',
     active: false,
   },
   {
-    cost: '$36k',
-    note: 'above threshold',
-    decision: 'dont_build' as const,
+    cost: formatCurrency(LADDER_CONSIDER_TO_DONT_BUILD),
+    note: 'CONSIDER → DON\u2019T BUILD',
+    decision: 'dont_build',
     active: false,
   },
 ];
@@ -895,7 +926,7 @@ function StressTestTeaser() {
                   <p className="mt-1.5 text-[13px] leading-[1.55] text-[#B8B2C4]">
                     Remains above your target payback until implementation costs exceed{' '}
                     <span className="font-mono tnum font-semibold text-[#F5F3FF]">
-                      $<CountUp value={27400} />
+                      {formatCurrency(BREAK_POINT_FEE)}
                     </span>
                     .
                   </p>
@@ -932,7 +963,7 @@ function StressTestTeaser() {
               How the decision shifts
             </p>
             <p className="mt-2 text-[13px] text-[#706B7A]">
-              As implementation cost climbs from $18k to $36k
+              As implementation cost climbs from {formatCurrency(APEX_INPUTS.implementationFee)} to {formatCurrency(LADDER_CONSIDER_TO_DONT_BUILD)}
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
@@ -943,7 +974,7 @@ function StressTestTeaser() {
 
             <div className="mt-8 rounded-md border border-[var(--color-surface-analytical-border)] bg-[var(--color-surface-analytical-raised)] p-5">
               <p className="text-[13px] leading-[1.55] text-[#B8B2C4]">
-                The full stress test runs 60+ assumption permutations — varying
+                The full stress test runs {PERMUTATION_COUNT} assumption permutations — varying
                 individual levers and multi-lever combinations — and ranks the
                 inputs by how much they move the verdict.
               </p>
@@ -1037,12 +1068,17 @@ function MiniDecisionShift({
 // ════════════════════════════════════════════════════════════════
 // Section 7.6c — Sensitivity teaser (charcoal ranked bars)
 // ════════════════════════════════════════════════════════════════
-const SENSITIVITY_ROWS = [
-  { rank: 1, name: 'Conversion improvement', pct: 42 },
-  { rank: 2, name: 'Automation coverage', pct: 28 },
-  { rank: 3, name: 'Implementation cost', pct: 18 },
-  { rank: 4, name: 'Monthly operating cost', pct: 12 },
-] as const;
+// P0-4: derived from computeSensitivity() — the real ROI swing at ±20%, ranked.
+// The displayed value is formatPercentagePoints(impact/100); the bar width is
+// normalized to the largest impact so the visual ranking is honest.
+const _MAX_IMPACT = APEX_SENSITIVITY[0]?.impact || 1;
+const SENSITIVITY_ROWS = APEX_SENSITIVITY.map((s, i) => ({
+  rank: i + 1,
+  name: s.label,
+  impactPp: s.impact,
+  fillPct: Math.round((s.impact / _MAX_IMPACT) * 100),
+  level: s.level,
+}));
 
 function SensitivityTeaser() {
   return (
@@ -1068,7 +1104,7 @@ function SensitivityTeaser() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
               Apex Home Services · expected scenario
             </p>
-            <p className="text-[11px] text-ink-faint">% of projected value</p>
+            <p className="text-[11px] text-ink-faint">percentage points of ROI swing at ±20%</p>
           </div>
 
           <div className="mt-8 space-y-6">
@@ -1095,11 +1131,13 @@ function SensitivityTeaser() {
 function SensitivityBar({
   rank,
   name,
-  pct,
+  impactPp,
+  fillPct,
 }: {
   rank: number;
   name: string;
-  pct: number;
+  impactPp: number;
+  fillPct: number;
 }) {
   // Monochrome fade: rank 1 = full charcoal, then progressively lighter gray.
   const fillClass =
@@ -1120,14 +1158,14 @@ function SensitivityBar({
           <span className="text-[14px] font-medium text-ink">{name}</span>
         </div>
         <span className="font-mono tnum text-[14px] font-bold tracking-[-0.02em] text-ink">
-          {pct}%
+          {formatPercentagePoints(impactPp / 100)}
         </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full border border-border bg-canvas">
         <div
           aria-hidden="true"
           className={cn('h-full rounded-full', fillClass)}
-          style={{ width: `${pct}%` }}
+          style={{ width: `${fillPct}%` }}
         />
       </div>
     </div>
@@ -1399,133 +1437,3 @@ function FinalCTA() {
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-// Section 7.12 — Marketing footer (dark, near-monochrome separators)
-// ════════════════════════════════════════════════════════════════
-function MarketingFooter() {
-  const startCalculator = useApp((s) => s.startCalculator);
-  const year = new Date().getFullYear();
-
-  const COLUMNS: {
-    title: string;
-    links: { label: string; onClick?: () => void; href?: string }[];
-  }[] = [
-    {
-      title: 'Product',
-      links: [
-        { label: 'Calculator', onClick: () => startCalculator() },
-        { label: 'Pricing', href: '/pricing' },
-        { label: 'Example report', onClick: () => startCalculator(APEX_INPUTS) },
-      ],
-    },
-    {
-      title: 'Solutions',
-      links: [
-        { label: 'Automation agencies', href: '/solutions/automation-agencies' },
-        { label: 'n8n agencies', href: '/solutions/n8n-agencies' },
-        { label: 'Make agencies', href: '/solutions/make-agencies' },
-        { label: 'Zapier agencies', href: '/solutions/zapier-agencies' },
-      ],
-    },
-    {
-      title: 'Resources',
-      links: [
-        { label: 'Methodology', href: '/methodology' },
-        { label: 'Automation ROI', href: '/resources/automation-roi' },
-        { label: 'Automation payback', href: '/resources/automation-payback' },
-        { label: 'Business case', href: '/resources/automation-business-case' },
-      ],
-    },
-    {
-      title: 'Company',
-      links: [{ label: 'About', href: '/methodology' }],
-    },
-    {
-      title: 'Legal',
-      links: [
-        { label: 'Figures are estimates' },
-      ],
-    },
-  ];
-
-  return (
-    <footer className="bg-[var(--color-ink-deep)] text-white">
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-24">
-        <div className="grid grid-cols-2 gap-10 md:grid-cols-[1.4fr_repeat(5,_1fr)] md:gap-8">
-          {/* Brand block */}
-          <div className="col-span-2 flex flex-col gap-4 md:col-span-1">
-            <Logo variant="reverse" />
-            <p className="max-w-[260px] text-[14px] leading-[1.6] text-white/55">{BRAND_TAGLINE}</p>
-            <div className="mt-2 flex items-center gap-3">
-              <a
-                href="#"
-                aria-label="Twitter"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-white/55 transition-colors hover:text-white"
-              >
-                <Twitter className="size-4" strokeWidth={1.75} />
-              </a>
-              <a
-                href="#"
-                aria-label="LinkedIn"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-white/55 transition-colors hover:text-white"
-              >
-                <Linkedin className="size-4" strokeWidth={1.75} />
-              </a>
-              <a
-                href="#"
-                aria-label="GitHub"
-                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-white/55 transition-colors hover:text-white"
-              >
-                <Github className="size-4" strokeWidth={1.75} />
-              </a>
-            </div>
-          </div>
-
-          {/* Link columns */}
-          {COLUMNS.map((col) => (
-            <div key={col.title}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
-                {col.title}
-              </p>
-              <ul className="mt-4 space-y-3">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    {link.href ? (
-                      <Link
-                        href={link.href}
-                        className="link-underline min-h-[44px] text-left text-[13px] text-white/70 hover:text-white"
-                      >
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={link.onClick}
-                        className="link-underline min-h-[44px] text-left text-[13px] text-white/70 hover:text-white"
-                      >
-                        {link.label}
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 md:flex-row">
-          <p className="text-[12px] text-white/35">
-            © {year} {COMPANY_NAME}. All rights reserved.
-          </p>
-          <div className="flex items-center gap-2.5 text-[12px] text-white/35">
-            <span>{COMPANY_NAME}</span>
-            <span aria-hidden="true" className="size-1 rounded-full bg-white/25" />
-            <span>{REPORT_NAME}</span>
-            <span aria-hidden="true" className="size-1 rounded-full bg-white/25" />
-            <span>Made for automation agencies</span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}

@@ -3,6 +3,7 @@ import { Inter, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/auth-provider";
+import { MotionProvider } from "@/components/motion-provider";
 import {
   COMPANY_NAME,
   PRODUCT_NAME,
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     template: `%s | ${COMPANY_NAME}`,
   },
   description:
-    "Viableo turns an automation idea into a number your client will actually sign. Model the economics, stress-test the assumptions, and walk in with a client-ready business case.",
+    "Viableo takes an automation scope and returns a verdict — build it or don’t — the fee where that verdict flips, and a document your client can check line by line.",
   keywords: [
     "Viableo",
     "Automation ROI",
@@ -79,7 +80,7 @@ export const metadata: Metadata = {
     siteName: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
     title: `${COMPANY_NAME} — Know what\u2019s worth building.`,
     description:
-      "Turn an automation idea into a number your client will actually sign. Model the economics, stress-test the assumptions, walk in with the answer.",
+      "Viableo takes an automation scope and returns a verdict — build it or don’t — the fee where that verdict flips, and a document your client can check line by line.",
     images: [
       {
         url: "/og-image.png",
@@ -150,7 +151,7 @@ const jsonLd = {
       operatingSystem: "Web",
       offers: [
         { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
-        { "@type": "Offer", price: "149", priceCurrency: "USD", name: "Pro" },
+        { "@type": "Offer", price: "39", priceCurrency: "USD", name: "Case pack" },
         { "@type": "Offer", price: "249", priceCurrency: "USD", name: "Agency" },
         { "@type": "Offer", price: "499", priceCurrency: "USD", name: "Agency Pro" },
       ],
@@ -176,7 +177,7 @@ export default function RootLayout({
         className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
       >
         <AuthProvider>
-          {children}
+          <MotionProvider>{children}</MotionProvider>
         </AuthProvider>
         <Toaster />
       </body>

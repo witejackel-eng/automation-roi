@@ -13,6 +13,7 @@
  * fallback timeout after 2s shows the final value.
  */
 import * as React from 'react';
+import { useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 interface CountUpProps {
@@ -31,17 +32,10 @@ interface CountUpProps {
   retriggerOnValueChange?: boolean;
 }
 
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = React.useState(false);
-  React.useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const handler = () => setReduced(mq.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return reduced;
-}
+// useReducedMotion() from motion/react is the canonical hook — it respects the
+// <MotionConfig reducedMotion="user"> at the root layout AND the OS setting,
+// with no setState-in-effect (it uses useSyncExternalStore internally).
+// Per mandate P0-12: when reduced, render the final value immediately.
 
 export function CountUp({
   value,
@@ -52,7 +46,7 @@ export function CountUp({
   className,
   retriggerOnValueChange = false,
 }: CountUpProps) {
-  const reduced = usePrefersReducedMotion();
+  const reduced = useReducedMotion();
   const ref = React.useRef<HTMLSpanElement>(null);
   const [display, setDisplay] = React.useState(reduced ? value : 0);
   const [pulse, setPulse] = React.useState(false);

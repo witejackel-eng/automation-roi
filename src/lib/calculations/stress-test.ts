@@ -155,11 +155,11 @@ export function computeSensitivity(
 }
 
 /**
- * The "still viable" headline (Voice Spec §5.11):
- * "Still viable. — Payback holds until implementation cost passes $27,400."
+ * The "still viable" headline (Voice Spec §5.11), e.g. for the Apex reference
+ * case: "Payback holds until implementation cost passes $149,860."
  *
- * Returns the single most useful break-even statement, or null if the case
- * is already broken.
+ * Returns the single most useful break-even statement (computed from the
+ * engine's own break-even solve), or null if the case is already broken.
  */
 export function stillViableStatement(
   thresholds: BreakEvenThresholds,
