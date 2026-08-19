@@ -14,15 +14,21 @@ interface EnvVar {
 }
 
 const ENV_VARS: EnvVar[] = [
-  { name: 'DATABASE_URL', required: true, description: 'PostgreSQL connection string (or SQLite for dev)' },
-  { name: 'NEXTAUTH_SECRET', required: isProduction, description: 'NextAuth JWT signing secret (openssl rand -base64 32)' },
-  { name: 'NEXTAUTH_URL', required: isProduction, description: 'NextAuth callback URL base' },
-  { name: 'GITHUB_ID', required: isProduction, description: 'GitHub OAuth App ID' },
-  { name: 'GITHUB_SECRET', required: isProduction, description: 'GitHub OAuth App Secret' },
-  { name: 'BLOB_READ_WRITE_TOKEN', required: isProduction, description: 'Vercel Blob read-write token for PDF/logo storage' },
-  { name: 'WHOP_WEBHOOK_SECRET', required: false, description: 'Whop webhook HMAC secret' },
-  { name: 'UPSTASH_REDIS_REST_URL', required: false, description: 'Upstash Redis REST URL (optional, falls back to in-memory rate limit)' },
-  { name: 'UPSTASH_REDIS_REST_TOKEN', required: false, description: 'Upstash Redis REST token' },
+  { name: 'DATABASE_URL', required: true, description: 'Prisma pooled/runtime connection string (Neon pooled endpoint in production)' },
+  { name: 'DIRECT_URL', required: isProduction, description: 'Prisma direct (non-pooled) connection string, used only for prisma migrate deploy' },
+  { name: 'NEXTAUTH_SECRET', required: isProduction, description: 'NextAuth JWT/session signing secret, 32+ bytes' },
+  { name: 'NEXTAUTH_URL', required: isProduction, description: 'Canonical base URL of the deployment, no trailing slash' },
+  { name: 'GITHUB_ID', required: isProduction, description: 'GitHub OAuth App client ID' },
+  { name: 'GITHUB_SECRET', required: isProduction, description: 'GitHub OAuth App client secret' },
+  { name: 'BLOB_READ_WRITE_TOKEN', required: isProduction, description: 'Vercel Blob read/write token, for uploads/branding assets' },
+  { name: 'WHOP_WEBHOOK_SECRET', required: isProduction, description: 'Whop webhook signing secret (ws_...), required in production per Prompt 2' },
+  { name: 'NEXT_PUBLIC_SITE_URL', required: isProduction, description: 'Public canonical site URL used by metadata/OG tags' },
+  { name: 'SUPERADMIN_BOOTSTRAP_TOKEN', required: isProduction, description: 'Shared secret required by scripts/bootstrap-superadmin.ts' },
+  { name: 'UPSTASH_REDIS_REST_URL', required: false, description: 'Optional distributed rate limiting' },
+  { name: 'UPSTASH_REDIS_REST_TOKEN', required: false, description: 'Optional distributed rate limiting' },
+  { name: 'ZAI_API_KEY', required: false, description: 'AI SDK key; blank disables /api/ai/* routes gracefully' },
+  { name: 'DEV_ENTITLEMENT_SECRET', required: false, description: 'Guards /api/entitlement/set dev backdoor' },
+  { name: 'DEBUG_PRISMA', required: false, description: '1 enables Prisma query logging' },
 ];
 
 /**
