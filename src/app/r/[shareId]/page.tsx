@@ -12,7 +12,6 @@
  * Read-only. No internal agency notes. No edit/save actions.
  */
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import type { CalculatorInputs, ScenarioResult, Recommendation } from '@/lib/calculations/engine';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
@@ -43,6 +42,17 @@ export const metadata: Metadata = {
 // hardening in src/app/api/share/[shareId]/route.ts.
 const SHARE_ID_RE = /^[0-9a-f]{24}$/;
 
+function ShareUnavailable() {
+  return (
+    <div style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem', gap: '1rem' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>This link is no longer available</h1>
+      <p style={{ maxWidth: '32rem', opacity: 0.75 }}>
+        This shared analysis has been revoked, has expired, or never existed. If you were expecting to see something here, ask the person who shared it with you for a new link.
+      </p>
+    </div>
+  );
+}
+
 export default async function SharePage({
   params,
 }: {
@@ -51,7 +61,7 @@ export default async function SharePage({
   const { shareId } = await params;
 
   if (!SHARE_ID_RE.test(shareId)) {
-    notFound();
+    return <ShareUnavailable />;
   }
 
   const share = await db.share.findUnique({
@@ -77,7 +87,7 @@ export default async function SharePage({
   });
 
   if (!share || share.revokedAt || (share.expiresAt && share.expiresAt < new Date())) {
-    notFound();
+    return <ShareUnavailable />;
   }
 
   let inputs: CalculatorInputs;
@@ -86,7 +96,7 @@ export default async function SharePage({
     inputs = JSON.parse(share.project.inputs) as CalculatorInputs;
     results = JSON.parse(share.project.results) as Record<ScenarioName, ScenarioResult>;
   } catch {
-    notFound();
+    return <ShareUnavailable />;
   }
 
   const recommendation = share.project.recommendation as Recommendation;
