@@ -14,7 +14,7 @@ export function siteUrl(): string {
       console.warn(
         '[site-url] NEXT_PUBLIC_SITE_URL is not set in production. ' +
         'OG tags, sitemap, and share links will use a fallback URL. ' +
-        'Set NEXT_PUBLIC_SITE_URL in Vercel env vars to fix this.' +
+        'Set NEXT_PUBLIC_SITE_URL in Vercel env vars to fix this.'
       );
     }
     return 'http://localhost:3000';
