@@ -3,22 +3,28 @@
 /**
  * Results dashboard (Section 13) — Viableo voice.
  *
- * Layout, top to bottom:
- *   1. Back + "Prepared for {client}" row
- *   2. Page header — "Viableo Analysis" + the Viableo Decision subhead
- *   3. Hero summary card — ScenarioSlider + DecisionBadge (cross-fades on
- *      scenario change) + 3 big figures (Annual Opportunity, ROI ×, Payback)
- *      driven by the active scenario, animated via CountUp
- *   4. Verdict Stamp — the detailed sign-off, also driven by the active
- *      scenario (kept per Task 4-b: the signature double-rule element)
- *   5. Recommendation copy (active scenario)
- *   6. Three secondary KPI cards (savings, profit/revenue, first-year cost)
- *   7. Exhibit 1 — ROI Bridge waterfall (active scenario)
- *   8. Exhibit 2 — Scenario Comparison (all three scenarios)
- *   9. Scenario detail table (all three, with the active column highlighted)
- *  10. Assumptions
- *  11. Sticky actions: Save, Generate Client Report, Generate Proposal
- *      (last two gated behind entitlement — show lock + "Included in Pro")
+ * Restructured layout (Task 2-a):
+ *   1. Mobile sticky top bar
+ *   2. Back + "Prepared for {client}" row
+ *   3. HERO VERDICT SECTION — VerdictStamp hero with DecisionBadge,
+ *      ScenarioSlider, and 3 headline figures in one card
+ *   4. WhyRecommendationPanel — decision tree + threshold analysis
+ *   5. Plain-language rationale (one sentence)
+ *   6. Secondary KPI cards
+ *   7. WhatWouldKillThisCase — top 3 sensitivity breaking points
+ *   8. Challenge an assumption — inline what-if on key inputs
+ *   9. StressTestSection
+ *  10. BreakingPointSlider
+ *  11. ConfidenceExplainedSection
+ *  12. VerdictReveal
+ *  13. RecurringEconomicsView
+ *  14. TopDriversCallout
+ *  15. ROI Bridge chart
+ *  16. Scenario Comparison chart
+ *  17. Scenario detail table
+ *  18. AssumptionsTable (viableo version)
+ *  19. VerificationBadge
+ *  20. Sticky actions
  *
  * The store's `recommendation` (project-level, Expected scenario) is preserved
  * for save / report / proposal persistence. Display figures use the active
@@ -36,14 +42,18 @@ import { VerdictStamp } from '@/components/verdict-stamp';
 import { KpiCard } from '@/components/kpi-card';
 import { RoiBridge } from '@/components/charts/roi-bridge';
 import { ScenarioComparison } from '@/components/charts/scenario-comparison';
-import { AssumptionsTable } from '@/components/assumptions-table';
+import { AssumptionsTable as ViableoAssumptionsTable, type AssumptionsRow } from '@/components/viableo/assumptions-table';
+import { WhyRecommendationPanel } from '@/components/viableo/why-recommendation-panel';
+import { WhatWouldKillThisCase, type BreakingPoint } from '@/components/viableo/what-would-kill-this-case';
+import { ChallengePanel } from '@/components/viableo/challenge-panel';
+import type { ChallengeResult } from '@/components/viableo/challenge-panel';
+import { VerificationBadge } from '@/components/viableo/verification-badge';
 import { EntitlementButton } from '@/components/entitlement-button';
 import {
   DecisionBadge,
   ScenarioSlider,
   CountUp,
   LoadingDot,
-  WhyRecommendation,
   StressTestSection,
   BreakingPointSlider,
   ConfidenceExplained,
@@ -51,9 +61,11 @@ import {
   RecurringEconomicsView,
 } from '@/components/viableo';
 import { computeSensitivity } from '@/lib/calculations/stress-test';
-import { computeConfidenceScore, type InputStatus } from '@/lib/calculations/confidence';
+import { computeConfidenceScore, type InputStatus, CONFIDENCE_WEIGHTS, STATUS_MULTIPLIERS, INPUT_LABELS } from '@/lib/calculations/confidence';
 import { TERM, DECISION_LABELS, type DecisionKey } from '@/lib/brand';
-import { recommend } from '@/lib/calculations/recommendation';
+import { recommend, recommendWithConfidence } from '@/lib/calculations/recommendation';
+import { generateRationaleSentence } from '@/lib/recommendation-helpers';
+import { generateVerificationBadge } from '@/lib/verification-hash';
 import {
   formatCurrency,
   formatPayback,
@@ -62,7 +74,7 @@ import {
 } from '@/lib/format';
 import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/calculations/scenarios';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
-import type { ScenarioResult, CalculatorInputs } from '@/lib/calculations/engine';
+import { calculateAllScenarios, type ScenarioResult, type CalculatorInputs } from '@/lib/calculations/engine';
 import { cn } from '@/lib/utils';
 
 export function ResultsView() {
@@ -106,6 +118,87 @@ export function ResultsView() {
     setSavedProjectId(storeSavedProjectId);
   }, [storeSavedProjectId]);
 
+  // Map for breaking points: sensitivity item label → CalculatorInputs key + unit
+  const SENSITIVITY_KEY_MAP: Record<string, { key: keyof CalculatorInputs; unit: string }> = {
+    'Automation coverage': { key: 'expectedAutomationPct', unit: '%' },
+    'Implementation cost': { key: 'implementationFee', unit: '$' },
+    'Monthly AI/API cost': { key: 'monthlyAiApiCost', unit: '$' },
+    'Conversion improvement': { key: 'expectedConversionImprovementPct', unit: 'pp' },
+  };
+
+  // Build BreakingPoint[] from sensitivity data (top 3) — hooks before early return
+  const breakingPoints: BreakingPoint[] = React.useMemo(() => {
+    if (!inputs) return [];
+    const sensitivity = computeSensitivity(inputs, activeScenario);
+    return sensitivity.slice(0, 3).map((item) => {
+      const mapping = SENSITIVITY_KEY_MAP[item.label];
+      const currentValue = mapping ? (inputs[mapping.key] as number) : 0;
+      const lowRoi = item.lowRoi ?? 0;
+      const highRoi = item.highRoi ?? 0;
+      let breakValue = currentValue;
+      const roiDelta = highRoi - lowRoi;
+      if (roiDelta !== 0) {
+        const m = 0.8 - (lowRoi * 0.4) / roiDelta;
+        breakValue = currentValue * m;
+        if (mapping?.unit === '%') {
+          breakValue = Math.max(0, Math.min(1, breakValue));
+        } else {
+          breakValue = Math.max(0, breakValue);
+        }
+      }
+      return { label: item.label, breakValue, currentValue, unit: mapping?.unit ?? '' };
+    });
+  }, [inputs, activeScenario]);
+
+  // Build AssumptionsRow[] for the ViableoAssumptionsTable — hooks before early return
+  const assumptionsRows: AssumptionsRow[] = React.useMemo(() => {
+    const statuses: Record<string, InputStatus> = {
+      hourlyLaborCost: 'provided',
+      workloadVolume: 'provided',
+      implementationFee: 'provided',
+      automationCoverage: 'estimated',
+      conversionImprovement: 'estimated',
+      platformApiCost: 'assumption',
+      otherInputs: 'provided',
+      errorCost: 'assumption',
+    };
+    const IMPROVEMENT_ACTIONS: Record<string, string> = {
+      hourlyLaborCost: 'Use payroll data or time-tracking tools to confirm.',
+      workloadVolume: 'Count actual tasks from the last 30 days.',
+      implementationFee: 'Get a written quote from the build partner.',
+      automationCoverage: 'Run a small pilot to measure the actual automation rate.',
+      conversionImprovement: 'A/B test the new flow before committing to full build.',
+      platformApiCost: "Check the platform's pricing page for current rates.",
+      otherInputs: 'Review vendor contracts for the latest figures.',
+      errorCost: 'Measure rework time from a sample of recent errors.',
+    };
+    const statusToViableo = (s: InputStatus): 'measured' | 'estimated' | 'assumed' => {
+      if (s === 'provided') return 'measured';
+      if (s === 'estimated') return 'estimated';
+      return 'assumed';
+    };
+    return (Object.entries(CONFIDENCE_WEIGHTS) as Array<[string, number]>).map(([inputKey, weight]) => {
+      const status = statuses[inputKey] ?? 'assumption';
+      const multiplier = STATUS_MULTIPLIERS[status];
+      return {
+        name: INPUT_LABELS[inputKey as keyof typeof INPUT_LABELS] ?? inputKey,
+        status: statusToViableo(status),
+        weight,
+        contribution: weight * multiplier,
+        improvementAction: IMPROVEMENT_ACTIONS[inputKey] ?? 'Confirm with the client.',
+      };
+    });
+  }, []);
+
+  // Verification badge data — hooks before early return
+  const verificationData = React.useMemo(() => {
+    if (!inputs || !results) return { hash: '', timestamp: new Date().toISOString() };
+    return generateVerificationBadge(
+      inputs as unknown as Record<string, unknown>,
+      results as unknown as Record<string, unknown>,
+    );
+  }, [inputs, results]);
+
   if (!inputs || !results || !recommendation) {
     return (
       <div className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-6">
@@ -128,6 +221,88 @@ export function ResultsView() {
   // ROI as a multiplier (499% → "5.0×"). Null when totalFirstYearCost = 0.
   const roiMultiple =
     active.roiPct == null ? null : active.roiPct / 100;
+
+  // Confidence score for WhyRecommendationPanel + VerdictReveal
+  const confidenceResult = computeConfidenceScore({});
+  const confidenceScore = confidenceResult.score;
+
+  // Client-side challenge handler — recalculates with an overridden field value
+  // and returns the delta in ChallengeResult format, matching the API route.
+  const handleChallengeAssumption = async (
+    field: string,
+    newValue: number,
+  ): Promise<ChallengeResult> => {
+    const previousValue = inputs[field as keyof CalculatorInputs] as number;
+
+    // Clone inputs with the challenged field replaced.
+    const challengedInputs: CalculatorInputs = {
+      ...inputs,
+      [field]: newValue,
+    };
+
+    // Recalculate all scenarios with the challenged inputs.
+    const challengedResults = calculateAllScenarios(challengedInputs);
+
+    // Derive verdicts using the confidence-aware decision tree.
+    // Use the same default statuses as the API challenge route (all 'provided').
+    const defaultStatuses: Record<string, 'provided'> = {
+      hourlyLaborCost: 'provided',
+      workloadVolume: 'provided',
+      implementationFee: 'provided',
+      automationCoverage: 'provided',
+      conversionImprovement: 'provided',
+      platformApiCost: 'provided',
+      otherInputs: 'provided',
+      errorCost: 'provided',
+    };
+    const origConfidence = computeConfidenceScore(defaultStatuses);
+    const chalConfidence = computeConfidenceScore(defaultStatuses);
+
+    const originalVerdict = recommendWithConfidence({
+      expected: results.expected,
+      conservative: results.conservative,
+      confidenceScore: origConfidence.score,
+    }).recommendation;
+
+    const challengedVerdict = recommendWithConfidence({
+      expected: challengedResults.expected,
+      conservative: challengedResults.conservative,
+      confidenceScore: chalConfidence.score,
+    }).recommendation;
+
+    return {
+      originalResults: {
+        verdict: originalVerdict,
+        confidence: origConfidence.score,
+        payback: results.expected.paybackMonths,
+        roi: results.expected.roiPct,
+        netAnnualBenefit: results.expected.netAnnualBenefit,
+      },
+      challengedResults: {
+        verdict: challengedVerdict,
+        confidence: chalConfidence.score,
+        payback: challengedResults.expected.paybackMonths,
+        roi: challengedResults.expected.roiPct,
+        netAnnualBenefit: challengedResults.expected.netAnnualBenefit,
+      },
+      delta: {
+        field,
+        previousValue,
+        newValue,
+        verdictChanged: originalVerdict !== challengedVerdict,
+        previousVerdict: originalVerdict,
+        newVerdict: challengedVerdict,
+      },
+    };
+  };
+
+  // Key assumptions available for inline challenge — mirrors SENSITIVITY_KEY_MAP.
+  const challengeableFields: Array<{ key: keyof CalculatorInputs; label: string; unit: string }> = [
+    { key: 'expectedAutomationPct', label: 'Automation coverage', unit: '' },
+    { key: 'implementationFee', label: 'Implementation cost', unit: '$' },
+    { key: 'monthlyAiApiCost', label: 'Monthly AI/API cost', unit: '$' },
+    { key: 'expectedConversionImprovementPct', label: 'Conversion improvement', unit: '' },
+  ];
 
   const handleSave = async () => {
     if (!canSave) {
@@ -348,25 +523,26 @@ export function ResultsView() {
         </p>
       </div>
 
-      {/* Page header — references TERM.analysis + TERM.decision */}
-      <header className="mb-8">
-        <h1 className="font-display text-[32px] font-bold leading-[1.02] tracking-[-0.02em] text-ink md:text-[40px]">
-          {TERM.analysis}
-        </h1>
-        <p className="mt-2 max-w-[640px] text-[15px] leading-[1.55] text-ink-muted">
-          The {TERM.decision} and the figures that justify it. Switch scenarios to see how the
-          numbers hold up under conservative and upside assumptions.
-        </p>
-      </header>
-
-      {/* Hero summary card — ScenarioSlider + DecisionBadge + 3 headline figures */}
+      {/* ── HERO VERDICT SECTION — VerdictStamp hero with DecisionBadge,
+          ScenarioSlider, and 3 headline figures in one prominent card ── */}
       <section
         aria-label="Viableo Decision summary"
-        className="mb-10 rounded-lg border border-border bg-surface-raised p-5 md:p-6"
+        className="mb-10 rounded-lg border border-border bg-surface-raised p-6 md:p-8"
       >
+        {/* VerdictStamp — the visual hero */}
+        <div className="mb-6 flex justify-center md:justify-start">
+          <VerdictStamp
+            recommendation={activeRec.recommendation}
+            paybackMonths={active.paybackMonths}
+            roiPct={active.roiPct}
+            netAnnualBenefit={active.netAnnualBenefit}
+            size="lg"
+          />
+        </div>
+
+        {/* ScenarioSlider + DecisionBadge row */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <ScenarioSlider value={activeScenario} onChange={setActiveScenario} />
-          {/* Cross-fade on decision change via key + reveal-on-enter animation. */}
           <div
             key={activeDecision}
             className="reveal-on-enter flex items-center gap-2"
@@ -379,6 +555,7 @@ export function ResultsView() {
           </div>
         </div>
 
+        {/* 3 headline figures */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeScenario}
@@ -443,29 +620,22 @@ export function ResultsView() {
         </AnimatePresence>
       </section>
 
-      {/* Verdict Stamp — the detailed sign-off (kept per Task 4-b). */}
-      <div className="mb-8 flex justify-center md:justify-start">
-        <VerdictStamp
-          recommendation={activeRec.recommendation}
-          paybackMonths={active.paybackMonths}
-          roiPct={active.roiPct}
-          netAnnualBenefit={active.netAnnualBenefit}
-          size="lg"
-        />
-      </div>
-
-      {/* Why this recommendation? (Section 6.9) — expandable bullet rationale,
-          each reason backed by a real number from the active scenario. */}
-      <WhyRecommendation
-        inputs={inputs}
-        results={results}
-        recommendation={activeRec}
+      {/* ── WhyRecommendationPanel — decision tree + threshold analysis ── */}
+      <WhyRecommendationPanel
+        verdict={activeDecision as 'build' | 'consider' | 'dont_build'}
+        confidence={confidenceScore}
+        conservativePayback={results.conservative.paybackMonths ?? 99}
+        bestCaseRoi={results.upside.roiPct ?? 0}
         className="mb-8"
       />
 
-      {/* Recommendation copy (active scenario) */}
+      {/* Plain-language rationale (one sentence) */}
       <p className="mb-10 max-w-[760px] text-[15px] leading-[1.55] text-ink-muted">
-        {activeRec.copy}
+        {generateRationaleSentence(
+          activeDecision as 'build' | 'consider' | 'dont_build',
+          confidenceScore,
+          results.conservative.paybackMonths ?? 99,
+        )}
       </p>
 
       {/* Secondary KPI row */}
@@ -491,11 +661,56 @@ export function ResultsView() {
         />
       </div>
 
-      {/* Stress test + break-even thresholds (Master Spec §29, §30, §31).
-          Placed after the key financials and before the exhibits, per the
-          §33 results-page section order: decision → financials → why →
-          confidence → stress test → break-even → ROI bridge → comparison →
-          assumptions → actions. */}
+      {/* WhatWouldKillThisCase — top 3 sensitivity breaking points */}
+      <WhatWouldKillThisCase
+        breakingPoints={breakingPoints}
+        className="mb-10"
+      />
+
+      {/* Challenge an assumption — inline what-if on key inputs */}
+      <section
+        aria-label="Challenge an assumption"
+        className="mb-10 rounded-lg border border-border bg-surface-raised p-6 md:p-8"
+      >
+        <h2 className="mb-1 font-display text-[17px] font-semibold tracking-[-0.02em] text-ink">
+          Challenge an assumption
+        </h2>
+        <p className="mb-6 max-w-[600px] text-[13px] leading-[1.5] text-ink-muted">
+          Change a key input and see how the verdict shifts. These are the same
+          fields the stress test identified as most sensitive.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {challengeableFields.map((f) => {
+            const rawValue = inputs[f.key] as number;
+            // Display percentage fields as 0–100 for readability.
+            const displayValue = f.key === 'expectedAutomationPct' || f.key === 'expectedConversionImprovementPct'
+              ? rawValue * 100
+              : rawValue;
+            const displayUnit = f.key === 'expectedAutomationPct'
+              ? '%'
+              : f.key === 'expectedConversionImprovementPct'
+                ? 'pp'
+                : f.unit;
+            return (
+              <ChallengePanel
+                key={f.key}
+                fieldName={f.key as string}
+                currentValue={displayValue}
+                unit={displayUnit}
+                onChallenge={async (field, displayNewValue) => {
+                  // Convert 0–100 display value back to 0–1 decimal for percentage fields.
+                  const engineValue = (f.key === 'expectedAutomationPct' || f.key === 'expectedConversionImprovementPct')
+                    ? displayNewValue / 100
+                    : displayNewValue;
+                  return handleChallengeAssumption(field, engineValue);
+                }}
+              />
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Stress test + break-even thresholds (Master Spec §29, §30, §31). */}
       <StressTestSection inputs={inputs} activeScenario={activeScenario} />
 
       {/* Breaking point slider (Phase 3.1) — the product's most distinctive moment.
@@ -507,7 +722,7 @@ export function ResultsView() {
 
       {/* Verdict reveal with count-up (Phase 3.3) */}
       <VerdictReveal
-        confidenceScore={computeConfidenceScore({}).score}
+        confidenceScore={confidenceScore}
         roiMultiple={roiMultiple}
         netAnnualBenefit={active.netAnnualBenefit}
         className="mb-10"
@@ -560,19 +775,14 @@ export function ResultsView() {
         onSelect={setActiveScenario}
       />
 
-      {/* Assumptions — collapsible on mobile via progressive disclosure */}
+      {/* AssumptionsTable (viableo version) — input quality breakdown */}
       <div className="mb-10 mt-12">
-        <h2 className="mb-4 font-display text-[22px] font-semibold tracking-[-0.02em] text-ink">
-          Assumptions
-        </h2>
-        <p className="mb-4 text-[14px] text-ink-muted">
-          Every input that feeds the calculation. Fields tagged &quot;context&quot; do not
-          affect the dollar math.
-        </p>
-        {/* Desktop: full table. Mobile: progressive disclosure wrapper. */}
-        <div className="md:block">
-          <AssumptionsTable inputs={inputs} />
-        </div>
+        <ViableoAssumptionsTable inputs={assumptionsRows} />
+      </div>
+
+      {/* VerificationBadge — tamper-evident trust signal */}
+      <div className="mb-8 flex justify-center">
+        <VerificationBadge hash={verificationData.hash} timestamp={verificationData.timestamp} />
       </div>
 
       {/* Sticky secondary actions */}

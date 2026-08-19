@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { DeltaView } from './delta-view';
 
-interface ChallengeResult {
+export interface ChallengeResult {
   originalResults: {
     verdict: string;
     confidence: number;
@@ -42,7 +42,12 @@ interface ChallengePanelProps {
   fieldName: string;
   currentValue: number;
   unit?: string;
-  projectId: string;
+  /** When provided, the challenge runs entirely client-side via this callback
+   *  instead of hitting the /api/projects/[id]/challenge endpoint.
+   *  Use this when no projectId is available (e.g. unsaved results view). */
+  onChallenge?: (field: string, newValue: number) => Promise<ChallengeResult>;
+  /** Legacy API-based mode — requires a saved project. Ignored when onChallenge is provided. */
+  projectId?: string;
   onChallengeComplete?: (delta: ChallengeResult['delta']) => void;
 }
 
@@ -59,6 +64,7 @@ export function ChallengePanel({
   fieldName,
   currentValue,
   unit = '',
+  onChallenge,
   projectId,
   onChallengeComplete,
 }: ChallengePanelProps) {
@@ -91,18 +97,28 @@ export function ChallengePanel({
     setErrorMsg('');
 
     try {
-      const res = await fetch(`/api/projects/${projectId}/challenge`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field: fieldName, newValue: parsed }),
-      });
+      let data: ChallengeResult;
 
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? `Request failed (${res.status})`);
+      if (onChallenge) {
+        // Client-side mode — no API round-trip.
+        data = await onChallenge(fieldName, parsed);
+      } else if (projectId) {
+        // Legacy API-based mode.
+        const res = await fetch(`/api/projects/${projectId}/challenge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ field: fieldName, newValue: parsed }),
+        });
+
+        if (!res.ok) {
+          const errBody = (await res.json()) as { error?: string };
+          throw new Error(errBody.error ?? `Request failed (${res.status})`);
+        }
+
+        data = (await res.json()) as ChallengeResult;
+      } else {
+        throw new Error('No projectId or onChallenge handler provided.');
       }
-
-      const data = (await res.json()) as ChallengeResult;
       setResult(data);
       setState('result');
       onChallengeComplete?.(data.delta);

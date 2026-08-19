@@ -9,6 +9,16 @@ const config: Config = {
   theme: {
         extend: {
                 colors: {
+                        navy: {
+                                900: '#0F172A',
+                                700: '#1E293B',
+                                500: '#334155',
+                        },
+                        verdict: {
+                                build: '#059669',
+                                consider: '#D97706',
+                                dontbuild: '#DC2626',
+                        },
                         background: 'hsl(var(--background))',
                         foreground: 'hsl(var(--foreground))',
                         card: {
