@@ -9,8 +9,9 @@ import {
   PRODUCT_NAME,
   BRAND_TAGLINE,
 } from "@/lib/brand";
+import { siteUrl } from "@/lib/site-url";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://viableo.app";
+const SITE_URL = siteUrl();
 
 // Inter is the primary body family (Section 5.2).
 const inter = Inter({
@@ -151,9 +152,9 @@ const jsonLd = {
       operatingSystem: "Web",
       offers: [
         { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
-        { "@type": "Offer", price: "39", priceCurrency: "USD", name: "Case pack" },
-        { "@type": "Offer", price: "249", priceCurrency: "USD", name: "Agency" },
-        { "@type": "Offer", price: "499", priceCurrency: "USD", name: "Agency Pro" },
+        { "@type": "Offer", price: "29", priceCurrency: "USD", name: "Pro", description: "per month" },
+        { "@type": "Offer", price: "79", priceCurrency: "USD", name: "Agency", description: "per month" },
+        { "@type": "Offer", price: "790", priceCurrency: "USD", name: "Agency Pro", description: "per year" },
       ],
       publisher: { "@id": `${SITE_URL}/#organization` },
     },

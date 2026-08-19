@@ -2,7 +2,8 @@
  * NextAuth configuration — v4 with Prisma adapter.
  *
  * Providers:
- *   - GitHub OAuth (production + dev)
+ *   - GitHub OAuth (production + dev, when GITHUB_ID is set)
+ *   - Google OAuth (when GOOGLE_CLIENT_ID is set)
  *   - Credentials (dev only — for seeded user fallback)
  *
  * Multi-tenancy:
@@ -26,6 +27,7 @@
  */
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import type { JWT } from 'next-auth/jwt';
@@ -36,13 +38,26 @@ import { ensureUserHasOrganization } from '@/lib/org-bootstrap';
 
 export const authOptions = {
   adapter: PrismaAdapter(db),
+  // Build providers array conditionally based on available env vars.
   providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_ID ?? '',
-      clientSecret: process.env.GITHUB_SECRET ?? '',
-    }),
+    ...(process.env.GITHUB_ID && process.env.GITHUB_SECRET
+      ? [
+          GitHubProvider({
+            clientId: process.env.GITHUB_ID,
+            clientSecret: process.env.GITHUB_SECRET,
+          }),
+        ]
+      : (console.warn('[auth] GITHUB_ID or GITHUB_SECRET is missing — GitHub provider disabled.'), [])),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : (console.warn('[auth] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is missing — Google provider disabled.'), [])),
     // Credentials provider for dev/seeding — allows login with email only
-    // when GITHUB_ID is not configured. Disabled in production.
+    // when OAuth is not configured. Disabled in production.
     ...(process.env.NODE_ENV !== 'production'
       ? [
           CredentialsProvider({
@@ -66,7 +81,7 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined }) {
+    async jwt({ token, user, account }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined; account?: { provider?: string } | undefined }) {
       // On first sign-in, `user` is populated. After that, only `token`.
       if (user?.id) {
         token.sub = user.id;
@@ -100,7 +115,7 @@ export const authOptions = {
           userId: user.id,
           organizationId: (membership?.organizationId) ?? undefined,
           severity: 'info',
-          metadata: { provider: 'github' },
+          metadata: { provider: account?.provider ?? 'unknown' },
         }).catch(() => { /* observability must never fail the request */ });
       }
       return token;

@@ -1,23 +1,18 @@
-/**
- * POST /api/billing/checkout — create a Whop checkout session.
- *
- * Resolves organizationId server-side from the authenticated session.
- * Never trusts client-supplied organizationId.
- */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg } from '@/lib/session';
 import { AuthError } from '@/lib/auth';
 import { whopClient, WHOP_COMPANY_ID } from '@/lib/whop';
+import { resolveTierByWhopPlanId } from '@/lib/tenant';
 import { z } from 'zod';
 
-const PLAN_ID_BY_TIER: Record<'case_pack' | 'agency' | 'agency_pro', string> = {
-  case_pack: process.env.WHOP_PLAN_ID_CASE_PACK ?? 'TODO_HUMAN_WHOP_PLAN_ID_CASE_PACK',
+const PLAN_ID_BY_TIER: Record<'pro' | 'agency' | 'agency_pro', string> = {
+  pro: process.env.WHOP_PLAN_ID_PRO ?? 'TODO_HUMAN_WHOP_PLAN_ID_PRO',
   agency: process.env.WHOP_PLAN_ID_AGENCY ?? 'TODO_HUMAN_WHOP_PLAN_ID_AGENCY',
   agency_pro: process.env.WHOP_PLAN_ID_AGENCY_PRO ?? 'TODO_HUMAN_WHOP_PLAN_ID_AGENCY_PRO',
 };
 
 const requestSchema = z.object({
-  tier: z.enum(['case_pack', 'agency', 'agency_pro']),
+  tier: z.enum(['pro', 'agency', 'agency_pro']),
 });
 
 export async function POST(req: NextRequest) {
@@ -32,6 +27,16 @@ export async function POST(req: NextRequest) {
       console.error(`[billing/checkout] Whop plan id for tier "${tier}" is not configured (env var missing)`);
       return NextResponse.json(
         { error: 'This plan is not yet available for purchase. Please contact support.' },
+        { status: 503 },
+      );
+    }
+
+    // Validate PlanMapping exists for this planId
+    const mappedTier = await resolveTierByWhopPlanId(planId);
+    if (!mappedTier) {
+      console.error(`[billing/checkout] PlanMapping not found for planId "${planId}"`);
+      return NextResponse.json(
+        { error: 'Plan configuration is missing. Please contact support.' },
         { status: 503 },
       );
     }

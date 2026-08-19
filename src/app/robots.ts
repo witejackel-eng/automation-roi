@@ -8,10 +8,10 @@
  * The sitemap URL is declared so crawlers discover it.
  */
 import type { MetadataRoute } from 'next';
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://viableo.app';
+import { siteUrl } from '@/lib/site-url';
 
 export default function robots(): MetadataRoute.Robots {
+  const origin = siteUrl();
   return {
     rules: [
       {
@@ -20,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/app', '/r', '/api'],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
-    host: BASE_URL,
+    sitemap: `${origin}/sitemap.xml`,
+    host: origin,
   };
 }

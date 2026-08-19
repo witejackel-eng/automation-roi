@@ -22,9 +22,8 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// NOTE: terms@viableo.app is an honest placeholder — swap for a real
-// monitored address before production launch.
-const TERMS_EMAIL = 'terms@viableo.app';
+// TODO_HUMAN_TERMS_EMAIL: replace with a monitored address before production launch.
+const TERMS_EMAIL = 'terms@TODO_HUMAN_DOMAIN';
 
 export default function TermsPage() {
   return (
@@ -73,12 +72,12 @@ export default function TermsPage() {
             <div>
               <SectionHeading
                 eyebrow="Licenses"
-                title="Per-case and unlimited. One-time."
+                title="Monthly and annual subscriptions."
               >
                 <p>
-                  Viableo is licensed as a one-time purchase, not a
-                  subscription. There are four tiers. The value metric is a
-                  case — one full idea to decision to business-case run.
+                  Viableo is licensed as a subscription. There are four tiers.
+                  The value metric is a case — one full idea to decision to
+                  business-case run.
                 </p>
                 <div className="mt-8 overflow-hidden rounded-md border border-border">
                   <table className="w-full text-left text-[14px]">
@@ -92,44 +91,42 @@ export default function TermsPage() {
                     <tbody className="font-mono tnum text-ink">
                       <tr className="border-t border-border">
                         <td className="px-4 py-3 font-sans text-ink">Free</td>
-                        <td className="px-4 py-3">$0</td>
+                        <td className="px-4 py-3">$0 / forever</td>
                         <td className="px-4 py-3 font-sans text-ink-muted">
-                          One active case. Full analytical rigor. Watermarked
+                          One case per month. Full analytical rigor. Watermarked
                           report.
                         </td>
                       </tr>
                       <tr className="border-t border-border">
                         <td className="px-4 py-3 font-sans text-ink">
-                          Case pack
+                          Pro
                         </td>
-                        <td className="px-4 py-3">$39 per case</td>
+                        <td className="px-4 py-3">$29 per month</td>
                         <td className="px-4 py-3 font-sans text-ink-muted">
-                          Buy cases as you need them. Unwatermarked outputs.
+                          Five cases per month. Unwatermarked PDFs, share links.
                         </td>
                       </tr>
                       <tr className="border-t border-border">
                         <td className="px-4 py-3 font-sans text-ink">Agency</td>
-                        <td className="px-4 py-3">$249</td>
+                        <td className="px-4 py-3">$79 per month</td>
                         <td className="px-4 py-3 font-sans text-ink-muted">
-                          Unlimited cases. Multi-seat. Share-link approval
-                          tracking.
+                          Unlimited cases. Your branding on every document.
                         </td>
                       </tr>
                       <tr className="border-t border-border">
                         <td className="px-4 py-3 font-sans text-ink">
                           Agency Pro
                         </td>
-                        <td className="px-4 py-3">$499</td>
+                        <td className="px-4 py-3">$790 per year</td>
                         <td className="px-4 py-3 font-sans text-ink-muted">
-                          Everything in Agency, plus white-label and API
-                          access.
+                          Everything in Agency, plus team seats and API access.
                         </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
                 <p className="mt-6 text-[13px] leading-[1.6] text-ink-faint">
-                  Prices are one-time, not recurring. Whop handles checkout.
+                  Monthly and annual subscriptions. Cancel any time.
                 </p>
               </SectionHeading>
             </div>
@@ -158,7 +155,7 @@ export default function TermsPage() {
             <div>
               <SectionHeading eyebrow="Refunds" title="Contact within fourteen days.">
                 <p>
-                  Case packs are refundable on request within fourteen days
+                  Pro subscriptions are refundable on request within fourteen days
                   of purchase, provided the cases have not been consumed. If
                   you have used one or more of the cases in a pack and are not
                   satisfied, write to us — we will look at it and, where the

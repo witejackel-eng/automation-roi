@@ -74,6 +74,10 @@ db/*.db-journal
 # Vercel
 .vercel
 
+# Playwright
+playwright-report/
+test-results/
+
 # ── Sandbox / non-product files (Phase 8 cleanup — F-8) ───────────────
 # NOTE: the `upload/` rule below is anchored to the repo ROOT with a leading
 # slash so it ONLY ignores the top-level mandate-uploads directory

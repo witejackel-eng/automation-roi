@@ -1,19 +1,6 @@
 /**
- * Pricing view — sparse, typography-first redesign (piplanning.io-inspired).
- *
- * Design rules applied:
- *   - Massive headline dominates the hero band.
- *   - Generous whitespace between cards and sections.
- *   - Primary CTAs are dark charcoal, never bright coral.
- *   - The "Most popular" accent on Agency is a quiet charcoal hairline,
- *     not a saturated coral top border. The single tiny coral accent left
- *     on this page is the italic tier-identity line (the quotable line
- *     per Voice Spec §5.4) — that is the ~5% accent budget.
- *   - Cards feel premium and airy: 32px padding, generous line-height,
- *     clear hierarchy, quiet borders.
- *
- * Headline / subhead / footnote are imported from `brand.ts` so this view
- * cannot drift from the marketing surface.
+ * Pricing view — renders ONLY from PRICING_TIERS in brand.ts.
+ * No literal prices in JSX. No 'templates' feature references.
  */
 import * as React from 'react';
 import Link from 'next/link';
@@ -50,18 +37,17 @@ const FEATURES: Record<string, string[]> = {
     'Confidence score on the recommendation',
     'Watermarked document',
   ],
-  case_pack: [
+  pro: [
     'Everything in Free, unwatermarked',
-    'One case credit, no expiry',
+    'Five cases per month',
     'Saved projects',
     'Client report PDF',
     'Why-this-recommendation breakdown',
   ],
   agency: [
-    'Everything in Case pack',
+    'Everything in Pro',
     'Unlimited cases',
     'Agency branding on PDFs',
-    'Reusable client templates',
     'Client history dashboard',
   ],
   agency_pro: [
@@ -69,7 +55,7 @@ const FEATURES: Record<string, string[]> = {
     'White-label PDFs',
     'Team seats',
     'Client-facing share links',
-    'Per-client history \u2014 re-open any case',
+    'Per-client history — re-open any case',
   ],
 };
 
@@ -91,7 +77,7 @@ const HEADLINE_LINES = PRICING_HEADLINE.split('. ');
 export function PricingView() {
   return (
     <div className="w-full bg-canvas">
-      {/* ── Hero band ─────────────────────────────────────────────────── */}
+      {/* ── Hero band ───────────────────────────────────── */}
       <section className="border-b border-border bg-canvas">
         <div className="mx-auto w-full max-w-[1100px] px-4 md:px-6">
           <div className="py-24 md:py-36">
@@ -115,7 +101,7 @@ export function PricingView() {
         </div>
       </section>
 
-      {/* ── Pricing cards ─────────────────────────────────────────────── */}
+      {/* ── Pricing cards ─────────────────────────── */}
       <section className="bg-canvas">
         <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-28">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
@@ -209,7 +195,7 @@ export function PricingView() {
         </div>
       </section>
 
-      {/* ── Quiet closing CTA band ──────────────────────────────────────── */}
+      {/* ── Quiet closing CTA band ───────────────────────── */}
       <section className="bg-ink text-white">
         <div className="mx-auto w-full max-w-[1100px] px-4 py-24 md:px-6 md:py-36">
           <h2 className="max-w-[760px] font-display text-[clamp(2rem,5vw,3.75rem)] font-bold leading-[0.98] tracking-[-0.03em]">

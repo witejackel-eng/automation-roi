@@ -237,10 +237,10 @@ model Subscription {
   // Timestamp of the last processed webhook event for this subscription,
   // used to reject out-of-order / replayed events.
   lastWebhookEventAt DateTime?
-  // Internal plan key, e.g. "case_pack". Distinct from the raw
+  // Internal plan key, e.g. "pro". Distinct from the raw
   // Whop plan id (see PlanMapping).
   planKey            String
-  // 'free' | 'case_pack' | 'agency' | 'agency_pro' — derived via PlanMapping.
+  // 'free' | 'pro' | 'agency' | 'agency_pro' — derived via PlanMapping.
   tier               String
   // Mirrors Whop MembershipStatus:
   // trialing|active|past_due|completed|canceled|expired|unresolved|drafted|canceling

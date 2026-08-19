@@ -4,10 +4,10 @@
  * and therefore excluded from the sitemap.
  */
 import type { MetadataRoute } from 'next';
-
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://viableo.app';
+import { siteUrl } from '@/lib/site-url';
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const origin = siteUrl();
   const now = new Date();
   const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -27,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   return routes.map((r) => ({
-    url: `${BASE_URL}${r.path}`,
+    url: `${origin}${r.path}`,
     lastModified: r.path === '' ? now : lastMonth,
     changeFrequency: r.changeFrequency,
     priority: r.priority,

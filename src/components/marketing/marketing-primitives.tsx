@@ -15,7 +15,7 @@ import { CTA_PRIMARY, CTA_SECONDARY } from '@/lib/brand';
  * Headlines: HUGE + BOLD + TIGHT (tracking-[-0.02em] leading-[0.95–1.05]).
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://viableo.app';
+import { siteUrl } from '@/lib/site-url';
 
 // ── CTAs ────────────────────────────────────────────────────────────
 
@@ -249,7 +249,7 @@ export function BreadcrumbJsonLd({
       '@type': 'ListItem',
       position: i + 1,
       name: c.name,
-      item: `${SITE_URL}${c.path === '/' ? '/' : c.path}`,
+      item: `${siteUrl()}${c.path === '/' ? '/' : c.path}`,
     })),
   };
   return (

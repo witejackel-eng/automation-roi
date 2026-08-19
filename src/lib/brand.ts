@@ -203,55 +203,52 @@ export const COMPARISON_ROWS = [
   { need: 'Maintenance-adjusted costs', generic: false, spreadsheet: false, genericRoi: false, viableo: true },
 ] as const;
 
-// ── Pricing (Section F + K, E11) ─────────────────────────────
-export const PRICING_HEADLINE = 'One price. Yours forever.';
+// ── Pricing (Section F + K, E11) ──────────────
+export const PRICING_HEADLINE = 'Pick the plan that fits the work.';
 export const PRICING_SUBHEAD =
-  'Pay once per case, or once for unlimited cases. No renewal, no seat count, no surprise.';
-export const PRICING_FOOTNOTE = 'One-time. Not a subscription.';
+  'Start free. Upgrade when you need client-ready documents. Cancel any time.';
+export const PRICING_FOOTNOTE = 'Monthly and annual subscriptions. Cancel any time.';
 export const DATA_HANDLING_LINE =
   'Viableo needs no client-identifying data to return a verdict. Hours, rates, volumes, and a fee are enough.';
-// One-time pricing — matches the headline, sub-copy, footnote, meta description,
-// and JSON-LD offers. The previous $29/mo, $79/mo, $790/yr subscription framing
-// contradicted the rest of the page; this is the single source of truth.
 export const PRICING_TIERS = [
   {
     key: 'free',
     name: 'Free',
     price: '$0',
-    cadence: 'one-time',
+    cadence: 'forever',
     popular: false,
     identity: 'Try it once.',
-    blurb: 'One case. Full analytical rigor \u2014 confidence scoring, stress test, scenarios. Watermarked document.',
+    blurb: 'One case per month. Full analytical rigor — confidence scoring, stress test, scenarios. Watermarked document.',
     casesPerMonth: 1,
   },
   {
-    key: 'case_pack',
-    name: 'Case pack',
-    price: '$39',
-    cadence: 'per case',
-    popular: false,
-    identity: 'Full document.',
-    blurb: 'Full document, no watermark. Buy a case credit when you need it.',
-    casesPerMonth: 1,
+    key: 'pro',
+    name: 'Pro',
+    price: '$29',
+    cadence: 'per month',
+    popular: true,
+    identity: 'Full documents.',
+    blurb: 'Five cases per month. Unwatermarked PDFs, saved projects, share links.',
+    casesPerMonth: 5,
   },
   {
     key: 'agency',
     name: 'Agency',
-    price: '$249',
-    cadence: 'one-time',
+    price: '$79',
+    cadence: 'per month',
     popular: false,
     identity: 'Unlimited cases.',
-    blurb: 'Unlimited cases. Your branding on every document.',
+    blurb: 'Unlimited cases. Your branding on every document. Client history.',
     casesPerMonth: Infinity,
   },
   {
     key: 'agency_pro',
     name: 'Agency Pro',
-    price: '$499',
-    cadence: 'one-time',
+    price: '$790',
+    cadence: 'per year',
     popular: false,
     identity: 'Make it yours.',
-    blurb: 'Unlimited cases, branding, and client history \u2014 kept per client so you can re-open a case.',
+    blurb: 'Unlimited cases, branding, client history, team seats, and API access.',
     casesPerMonth: Infinity,
   },
 ] as const;

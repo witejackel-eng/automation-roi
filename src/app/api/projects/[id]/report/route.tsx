@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   const entitlement = await getOrgEntitlement(org.id);
   if (!has(entitlement, 'client_report')) {
     return NextResponse.json(
-      { error: 'Client report generation requires Pro or higher.', requiredTier: 'case_pack' },
+      { error: 'Client report generation requires Pro or higher.', requiredTier: 'pro' },
       { status: 403 }
     );
   }

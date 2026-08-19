@@ -27,7 +27,7 @@ export const dynamic = 'force-dynamic';
 
 const QA_ORG_ID = process.env.QA_ORG_ID;
 
-const ALLOWED_TIERS: Tier[] = ['free', 'case_pack', 'agency', 'agency_pro'];
+const ALLOWED_TIERS: Tier[] = ['free', 'pro', 'agency', 'agency_pro'];
 
 export default async function AdminQaPage() {
   try {

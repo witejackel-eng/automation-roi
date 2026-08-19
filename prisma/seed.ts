@@ -9,7 +9,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const SEED_USER_EMAIL = 'demo@viableo.app';
+// TODO_HUMAN_SEED_EMAIL: replace with a real email for seed data.
+const SEED_USER_EMAIL = 'demo@TODO_HUMAN_DOMAIN';
 const SEED_ORG_NAME = 'Apex Automation Studio';
 
 async function main() {

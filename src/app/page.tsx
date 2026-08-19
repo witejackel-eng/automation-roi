@@ -14,7 +14,9 @@ import { COMPANY_NAME, PRODUCT_NAME } from '@/lib/brand';
  * The application (calculator / results / projects / settings / pricing views)
  * lives at /start, reached via `<Link href="/start?start=1">` from every CTA.
  */
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+import { siteUrl } from '@/lib/site-url';
+
+const SITE_URL = siteUrl();
 
 export const metadata: Metadata = {
   title: `${COMPANY_NAME} — ${PRODUCT_NAME}`,

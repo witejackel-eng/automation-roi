@@ -200,6 +200,47 @@ export function tenant(orgId: string) {
           data: { ...(args.data as Prisma.PaymentUncheckedCreateInput), organizationId: orgId },
         }),
     },
+
+    // ── Reports (Task 8) ───────────────────────────────────────
+    // Report has projectId (not direct organizationId), so we scope
+    // via project.organizationId.
+    reports: {
+      findMany: <T extends Omit<Prisma.ReportFindManyArgs, 'where'>>(
+        args?: T & { where?: Prisma.ReportWhereInput },
+      ) =>
+        db.report.findMany({
+          ...(args as Prisma.ReportFindManyArgs),
+          where: { ...(args?.where as Prisma.ReportWhereInput), project: { organizationId: orgId } },
+        }),
+      findUnique: (args: { id: string }) =>
+        db.report.findUnique({
+          where: { id: args.id, project: { organizationId: orgId } },
+        }),
+      create: (args: Omit<Prisma.ReportCreateArgs, 'data'> & {
+        data: Omit<Prisma.ReportCreateArgs['data'], 'projectId'>;
+        projectId: string;
+      }) =>
+        db.report.create({
+          ...(args as Prisma.ReportCreateArgs),
+          data: { ...(args.data as Prisma.ReportUncheckedCreateInput), projectId: args.projectId },
+        }),
+      update: (args: { where: { id: string } } & Omit<Prisma.ReportUpdateArgs, 'where' | 'data'> & {
+        data: Prisma.ReportUpdateArgs['data'];
+      }) =>
+        db.report.update({
+          ...(args as unknown as Prisma.ReportUpdateArgs),
+          where: { id: args.where.id, project: { organizationId: orgId } },
+        }),
+      delete: (args: { id: string }) =>
+        db.report.delete({ where: { id: args.id, project: { organizationId: orgId } } }),
+      count: (args?: Omit<Prisma.ReportCountArgs, 'where'> & {
+        where?: Omit<Prisma.ReportCountArgs['where'], 'project'>;
+      }) =>
+        db.report.count({
+          ...(args as Prisma.ReportCountArgs),
+          where: { ...(args?.where as Prisma.ReportWhereInput), project: { organizationId: orgId } },
+        }),
+    },
   };
 }
 

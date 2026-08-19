@@ -32,7 +32,7 @@ export function CheckoutButton({ tier, tierName, className, popular }: CheckoutB
         body: JSON.stringify({ tier }),
       });
       if (res.status === 503) {
-        setError('This plan isn\'t available for purchase yet — please check back soon or contact hello@viableo.app.');
+        setError('This plan isn\'t available for purchase yet — please check back soon or contact support.');
         return;
       }
       if (!res.ok) {

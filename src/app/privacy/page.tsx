@@ -22,9 +22,8 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// NOTE: privacy@viableo.app is an honest placeholder — swap for a real
-// monitored address before production launch.
-const PRIVACY_EMAIL = 'privacy@viableo.app';
+// TODO_HUMAN_PRIVACY_EMAIL: replace with a monitored address before production launch.
+const PRIVACY_EMAIL = 'privacy@TODO_HUMAN_DOMAIN';
 
 export default function PrivacyPage() {
   return (

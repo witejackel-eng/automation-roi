@@ -823,7 +823,7 @@ function PricingSection() {
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PRICING_TIERS.map((tier) => {
             const isFree = tier.key === 'free';
-            const href = isFree ? '/start?start=1' : 'mailto:hello@viableo.app?subject=Viableo%20pricing';
+            const href = isFree ? '/start?start=1' : '/pricing';
             const ctaLabel = isFree ? 'Start free' : 'Contact to buy';
             return (
               <div
