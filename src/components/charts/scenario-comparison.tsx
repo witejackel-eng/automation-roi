@@ -215,7 +215,7 @@ export function ScenarioComparison({
                   fillOpacity={entry.fillOpacity}
                 />
               ))}
-              <LabelList dataKey="value" content={makeScenarioValueLabel(data) as unknown as React.ReactNode} />
+              <LabelList dataKey="value" content={makeScenarioValueLabel(data) as any} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

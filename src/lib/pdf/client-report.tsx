@@ -44,17 +44,17 @@ import { computeSensitivity, type SensitivityItem } from '@/lib/calculations/str
 
 const styles = StyleSheet.create({
   ...PDF_STYLES,
-  coverWrap: { flex: 1, flexDirection: 'column', justifyContent: 'space-between', height: '100%' } as React.CSSProperties,
-  coverTitle: { fontFamily: PDF_DISPLAY, fontWeight: 700, fontSize: 36, color: PDF_COLORS.ink, letterSpacing: -0.5 } as React.CSSProperties,
-  coverSubtitle: { fontFamily: PDF_SANS, fontSize: 13, color: PDF_COLORS.inkMuted, marginTop: 6 } as React.CSSProperties,
-  coverMeta: { fontFamily: PDF_SANS, fontSize: 10.5, color: PDF_COLORS.inkMuted, marginTop: 4 } as React.CSSProperties,
-  sectionTitle: { fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 18, color: PDF_COLORS.ink, marginBottom: 10 } as React.CSSProperties,
-  bulletItem: { fontFamily: PDF_SANS, fontSize: 10.5, color: PDF_COLORS.ink, marginBottom: 5, marginLeft: 14 } as React.CSSProperties,
-  tableHeaderCell: { fontFamily: PDF_SANS, fontSize: 8.5, color: PDF_COLORS.inkMuted, textTransform: 'uppercase', letterSpacing: 0.5, paddingBottom: 4 } as React.CSSProperties,
-  tableRowCell: { fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.ink, paddingTop: 4, paddingBottom: 4 } as React.CSSProperties,
-  tableRowMono: { fontFamily: PDF_MONO, fontSize: 10, color: PDF_COLORS.ink, paddingTop: 4, paddingBottom: 4 } as React.CSSProperties,
-  contextTag: { fontFamily: PDF_SANS, fontSize: 7, color: PDF_COLORS.inkFaint, marginLeft: 4 } as React.CSSProperties,
-});
+  coverWrap: { flex: 1, flexDirection: 'column', justifyContent: 'space-between', height: '100%' },
+  coverTitle: { fontFamily: PDF_DISPLAY, fontWeight: 700, fontSize: 36, color: PDF_COLORS.ink, letterSpacing: -0.5 },
+  coverSubtitle: { fontFamily: PDF_SANS, fontSize: 13, color: PDF_COLORS.inkMuted, marginTop: 6 },
+  coverMeta: { fontFamily: PDF_SANS, fontSize: 10.5, color: PDF_COLORS.inkMuted, marginTop: 4 },
+  sectionTitle: { fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 18, color: PDF_COLORS.ink, marginBottom: 10 },
+  bulletItem: { fontFamily: PDF_SANS, fontSize: 10.5, color: PDF_COLORS.ink, marginBottom: 5, marginLeft: 14 },
+  tableHeaderCell: { fontFamily: PDF_SANS, fontSize: 8.5, color: PDF_COLORS.inkMuted, textTransform: 'uppercase', letterSpacing: 0.5, paddingBottom: 4 },
+  tableRowCell: { fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.ink, paddingTop: 4, paddingBottom: 4 },
+  tableRowMono: { fontFamily: PDF_MONO, fontSize: 10, color: PDF_COLORS.ink, paddingTop: 4, paddingBottom: 4 },
+  contextTag: { fontFamily: PDF_SANS, fontSize: 7, color: PDF_COLORS.inkFaint, marginLeft: 4 },
+} as Record<string, any>);
 
 interface ClientReportProps {
   inputs: CalculatorInputs;
@@ -98,7 +98,7 @@ export function ClientReport({
       <Page size="LETTER" style={styles.page}>
         <View style={{ marginBottom: 24 }}>
           {agencyTierCanBrand && branding?.logoUrl ? (
-            <PdfLogo src={branding.logoUrl} alt={agencyName} />
+            <PdfLogo src={branding.logoUrl} />
           ) : (
             <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 700, fontSize: 16, color: PDF_COLORS.ink }}>
               {agencyName}
@@ -557,13 +557,13 @@ function ScenarioTable({
   );
 }
 
-function PdfLogo({ src, alt }: { src: string; alt: string }) {
+function PdfLogo({ src }: { src: string }) {
   // @react-pdf/renderer Image requires a fixed size; we cap height.
   return (
+  // eslint-disable-next-line jsx-a11y/alt-text
     <Image
       src={src}
-      style={{ height: 40, width: 'auto', objectFit: 'contain' }}
-      alt={alt}
+      style={{ height: 40, width: 'auto' }}
     />
   );
 }

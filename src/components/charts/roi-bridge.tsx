@@ -241,7 +241,7 @@ export function RoiBridge({ result, isRevenueOpportunityOnly }: RoiBridgeProps) 
                   fillOpacity={entry.fillOpacity ?? 1}
                 />
               ))}
-              <LabelList dataKey="range" content={makeRoiBridgeValueLabel(data) as unknown as React.ReactNode} />
+              <LabelList dataKey="range" content={makeRoiBridgeValueLabel(data) as any} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

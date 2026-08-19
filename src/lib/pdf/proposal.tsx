@@ -35,11 +35,11 @@ import { recommend } from '@/lib/calculations/recommendation';
 
 const styles = StyleSheet.create({
   ...PDF_STYLES,
-  sectionTitle: { fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 16, color: PDF_COLORS.ink, marginBottom: 8 } as React.CSSProperties,
-  kpiLabel: { fontFamily: PDF_SANS, fontSize: 8, color: PDF_COLORS.inkMuted, letterSpacing: 1, marginBottom: 2 } as React.CSSProperties,
-  kpiValue: { fontFamily: PDF_MONO, fontSize: 16, color: PDF_COLORS.ink } as React.CSSProperties,
-  kpiCard: { flex: 1, borderWidth: 1, borderColor: PDF_COLORS.border, borderRadius: 4, padding: 10 } as React.CSSProperties,
-});
+  sectionTitle: { fontFamily: PDF_DISPLAY, fontWeight: 600, fontSize: 16, color: PDF_COLORS.ink, marginBottom: 8 },
+  kpiLabel: { fontFamily: PDF_SANS, fontSize: 8, color: PDF_COLORS.inkMuted, letterSpacing: 1, marginBottom: 2 },
+  kpiValue: { fontFamily: PDF_MONO, fontSize: 16, color: PDF_COLORS.ink },
+  kpiCard: { flex: 1, borderWidth: 1, borderColor: PDF_COLORS.border, borderRadius: 4, padding: 10 },
+} as Record<string, any>);
 
 interface ProposalProps {
   inputs: CalculatorInputs;

@@ -24,10 +24,12 @@
  *     'SUPERADMIN' → throws AuthError(403) otherwise. Server-side
  *     primitive consumed by Agent 2's /api/admin/** routes.
  */
-import NextAuth from 'next-auth';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
+import type { JWT } from 'next-auth/jwt';
+import type { Session } from 'next-auth';
 import { db } from '@/lib/db';
 import { logSystemEvent } from '@/lib/observability/system-event';
 import { ensureUserHasOrganization } from '@/lib/org-bootstrap';
@@ -64,7 +66,7 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user }: { token: Record<string, unknown>; user?: { id?: string; systemRole?: string } }) {
+    async jwt({ token, user }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined }) {
       // On first sign-in, `user` is populated. After that, only `token`.
       if (user?.id) {
         token.sub = user.id;
@@ -103,9 +105,9 @@ export const authOptions = {
       }
       return token;
     },
-    async session({ session, token }: { session: Record<string, unknown>; token: Record<string, unknown> }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user && token.sub) {
-        (session.user as Record<string, unknown>).id = token.sub;
+        session.user.id = token.sub;
       }
       // Extend session with org context + system role.
       (session as SessionWithOrg).organizationId =
