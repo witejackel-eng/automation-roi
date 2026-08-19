@@ -21,7 +21,7 @@ const FORBIDDEN_PATTERNS = [
 ];
 
 // Directories to exclude
-const EXCLUDED_DIRS = ['docs/history', 'prisma/migrations'];
+const EXCLUDED_DIRS = ['prisma/migrations'];
 
 // File extensions to scan
 const SCAN_EXTENSIONS = new Set(['.ts', '.tsx']);

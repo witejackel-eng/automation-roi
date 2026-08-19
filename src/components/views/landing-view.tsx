@@ -134,7 +134,7 @@ function roiAsMultiplier(roiPct: number | null | undefined): string {
  */
 export function LandingView() {
   return (
-    <main className="w-full">
+    <main id="main-content" className="w-full">
       <HeroSection />
       <TrustBar />
       <ProblemStatement />
@@ -983,7 +983,7 @@ function StressTestTeaser() {
             <button
               type="button"
               onClick={() => startCalculator()}
-              className="mt-8 inline-flex w-full min-h-[48px] items-center justify-center gap-2 rounded-full bg-brand px-6 text-[14px] font-medium text-white shadow-[0_1px_2px_rgba(255,22,75,0.20)] transition-[transform,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:shadow-[0_10px_24px_-6px_rgba(255,22,75,0.30)]"
+              className="mt-8 inline-flex w-full min-h-[48px] items-center justify-center gap-2 rounded-full bg-brand-cta px-6 text-[14px] font-medium text-white shadow-[0_1px_2px_rgba(183,15,56,0.20)] transition-[transform,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:bg-brand-cta-hover hover:shadow-[0_10px_24px_-6px_rgba(183,15,56,0.30)]"
             >
               {CTA_PRIMARY}
             </button>
@@ -1414,7 +1414,7 @@ function FinalCTA() {
             <motion.button
               type="button"
               onClick={() => startCalculator()}
-              className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-brand px-8 text-[15px] font-semibold text-white shadow-[0_1px_2px_rgba(255,22,75,0.25)] transition-[transform,background-color,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:bg-brand-hover hover:shadow-[0_10px_24px_-6px_rgba(255,22,75,0.35)]"
+              className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-brand-cta px-8 text-[15px] font-semibold text-white shadow-[0_1px_2px_rgba(183,15,56,0.25)] transition-[transform,background-color,box-shadow] duration-[180ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[1.5px] hover:bg-brand-cta-hover hover:shadow-[0_10px_24px_-6px_rgba(183,15,56,0.35)]"
               whileHover={{ y: -2 }}
               whileTap={{ y: 0 }}
               transition={{ duration: 0.2, ease: EASE_OUT }}

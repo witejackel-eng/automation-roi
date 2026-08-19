@@ -66,7 +66,7 @@ export default function MakeAgenciesPage() {
           { name: 'Make agencies', path: '/solutions/make-agencies' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Solutions · Make agencies" title="For Make agencies.">
           <p>
             Viableo models the economics behind Make scenarios. The labor and

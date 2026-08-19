@@ -74,7 +74,7 @@ export default function ResourceAutomationCostPage() {
           { name: 'Automation cost', path: '/resources/automation-cost' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Resources · Concept" title="Automation cost.">
           <p>
             Automation cost is what it costs to build and run an automation in

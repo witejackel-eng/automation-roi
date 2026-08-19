@@ -66,7 +66,7 @@ export default function ZapierAgenciesPage() {
           { name: 'Zapier agencies', path: '/solutions/zapier-agencies' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Solutions · Zapier agencies" title="For Zapier agencies.">
           <p>
             Viableo models the economics behind Zapier automations. The labor and

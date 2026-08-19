@@ -81,7 +81,7 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user, account }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined; account?: { provider?: string } | undefined }) {
+    async jwt({ token, user, account }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined; account?: { provider?: string } | null }) {
       // On first sign-in, `user` is populated. After that, only `token`.
       if (user?.id) {
         token.sub = user.id;

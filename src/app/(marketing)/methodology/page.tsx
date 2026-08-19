@@ -60,7 +60,7 @@ export default function MethodologyPage() {
           { name: 'Methodology', path: '/methodology' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Methodology" title={METHODOLOGY_HEADLINE}>
           <p>{METHODOLOGY_BODY}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

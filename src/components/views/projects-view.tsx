@@ -81,7 +81,7 @@ export function ProjectsView() {
         </div>
         <Button
           onClick={() => startCalculator()}
-          className="min-h-[44px] gap-1.5 bg-brand text-brand-foreground hover:bg-brand-hover"
+          className="min-h-[44px] gap-1.5 bg-brand-cta text-white hover:bg-brand-cta-hover"
         >
           <Plus className="size-4" strokeWidth={1.75} aria-hidden="true" />
           New analysis
@@ -257,7 +257,7 @@ function EmptyState({
       </div>
       <Button
         onClick={onCta}
-        className="mt-2 min-h-[44px] bg-brand text-brand-foreground hover:bg-brand-hover"
+        className="mt-2 min-h-[44px] bg-brand-cta text-white hover:bg-brand-cta-hover"
       >
         {cta}
       </Button>

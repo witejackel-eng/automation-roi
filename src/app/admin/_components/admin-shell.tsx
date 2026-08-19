@@ -51,7 +51,7 @@ export function AdminShell({ title, children }: { title: string; children: React
           ))}
         </nav>
       </header>
-      <main className="container mx-auto px-6 py-8">
+      <main id="main-content" className="container mx-auto px-6 py-8">
         <h2 className="mb-4 text-2xl font-bold">{title}</h2>
         {children}
       </main>

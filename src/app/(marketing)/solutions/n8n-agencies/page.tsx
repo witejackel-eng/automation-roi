@@ -66,7 +66,7 @@ export default function N8nAgenciesPage() {
           { name: 'n8n agencies', path: '/solutions/n8n-agencies' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Solutions · n8n agencies" title="For n8n agencies.">
           <p>
             Viableo models the economics behind n8n workflows. The labor and

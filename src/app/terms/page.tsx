@@ -34,7 +34,7 @@ export default function TermsPage() {
           { name: 'Terms', path: '/terms' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Terms" title="The terms under which Viableo is licensed.">
           <p>
             Viableo is a decision instrument for automation agencies — it

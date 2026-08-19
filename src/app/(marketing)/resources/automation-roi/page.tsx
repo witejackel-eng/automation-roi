@@ -55,7 +55,7 @@ export default function ResourceAutomationRoiPage() {
           { name: 'Automation ROI', path: '/resources/automation-roi' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Resources · Concept" title="Automation ROI.">
           <p>
             Automation ROI is the annual return on an automation project,

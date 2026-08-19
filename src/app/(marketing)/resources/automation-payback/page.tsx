@@ -53,7 +53,7 @@ export default function ResourceAutomationPaybackPage() {
           { name: 'Automation payback', path: '/resources/automation-payback' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Resources · Concept" title="Automation payback.">
           <p>
             Automation payback is how long it takes an automation to earn back

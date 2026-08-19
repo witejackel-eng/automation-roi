@@ -177,6 +177,13 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
       >
+        {/* Accessibility: first focusable element is a skip link (WCAG 2.4.1). */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-canvas focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand"
+        >
+          Skip to content
+        </a>
         <AuthProvider>
           <MotionProvider>{children}</MotionProvider>
         </AuthProvider>

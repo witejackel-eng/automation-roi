@@ -765,7 +765,7 @@ function EmptyResults({ onBack }: { onBack: () => void }) {
       </div>
       <Button
         onClick={onBack}
-        className="mt-2 min-h-[44px] bg-brand text-brand-foreground hover:bg-brand-hover"
+        className="mt-2 min-h-[44px] bg-brand-cta text-white hover:bg-brand-cta-hover"
       >
         Open the calculator
       </Button>

@@ -351,7 +351,7 @@ export function Wizard({ onComplete, onCancel, initialInputs }: WizardProps) {
          * footer above that bar.
          */}
         <main
-          id="wizard-step-top"
+          id="main-content"
           className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-24 md:px-6 md:py-8 lg:pb-8"
         >
           <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-6">
@@ -496,7 +496,7 @@ function WizardFooter({
         variant="default"
         onClick={onPrimary}
         disabled={isSubmitting}
-        className="min-w-[10rem] gap-1.5 bg-brand text-brand-foreground hover:bg-brand-hover"
+        className="min-w-[10rem] gap-1.5 bg-brand-cta text-white hover:bg-brand-cta-hover"
       >
         {isSubmitting ? (
           <>

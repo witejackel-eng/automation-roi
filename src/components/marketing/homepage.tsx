@@ -896,7 +896,7 @@ function CloseSection() {
 // ── The homepage ───────────────────────────────────────────────────────────
 export function ViableoHomepage() {
   return (
-    <main className="w-full">
+    <main id="main-content" className="w-full">
       <HeroSection />
       <ProblemSection />
       <ConsequenceSection />

@@ -73,7 +73,7 @@ export default function AutomationAgenciesPage() {
           { name: 'Automation agencies', path: '/solutions/automation-agencies' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Solutions · Automation agencies" title="For automation agencies.">
           <p>
             Agencies sell automation. Viableo proves the value before they build.

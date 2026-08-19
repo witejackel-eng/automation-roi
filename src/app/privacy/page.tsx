@@ -34,7 +34,7 @@ export default function PrivacyPage() {
           { name: 'Privacy', path: '/privacy' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Privacy" title="How Viableo handles data.">
           <p>
             Viableo needs no client-identifying data to return a verdict.

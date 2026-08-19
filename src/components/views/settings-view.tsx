@@ -302,7 +302,7 @@ export function SettingsView() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="gap-1.5 bg-brand text-brand-foreground hover:bg-brand-hover"
+            className="gap-1.5 bg-brand-cta text-white hover:bg-brand-cta-hover"
           >
             {saving ? (
               <>Saving…</>

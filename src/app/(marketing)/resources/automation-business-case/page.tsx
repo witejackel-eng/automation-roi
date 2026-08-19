@@ -85,7 +85,7 @@ export default function ResourceAutomationBusinessCasePage() {
           { name: 'Automation business case', path: '/resources/automation-business-case' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero eyebrow="Resources · Concept" title="Automation business case.">
           <p>
             An automation business case is the document a client signs before you

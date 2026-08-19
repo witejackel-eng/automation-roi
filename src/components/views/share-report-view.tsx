@@ -233,7 +233,7 @@ export function ShareReportView({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[900px] flex-1 px-4 py-12 md:px-6 md:py-16">
+      <main id="main-content" className="mx-auto w-full max-w-[900px] flex-1 px-4 py-12 md:px-6 md:py-16">
         {/* Verdict section — the headline IS the verdict (Voice Spec §5.9) */}
         <section id="verdict-section" aria-labelledby="verdict-heading">
           <div className="flex items-center gap-2 text-[12px] font-medium uppercase tracking-[0.005em] text-ink-muted">
@@ -451,7 +451,7 @@ export function ShareReportView({
                   <button
                     type="submit"
                     disabled={approvalLoading || !approvalName.trim()}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-brand px-5 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-brand-cta px-5 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                   >
                     {approvalLoading ? 'Sending\u2026' : approvalAction === 'approve' ? 'Confirm approval' : 'Send request'}
                   </button>

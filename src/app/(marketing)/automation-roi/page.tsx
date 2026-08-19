@@ -61,7 +61,7 @@ export default function AutomationRoiPage() {
           { name: 'Automation ROI', path: '/automation-roi' },
         ]}
       />
-      <main className="w-full">
+      <main id="main-content" className="w-full">
         <PageHero
           eyebrow="Automation ROI"
           title="Automation ROI, before you build."

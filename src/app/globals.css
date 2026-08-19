@@ -30,6 +30,13 @@
   --color-ink-soft: #353034;         /* --soft-charcoal: muted headings on dark */
 
   /* ── Brand / interactive accent — Viableo Coral ─────────── */
+  /* RESTRICTED USAGE: --color-brand (#FF164B) on --color-canvas (#FAFAF9) = 3.68:1,   */
+  /* BELOW the WCAG AA 4.5:1 threshold for body text. This token MUST be used ONLY for:   */
+  /*   1. Logo / large display type (>= 18px or >= 14px bold = WCAG "large text")       */
+  /*   2. Non-text / decorative contexts (dots, bars, icons, dividers)                    */
+  /*   3. Interactive hover states (hover:text-brand, hover:bg-brand)                     */
+  /* DO NOT use text-brand on body-text-sized elements on canvas/surface backgrounds.     */
+  /* For CTA buttons with white text, use --color-brand-cta instead (white-on = 6.69:1).  */
   --color-brand: #FF164B;           /* --viableo-coral: primary accent */
   --color-brand-hover: #B70F38;     /* --deep-crimson: hover, dark-surface accent */
   --color-brand-subtle: #FFF1F4;    /* ~12% coral tint for hover backgrounds */
