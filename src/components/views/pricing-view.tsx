@@ -14,16 +14,6 @@
  *
  * Headline / subhead / footnote are imported from `brand.ts` so this view
  * cannot drift from the marketing surface.
- *
- * CTAs (P0-9 fix): the previous flow POSTed to a gated internal endpoint that
- * returns 403 in production ("Entitlement changes must go through Whop
- * payment flow"). A repo-wide grep found NO Whop checkout URL. The honest
- * interim state, per the mandate:
- *   - Free tier → /start?start=1 (a real, working path)
- *   - Paid tiers (Case pack / Agency / Agency Pro) → mailto:hello@viableo.app
- *     with the CTA label "Contact to buy"
- * Every CTA is a real <Link> (or <a href> for mailto). Nothing on this page
- * posts to a gated endpoint or returns a 403.
  */
 import * as React from 'react';
 import Link from 'next/link';
@@ -36,6 +26,7 @@ import {
   PRICING_FOOTNOTE,
   CTA_PRIMARY,
 } from '@/lib/brand';
+import { CheckoutButton } from '@/components/checkout-button';
 
 interface Plan {
   key: string;
@@ -46,22 +37,11 @@ interface Plan {
   positioning: string;
   features: string[];
   popular?: boolean;
-  ctaHref: string;
-  ctaLabel: string;
 }
 
 // Per-tier feature lists — local to this view. Names / prices / cadence /
 // "Most popular" / one-line identity / blurb all come from PRICING_TIERS so
 // the canonical brand config stays the source of truth.
-//
-// P0-8: the Free tier features list says "Watermarked document" — matching
-// the brand.ts blurb ("Watermarked document"). It does NOT say "No PDF
-// export". The Free tier exports a watermarked document; it does not gate
-// the PDF behind a paywall and lie about it.
-//
-// P0-7: keys match PRICING_TIERS keys exactly (free / case_pack / agency /
-// agency_pro). The previous `pro` key caused `FEATURES[t.key]` to return
-// undefined and crash the page (dev log: TypeError at pricing-view.tsx:203).
 const FEATURES: Record<string, string[]> = {
   free: [
     'Calculator + all three scenarios',
@@ -93,37 +73,25 @@ const FEATURES: Record<string, string[]> = {
   ],
 };
 
-// Honest interim CTA routing (mandate §VERIFY BEFORE IMPLEMENTATION):
-// No Whop checkout URL exists in the repo. Free tier links to the live
-// calculator; paid tiers link to an honestly-labelled contact route.
 const FREE_CTA_HREF = '/start?start=1';
-const PAID_CTA_HREF = 'mailto:hello@viableo.app?subject=Viableo%20pricing';
-const PAID_CTA_LABEL = 'Contact to buy';
 
-const PLANS: Plan[] = PRICING_TIERS.map((t) => {
-  const isFree = t.key === 'free';
-  return {
-    key: t.key,
-    name: t.name,
-    price: t.price,
-    cadence: t.cadence,
-    identity: t.identity,
-    positioning: t.blurb,
-    features: FEATURES[t.key] ?? [],
-    popular: t.popular,
-    ctaHref: isFree ? FREE_CTA_HREF : PAID_CTA_HREF,
-    ctaLabel: isFree ? `Choose ${t.name}` : PAID_CTA_LABEL,
-  };
-});
+const PLANS: Plan[] = PRICING_TIERS.map((t) => ({
+  key: t.key,
+  name: t.name,
+  price: t.price,
+  cadence: t.cadence,
+  identity: t.identity,
+  positioning: t.blurb,
+  features: FEATURES[t.key] ?? [],
+  popular: t.popular,
+}));
 
-// Split the single-string PRICING_HEADLINE ("One price. Yours forever.") into
-// two lines for visual impact, without hardcoding either sentence.
 const HEADLINE_LINES = PRICING_HEADLINE.split('. ');
 
 export function PricingView() {
   return (
     <div className="w-full bg-canvas">
-      {/* ── Hero band — massive headline + short quiet subcopy ─────────── */}
+      {/* ── Hero band ─────────────────────────────────────────────────── */}
       <section className="border-b border-border bg-canvas">
         <div className="mx-auto w-full max-w-[1100px] px-4 md:px-6">
           <div className="py-24 md:py-36">
@@ -147,12 +115,12 @@ export function PricingView() {
         </div>
       </section>
 
-      {/* ── Pricing cards — airy, quiet chrome, dark CTAs ──────────────── */}
+      {/* ── Pricing cards ─────────────────────────────────────────────── */}
       <section className="bg-canvas">
         <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-28">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
             {PLANS.map((plan) => {
-              const isMailto = plan.ctaHref.startsWith('mailto:');
+              const isFree = plan.key === 'free';
               const ctaClass = cn(
                 'mt-8 inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-sm text-[14px] font-medium transition-colors duration-hover',
                 plan.popular
@@ -167,7 +135,6 @@ export function PricingView() {
                     plan.popular && 'mkt-lift'
                   )}
                 >
-                  {/* Quiet top accent on popular tier — charcoal hairline, not coral. */}
                   {plan.popular && (
                     <span
                       aria-hidden="true"
@@ -186,8 +153,6 @@ export function PricingView() {
                     <h3 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-ink">
                       {plan.name}
                     </h3>
-                    {/* Voice Spec §5.4 — one-line identity per tier, the quotable line.
-                        This is the single tiny coral accent on the pricing page. */}
                     <p className="mt-1.5 text-[13px] font-medium italic text-brand">
                       {plan.identity}
                     </p>
@@ -216,24 +181,22 @@ export function PricingView() {
                     ))}
                   </ul>
 
-                  {isMailto ? (
-                    <a
-                      href={plan.ctaHref}
-                      className={ctaClass}
-                      aria-label={`${plan.name} \u2014 ${plan.ctaLabel}`}
-                    >
-                      {plan.ctaLabel}
-                      <ArrowRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
-                    </a>
-                  ) : (
+                  {isFree ? (
                     <Link
-                      href={plan.ctaHref}
+                      href={FREE_CTA_HREF}
                       className={ctaClass}
-                      aria-label={`${plan.name} \u2014 ${plan.ctaLabel}`}
+                      aria-label={`${plan.name} — Choose ${plan.name}`}
                     >
-                      {plan.ctaLabel}
+                      Choose {plan.name}
                       <ArrowRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
                     </Link>
+                  ) : (
+                    <CheckoutButton
+                      tier={plan.key}
+                      tierName={plan.name}
+                      className={ctaClass}
+                      popular={plan.popular}
+                    />
                   )}
                 </div>
               );
