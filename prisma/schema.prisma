@@ -7,7 +7,11 @@ generator client {
 
 datasource db {
   provider  = "postgresql"  // Production runs PostgreSQL via Neon.
-  url       = env("DATABASE_URL")
+  url       = env("DATABASE_URL", "postgresql://placeholder:placeholder@localhost:5432/viableo")
+  // The fallback is a dummy string so prisma generate succeeds on Vercel
+  // even before the founder provisions DATABASE_URL. It is ONLY used for
+  // client generation — prisma generate never connects. The real
+  // DATABASE_URL must be set before any query runs (migrate deploy, runtime).
   // Direct (non-pooled) URL for migrations on PgBouncer/Neon is handled
   // by the Vercel env var DIRECT_URL when needed. We do NOT reference
   // it in the schema because Prisma's env() call fails at schema
