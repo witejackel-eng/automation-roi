@@ -8,11 +8,13 @@ generator client {
 datasource db {
   provider  = "postgresql"  // Production runs PostgreSQL via Neon.
   url       = env("DATABASE_URL")
-  // Direct (non-pooled) connection for migrations + introspection on
-  // serverless Postgres (PgBouncer can't run migrations). Falls back to
-  // DATABASE_URL when DIRECT_URL is unset. prisma generate (postinstall)
-  // resolves this lazily — verified to succeed without DIRECT_URL set.
-  directUrl = env("DIRECT_URL")
+  // Direct (non-pooled) URL for migrations on PgBouncer/Neon is handled
+  // by the Vercel env var DIRECT_URL when needed. We do NOT reference
+  // it in the schema because Prisma's env() call fails at schema
+  // validation time when the variable is absent (P1012). Instead, set
+  // DATABASE_URL itself to the direct URL on Vercel, or add DIRECT_URL
+  // to env and uncomment the line below:
+  // directUrl = env("DIRECT_URL")
 }
 
 // ── NextAuth models (Auth.js v4 compatible) ──────────────────────
