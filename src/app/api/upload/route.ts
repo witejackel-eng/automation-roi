@@ -13,6 +13,8 @@ import { requireOrg, AuthError } from '@/lib/session';
 import { tenant, getOrgEntitlement } from '@/lib/tenant';
 import { has } from '@/lib/entitlement';
 import { storeImage } from '@/lib/storage';
+import DOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
 
 export const runtime = 'nodejs';
 
@@ -47,12 +49,21 @@ export async function POST(req: NextRequest) {
 
   const buf = Buffer.from(await file.arrayBuffer());
 
+  // SVG XSS sanitization (OWASP): strip script/event handlers from SVG uploads.
+  let finalBuf = buf;
+  if (file.type === 'image/svg+xml') {
+    const window = new JSDOM('').window;
+    const purify = DOMPurify(window as unknown as Window & typeof globalThis);
+    const cleanSvgText = purify.sanitize(buf.toString('utf-8'), { USE_PROFILES: { svg: true, svgFilters: true } });
+    finalBuf = Buffer.from(cleanSvgText, 'utf-8');
+  }
+
   // Use the storage abstraction — Vercel Blob in production, data: URI in dev
   const ext = file.type.split('/')[1]?.replace('svg+xml', 'svg') ?? 'png';
   const fileName = `${org.id}/logo-${Date.now()}.${ext}`;
-  const stored = await storeImage(fileName, buf, file.type);
+  const stored = await storeImage(fileName, finalBuf, file.type);
 
-  return NextResponse.json({ url: stored.url, size: buf.length });
+  return NextResponse.json({ url: stored.url, size: finalBuf.length });
   } catch (e) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
     throw e;

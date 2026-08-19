@@ -17,6 +17,7 @@ import { tenant, getOrgEntitlement } from '@/lib/tenant';
 import { has } from '@/lib/entitlement';
 import { recommend } from '@/lib/calculations/recommendation';
 import { storePdf } from '@/lib/storage';
+import { randomUUID } from 'node:crypto';
 import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
 
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     return NextResponse.json({ error: 'Could not render the report.' }, { status: 500 });
   }
 
-  const fileName = `${id}-report-${Date.now()}.pdf`;
+  const fileName = `${id}-report-${randomUUID()}.pdf`;
   const stored = await storePdf(fileName, pdfBuffer);
 
   const report = await db.report.create({

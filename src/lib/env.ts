@@ -29,6 +29,7 @@ const ENV_VARS: EnvVar[] = [
   { name: 'UPSTASH_REDIS_REST_URL', required: false, description: 'Optional distributed rate limiting' },
   { name: 'UPSTASH_REDIS_REST_TOKEN', required: false, description: 'Optional distributed rate limiting' },
   { name: 'ZAI_API_KEY', required: false, description: 'AI SDK key; blank disables /api/ai/* routes gracefully' },
+  { name: 'ENABLE_QA_ENDPOINTS', required: false, description: 'Set to "true" to enable /api/admin/qa/* routes (founder testing only)' },
   { name: 'DEV_ENTITLEMENT_SECRET', required: false, description: 'Guards /api/entitlement/set dev backdoor' },
   { name: 'DEBUG_PRISMA', required: false, description: '1 enables Prisma query logging' },
 ];

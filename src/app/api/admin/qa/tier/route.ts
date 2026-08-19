@@ -22,6 +22,9 @@ export const runtime = 'nodejs';
 const ALLOWED: Tier[] = ['free', 'case_pack', 'agency', 'agency_pro'];
 
 export async function POST(req: NextRequest) {
+  if (process.env.ENABLE_QA_ENDPOINTS !== 'true') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
   let auth;
   try {
     auth = await requireSuperAdmin();

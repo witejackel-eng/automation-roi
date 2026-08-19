@@ -64,6 +64,28 @@ function getRatelimiter(): Ratelimit | null {
   }
 }
 
+// ── Share-view rate limiter (dedicated) ────────────────────────
+
+const hasRedis = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+
+const shareViewLimiter: Ratelimit | null = hasRedis
+  ? new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(30, '1 m'),
+      prefix: 'viableo:share-view',
+    })
+  : null;
+
+export async function checkShareViewRateLimit(identifier: string): Promise<boolean> {
+  if (!shareViewLimiter) return true;
+  try {
+    const { success } = await shareViewLimiter.limit(identifier);
+    return success;
+  } catch {
+    return true;
+  }
+}
+
 // ── Public API ───────────────────────────────────────────────────
 
 /**

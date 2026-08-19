@@ -18,6 +18,9 @@ import { logAuditAction } from '@/lib/observability/audit-log';
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+  if (process.env.ENABLE_QA_ENDPOINTS !== 'true') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
   let auth;
   try {
     auth = await requireSuperAdmin();
@@ -77,7 +80,7 @@ export async function POST(req: NextRequest) {
     secret,
   );
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL;
   const whopRes = await fetch(`${baseUrl}/api/webhooks/whop`, {
     method: 'POST',
     headers: {

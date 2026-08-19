@@ -64,6 +64,20 @@ export default async function SharePage({
     return <ShareUnavailable />;
   }
 
+  // Rate-limit share views to prevent abuse.
+  const { checkShareViewRateLimit } = await import('@/lib/rate-limit');
+  const { headers } = await import('next/headers');
+  const forwardedFor = (await headers()).get('x-forwarded-for') ?? 'unknown';
+  const allowed = await checkShareViewRateLimit(forwardedFor);
+  if (!allowed) {
+    return (
+      <div style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '2rem', gap: '1rem' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Too many requests</h1>
+        <p style={{ maxWidth: '32rem', opacity: 0.75 }}>Please wait a moment and try again.</p>
+      </div>
+    );
+  }
+
   const share = await db.share.findUnique({
     where: { shareId },
     include: {
