@@ -10,7 +10,7 @@
  * `setDemoTier()` have been removed. Multi-tenancy is enforced through
  * real auth sessions + the tenant() scoped query layer.
  */
-import { requireAuth, getOrgId, AuthError } from '@/lib/auth';
+import { requireAuth, getOrgId, AuthError, getAuthSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 
 export { AuthError, requireAuth, getOrgId };
@@ -31,7 +31,29 @@ export async function getOrgFromSession() {
  * Throws AuthError if not authenticated.
  */
 export async function requireOrg() {
-  const { organizationId } = await requireAuth();
+  let organizationId: string;
+  try {
+    const auth = await requireAuth();
+    organizationId = auth.organizationId;
+  } catch (e) {
+    if (e instanceof AuthError && e.status === 403 && e.message === 'No organization membership') {
+      // Defensive fallback: if no membership exists yet (e.g. a pre-existing
+      // user from before org-bootstrap was added, or a dev CredentialsProvider
+      // sign-in that bypassed the signIn event), create one now rather than
+      // permanently 403ing this user.
+      const session = await getAuthSession();
+      if (!session?.user?.id) throw new AuthError('Authentication required', 401);
+      const { ensureUserHasOrganization } = await import('@/lib/org-bootstrap');
+      await ensureUserHasOrganization(session.user.id, session.user.email);
+      const retriedMembership = await db.membership.findFirst({ where: { userId: session.user.id } });
+      if (!retriedMembership) {
+        throw new AuthError('No organization membership', 403);
+      }
+      organizationId = retriedMembership.organizationId;
+    } else {
+      throw e;
+    }
+  }
   const org = await db.organization.findUnique({ where: { id: organizationId } });
   if (!org) {
     throw new AuthError('Organization not found', 404);

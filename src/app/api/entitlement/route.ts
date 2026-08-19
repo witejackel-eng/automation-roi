@@ -17,8 +17,9 @@ export async function GET() {
     organizationName: org.name,
     ...entitlement,
   });
-  } catch (e) {
-    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
-    throw e;
+  } catch (err) {
+    if (err instanceof AuthError) return NextResponse.json({ error: err.message }, { status: err.status });
+    console.error('[api/entitlement]', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

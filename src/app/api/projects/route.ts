@@ -68,9 +68,10 @@ export async function POST(req: NextRequest) {
     recommendation: project.recommendation,
     createdAt: project.createdAt,
   });
-  } catch (e) {
-    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
-    throw e;
+  } catch (err) {
+    if (err instanceof AuthError) return NextResponse.json({ error: err.message }, { status: err.status });
+    console.error('[api/projects]', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -134,8 +135,9 @@ export async function GET() {
   });
 
   return NextResponse.json({ projects: projectsWithEngagement });
-  } catch (e) {
-    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
-    throw e;
+  } catch (err) {
+    if (err instanceof AuthError) return NextResponse.json({ error: err.message }, { status: err.status });
+    console.error('[api/projects]', err);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
