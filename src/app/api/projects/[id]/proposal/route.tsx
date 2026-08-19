@@ -113,6 +113,13 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     },
   });
 
+  const { logSystemEvent } = await import('@/lib/observability/system-event');
+  await logSystemEvent({
+    eventType: 'PROPOSAL_GENERATED',
+    organizationId: org.id,
+    metadata: { projectId: id, reportId: report.id },
+  }).catch(() => {});
+
   return NextResponse.json({
     id: report.id,
     pdfUrl: report.pdfUrl,

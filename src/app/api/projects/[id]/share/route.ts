@@ -71,6 +71,13 @@ export async function POST(
     select: { shareId: true, createdAt: true },
   });
 
+  const { logSystemEvent } = await import('@/lib/observability/system-event');
+  await logSystemEvent({
+    eventType: 'SHARE_CREATED',
+    organizationId: org.id,
+    metadata: { projectId, shareId: share.shareId },
+  }).catch(() => {});
+
   return NextResponse.json({
     shareId: share.shareId,
     url: `/r/${share.shareId}`,
