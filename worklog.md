@@ -109,3 +109,44 @@ Unresolved / Next-phase priorities:
 1. /start app shell + calculator/results views: focused hardcoded-color pass for app-specific components (agency-library-view, breaking-point-slider, engagement-dashboard) to complete Phase 5.
 2. Build + Playwright e2e: run once a database is available (the repo needs Prisma + env vars to run fully).
 3. Apply the `dark` prop to DecisionBadge usages in the dark product views (results screen) for full coherence.
+
+---
+Task ID: pixel-skydda-frontend-transplant
+Agent: Z.ai Code (implementation agent)
+Task: Transplant the supplied Skydda template's component source structure directly into Automation ROI as the marketing frontend foundation — a near pixel-for-pixel implementation, NOT a reskin. Automation ROI content into the exact Skydda structural slots.
+
+Work Log:
+- Read the full MASTER EXECUTION DIRECTIVE (1838 lines): "frontend transplant", not "Skydda-inspired". Use the actual Skydda source components (hero.tsx, problem-section.tsx, solution-section.tsx, features-section.tsx, testimonials-section.tsx, pricing-section.tsx, faq-section.tsx, cta-section.tsx, footer.tsx) as the architectural base; port structure/styling/motion/responsive; replace content with Automation ROI; wire every CTA to real routes.
+- Created branch feat/pixel-skydda-frontend-transplant from main.
+- Inspected ALL Skydda template source components from /tmp/template-extracted/components/ (hero, logo-section, problem, solution, features, testimonials, pricing, faq, cta, footer) + app/page.tsx + globals.css.
+- Read Automation ROI content sources: brand.ts (HERO/PROBLEM/WHAT/VERDICT/BREAK/CLIENT_REPORT/PROOF/PRICING/FINAL_CTA constants, PRICING_TIERS), golden-case (APEX_INPUTS), calculations/engine (CalculatorInputs interface — corrected field names: hourlyCost, hoursPerWeek, expectedAutomationPct, implementationFee).
+- Ported 10 transplanted components into src/components/marketing/skydda/:
+  - hero.tsx: full-viewport, nav inside hero, centered blur-reveal headline, two CTAs, dark atmospheric bg (amber radial glow + dot grid + vignette).
+  - logo-section.tsx: trust/methodology strip (no fake logos — real repository claims).
+  - problem-section.tsx: zinc-900 + grain, amber-marker eyebrow, blur-reveal, PROBLEM content, two CTAs.
+  - solution-section.tsx: interactive step carousel; the 'visual' slot renders REAL product UI (ThresholdLine + DecisionBadge + real Apex numbers) per the master spec. Fixed CalculatorInputs field names.
+  - features-section.tsx: 3-col grid, amber-gradient icon tiles, 12 real Automation ROI capabilities. Fixed motion Variants typing (type Variants import).
+  - proof-section.tsx: replaces fake testimonials with real methodology statements in the Skydda 3-col card structure.
+  - pricing-section.tsx: real plans (Free/Pro/Agency + yearly Agency Pro) in Skydda plan-grid structure; pricing values/case limits UNCHANGED.
+  - faq-section.tsx: Skydda accordion + 6 real Q&As grounded in the repository.
+  - cta-section.tsx: full-width dark atmospheric CTA, FINAL_CTA content.
+  - footer.tsx: zinc-900 + border-t, expanded columns with real routes.
+- skydda-homepage.tsx: composes all sections in Skydda order + fixed vertical margin-line overlay (exact Skydda app/page.tsx structure).
+- page.tsx: swapped MarketingShell+ViableoHomepage for SkyddaHomepage (hero has own nav; footer composed directly). Preserved metadata + JSON-LD.
+- Preserved: Prisma, NextAuth, Whop, API contracts, calculation/recommendation/confidence engines, stress-test, reports, share links, all marketing copy, SEO metadata.
+- Typecheck + lint: clean for all new files.
+- Committed (1ec6067), pushed to origin/feat/pixel-skydda-frontend-transplant.
+- Merged into main via clean fast-forward (main was strict ancestor). Pushed main (21e042c..1ec6067).
+
+Stage Summary:
+- ALL BRANCHES MERGED INTO MAIN. main, origin/main, feat/pixel-skydda-frontend-transplant, origin/feat/pixel-skydda-frontend-transplant all at 1ec6067.
+- Homepage now mirrors the supplied Skydda template structure: full-viewport hero with nav inside → trust strip → problem → solution (with real product UI) → features grid → proof → pricing → FAQ → final CTA → footer. Vertical margin-line overlay. Blur-to-sharp word reveals. Amber accent.
+- Content is entirely Automation ROI (Viableo branding, real Apex numbers, real pricing, real FAQ). No Skydda content, no fake testimonials, no fake logos.
+- CTAs wired to real routes (/start?start=1, /start?start=1&example=apex, /pricing, /methodology, /solutions/*, /resources/*, /privacy, /terms).
+- Author throughout: witejackel-eng <witejackel@gmail.com>.
+
+Unresolved / Next-phase priorities:
+1. Marketing sub-pages (/methodology, /pricing, /solutions/*, /resources/*) still use the old MarketingShell + marketing-primitives — apply the same Skydda design language to those pages for full site-wide coherence.
+2. /start app shell + calculator/results views — apply the Skydda design system (typography, borders, spacing, button system, accent) while preserving all app architecture.
+3. Visual browser QA: compare local implementation against https://v0-skydda-ai-defense.vercel.app/ at desktop/tablet/mobile widths.
+4. Full build + Playwright e2e once a database is available.
