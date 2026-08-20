@@ -1,3 +1,5 @@
+export { SkyddaHeader } from "./header";
+export { SkyddaMarketingShell } from "./shell";
 export { SkyddaHero } from "./hero";
 export { SkyddaLogoSection } from "./logo-section";
 export { SkyddaProblemSection } from "./problem-section";

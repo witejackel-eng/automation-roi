@@ -18,25 +18,13 @@ import {
 export function SkyddaCtaSection() {
   return (
     <section className="relative w-full overflow-hidden">
-      {/* Atmospheric background — amber radial glow on near-black */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-zinc-950" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 70% 80% at 30% 50%, rgba(245, 181, 68, 0.12) 0%, rgba(245, 181, 68, 0.04) 40%, transparent 75%)",
-          }}
-        />
-        {/* Subtle dot grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(244, 244, 245, 1) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
+      {/* Background Image with Overlay — exact Skydda treatment using the
+          supplied template's hero-bg.jpg asset */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* Content */}

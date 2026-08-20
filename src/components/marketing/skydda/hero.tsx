@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "motion/react";
-import { Menu, X } from "lucide-react";
-import { Logo } from "@/components/viableo";
+import { motion } from "motion/react";
+import { SkyddaHeader } from "./header";
 import {
   HERO_EYEBROW,
   HERO_HEADLINE,
@@ -14,128 +12,37 @@ import {
 } from "@/lib/brand";
 
 /**
- * Skydda-transplanted Hero — full viewport, navigation inside the hero,
- * centered animated headline (blur-to-sharp word reveal), centered
- * supporting paragraph, two CTA buttons, dark atmospheric composition.
+ * Skydda-transplanted Hero — full viewport, navigation inside the hero
+ * (transparent SkyddaHeader), centered animated headline (blur-to-sharp
+ * word reveal), centered supporting paragraph, two CTA buttons, dark
+ * atmospheric composition.
+ *
+ * Background uses the SUPPLIED Skydda template's actual `hero-bg.jpg` asset
+ * with the same dark overlay treatment as the reference (bg-cover/bg-center
+ * + slate-950/20 overlay) — per the master directive to use the template's
+ * actual implementation and assets where appropriate. The asset is
+ * product-neutral (dark atmospheric field) so it doesn't carry Skydda
+ * product content.
  *
  * Structure ported from the supplied Skydda `components/hero.tsx`.
  * Content transplanted from Automation ROI's canonical brand constants.
  * CTAs wired to real Automation ROI routes.
  */
-
-const NAV_LINKS = [
-  { href: "/automation-roi", label: "Product" },
-  { href: "/methodology", label: "Methodology" },
-  { href: "/solutions/automation-agencies", label: "Solutions" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/resources/automation-roi", label: "Resources" },
-];
-
 export function SkyddaHero() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-zinc-950">
-      {/* Atmospheric dark background — radial amber glow + subtle grid */}
-      <div className="absolute inset-0">
-        {/* Deep base */}
-        <div className="absolute inset-0 bg-zinc-950" />
-        {/* Radial amber atmospheric glow (replaces Skydda hero image, Automation ROI-appropriate) */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at 50% 35%, rgba(245, 181, 68, 0.10) 0%, rgba(245, 181, 68, 0.04) 35%, transparent 70%)",
-          }}
-        />
-        {/* Subtle dot grid for analytical depth */}
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, rgba(244, 244, 245, 1) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        {/* Vignette for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/40 via-transparent to-zinc-950/80" />
-      </div>
+    <section className="relative h-screen w-full overflow-hidden">
+      {/* Background — the supplied Skydda template hero-bg.jpg, same treatment */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+      />
+      {/* Subtle overlay for text readability — exact Skydda treatment */}
+      <div className="absolute inset-0 bg-zinc-950/40" />
 
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col">
-        {/* Navigation — inside hero, Skydda structure */}
-        <nav className="relative z-50 px-6 py-6 md:px-12">
-          <div className="mx-auto flex max-w-7xl items-center justify-between">
-            <Link href="/" className="flex items-center" aria-label="Viableo — home">
-              <Logo variant="reverse" />
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden items-center gap-8 text-sm text-zinc-300 lg:flex">
-              {NAV_LINKS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="font-normal tracking-wide transition-colors hover:text-white"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Link
-                href="/start?start=1"
-                className="hidden text-sm font-medium text-white transition-colors hover:text-zinc-300 lg:block"
-              >
-                {HERO_CTA_PRIMARY}
-              </Link>
-
-              {/* Hamburger Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-white lg:hidden"
-                aria-label="Toggle menu"
-                aria-expanded={mobileMenuOpen}
-              >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {mobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden bg-zinc-900/95 backdrop-blur-sm border-t border-zinc-700/30 lg:hidden"
-              >
-                <div className="flex flex-col gap-1 px-6 py-6">
-                  {NAV_LINKS.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="py-3 text-zinc-300 transition-colors hover:text-white"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                  <Link
-                    href="/start?start=1"
-                    className="mt-2 border-t border-zinc-700/30 py-3 font-medium text-white"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {HERO_CTA_PRIMARY}
-                  </Link>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </nav>
+        {/* Navigation — shared transparent header (consistency across pages) */}
+        <SkyddaHeader transparent />
 
         {/* Hero Content — centered */}
         <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
@@ -172,7 +79,7 @@ export function SkyddaHero() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
-            className="mt-6 max-w-xl text-balance text-center text-base leading-relaxed text-zinc-300 md:text-lg"
+            className="mt-6 max-w-xl text-balance text-center text-base leading-relaxed text-white/70 md:text-lg"
           >
             {HERO_SUBHEAD}
           </motion.p>
@@ -186,7 +93,7 @@ export function SkyddaHero() {
           >
             <Link
               href="/start?start=1"
-              className="bg-white px-8 py-3 font-semibold text-zinc-900 transition-all hover:bg-zinc-200 active:scale-95"
+              className="bg-white px-8 py-3 font-semibold text-zinc-900 transition-all hover:bg-white/90 active:scale-95"
             >
               {HERO_CTA_PRIMARY}
             </Link>
