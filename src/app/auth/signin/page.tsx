@@ -15,14 +15,14 @@ export default function SignInPage() {
     <div
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
-        backgroundImage: "url('/images/templates/gradient-background.jpg')",
+        backgroundImage: "url('/images/watercolor-background.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Dark overlay */}
-      <div className="absolute inset-0" style={{ background: 'rgba(0, 0, 0, 0.15)' }} />
+      <div className="absolute inset-0" style={{ background: 'rgba(0, 0, 0, 0.2)' }} />
 
       {/* Floating glass orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -53,6 +53,15 @@ export default function SignInPage() {
             boxShadow: '0 8px 32px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
           }}
         />
+        <div
+          className="absolute bottom-1/4 left-1/5 w-20 h-20 rounded-full opacity-35 animate-pulse delay-700"
+          style={{
+            background: 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 8px 32px rgba(255, 255, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+          }}
+        />
       </div>
 
       {/* Glass card */}
@@ -69,6 +78,9 @@ export default function SignInPage() {
         {/* Header */}
         <div className="text-center space-y-2 mb-8">
           <h1 className="text-3xl font-bold" style={{ color: 'rgba(255,255,255,0.95)' }}>Sign in to Viableo</h1>
+          <div className="mx-auto mt-1 h-px w-16" style={{
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+          }} />
           <p className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Continue to your automation decision workspace</p>
         </div>
 
@@ -129,6 +141,8 @@ export default function SignInPage() {
         <p className="text-center text-xs mt-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
           New to Viableo?{' '}
           <a href="/start?start=1" className="underline" style={{ color: 'rgba(255,255,255,0.6)' }}>Start your first case.</a>
+          {' · '}
+          <a href="/terms" className="underline" style={{ color: 'rgba(255,255,255,0.4)' }}>Terms</a>
         </p>
       </div>
     </div>

@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <MobileTopBar />
 
       {/* Stage — animated view transitions */}
-      <div className="flex flex-1 flex-col overflow-hidden md:pl-[60px]">
+      <div className="flex flex-1 flex-col overflow-hidden md:pl-[64px]">
         <CommandStage viewKey={view}>{children}</CommandStage>
       </div>
 
@@ -76,7 +76,7 @@ function CommandDock() {
 
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-30 hidden w-[60px] flex-col items-center bg-surface/80 py-5 backdrop-blur-sm md:flex"
+      className="fixed inset-y-0 left-0 z-30 hidden w-[64px] flex-col items-center border-r border-border bg-surface/80 py-5 backdrop-blur-sm md:flex"
       aria-label="Primary"
     >
       {/* Logo */}

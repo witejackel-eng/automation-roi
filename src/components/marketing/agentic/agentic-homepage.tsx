@@ -134,7 +134,7 @@ export function AgenticHomepage() {
           <h1
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-[#111] leading-[1.0] tracking-tight mb-6"
             style={{
-              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontFamily: 'var(--font-plex-sans), system-ui, sans-serif',
               opacity: heroReady ? 1 : 0,
               filter: heroReady ? "blur(0px)" : "blur(24px)",
               transform: heroReady ? "translateY(0px)" : "translateY(32px)",
@@ -196,8 +196,8 @@ export function AgenticHomepage() {
                   transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${300 + i * 80}ms, filter 0.8s cubic-bezier(0.16,1,0.3,1) ${300 + i * 80}ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${300 + i * 80}ms`,
                 }}
               >
-                <div className="text-3xl sm:text-4xl text-[#111] font-light tracking-tight" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>{stat.value}</div>
-                <div className="text-xs text-black/40 tracking-widest uppercase mt-1" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>{stat.label}</div>
+                <div className="text-3xl sm:text-4xl text-[#111] font-light tracking-tight" style={{ fontFamily: 'var(--font-plex-sans), system-ui, sans-serif' }}>{stat.value}</div>
+                <div className="text-xs text-black/40 tracking-widest uppercase mt-1" style={{ fontFamily: 'var(--font-plex-sans), system-ui, sans-serif' }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -218,10 +218,18 @@ export function AgenticHomepage() {
           <div className="grid grid-cols-12 grid-rows-auto gap-3" onMouseMove={handleMouse}>
             {/* Big left card — full width */}
             <BentoCard className="col-span-12 p-8 min-h-[200px] flex flex-col justify-between relative overflow-hidden" delay={0}>
-              {/* Subtle grid background pattern */}
-              <div className="absolute inset-0 opacity-[0.03]" style={{
-                backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
-                backgroundSize: '24px 24px',
+              {/* Arc image background */}
+              <img src="/images/arc.png" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: "center 70%" }} />
+              {/* Progressive blur layer */}
+              <div className="absolute inset-0" style={{
+                maskImage: "linear-gradient(to bottom, transparent 45%, black 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 45%, black 100%)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+              }} />
+              {/* Fade-to-background gradient */}
+              <div className="absolute inset-0" style={{
+                background: "linear-gradient(to bottom, transparent 35%, rgba(245,244,240,0.3) 50%, rgba(245,244,240,0.75) 65%, rgba(245,244,240,0.95) 80%, rgb(245,244,240) 100%)",
               }} />
               {/* Content */}
               <div className="relative z-10">
@@ -467,6 +475,8 @@ export function AgenticHomepage() {
             background: "linear-gradient(to top, rgb(245,244,240) 0%, rgba(245,244,240,0.92) 18%, rgba(245,244,240,0.55) 35%, transparent 55%)",
           }}
         />
+        {/* Footer.png background */}
+        <img src="/images/footer.png" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-top opacity-[0.06]" />
         {/* Subtle dot pattern */}
         <div
           className="absolute inset-0 pointer-events-none opacity-[0.02]"

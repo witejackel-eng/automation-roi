@@ -5,8 +5,10 @@ import { useState } from "react"
 
 const NAV_LINKS = [
   { label: "Platform",     href: "#platform" },
-  { label: "Pricing",      href: "/pricing" },
+  { label: "How it works", href: "#workflow" },
   { label: "Solutions",    href: "/solutions/automation-agencies" },
+  { label: "Pricing",      href: "/pricing" },
+  { label: "Sign in",      href: "/auth/signin" },
 ]
 
 const NAV_STYLE = {
@@ -94,7 +96,7 @@ export function MobileNav() {
         {/* Mobile dropdown */}
         <div
           className="md:hidden mt-2 overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ maxHeight: open ? "320px" : "0px", opacity: open ? 1 : 0 }}
+          style={{ maxHeight: open ? "420px" : "0px", opacity: open ? 1 : 0 }}
         >
           <div
             className="rounded-2xl border border-black/[0.06] px-2 py-2 flex flex-col"

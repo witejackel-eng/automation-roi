@@ -526,6 +526,9 @@ export function ShareReportView({
             <span>Read-only share</span>
           </div>
         </div>
+        <p className="mx-auto w-full max-w-[900px] border-t border-border/50 px-4 pt-4 pb-1 text-[11px] text-ink-faint md:px-6">
+          © {created.getFullYear()} Viableo. Figures are estimates based on inputs provided at the time of generation and should not be considered financial advice.
+        </p>
       </footer>
     </div>
   );

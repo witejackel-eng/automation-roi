@@ -26,7 +26,7 @@ function ErrorContent() {
     <div
       className="min-h-screen flex items-center justify-center p-4 relative"
       style={{
-        backgroundImage: "url('/images/templates/gradient-background.jpg')",
+        backgroundImage: "url('/images/watercolor-background.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -54,6 +54,9 @@ function ErrorContent() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
+          <div className="mx-auto mt-4 h-px w-12" style={{
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+          }} />
           <h1 className="text-2xl font-bold" style={{ color: 'rgba(255,255,255,0.95)' }}>Sign-in error</h1>
           <p className="mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>{message} Please try again.</p>
         </div>
