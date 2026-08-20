@@ -315,3 +315,32 @@ Stage Summary:
 - All 10 visual assets bundled locally in public/marketing/compute/ — production no longer depends on external blob URLs.
 - Content is entirely Viableo. No COMPUTE product claims copied.
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: final-production-completion
+Agent: Z.ai Code (implementation agent)
+Task: Final production-completion pass — audit the entire product (visitor → product → user → paid user → superadmin), fix everything incomplete/broken/disconnected, verify end-to-end coherence.
+
+Work Log:
+- AUDIT: inventoried all routes (65 pages + API routes), layouts, middleware, auth, admin, SEO, marketing, product app. Mapped data flows, API flows, auth/billing/entitlement, admin protection, SEO/indexing.
+- VERIFIED COMPLETE: SEO (site-url production fallback, sitemap excludes /automation-roi + private routes, robots disallows all private routes, noindex layouts on /start /admin /auth /billing /r, canonicals on every public page, unique metadata).
+- VERIFIED COMPLETE: /automation-roi 308 redirect to / (one canonical homepage, no duplicate).
+- VERIFIED COMPLETE: /app redirect to /start?start=1 (legacy route compatibility).
+- VERIFIED COMPLETE: Admin protection — requireSuperAdmin() on every /admin/* route. AdminShell with nav to all 10 sections. SuperadminLink in product left rail (SUPERADMIN-only, renders nothing for normal users).
+- VERIFIED COMPLETE: Auth — signin (Google + GitHub), error page, session handling.
+- VERIFIED COMPLETE: Marketing — COMPUTE visual transplanted, all 10 assets localized in public/marketing/compute/, hero video present, animations preserved, header consistent across all pages.
+- FIXED: AdminShell — added 'Back to product' (/start) and 'Marketing site' (/) links so superadmin can navigate back.
+- FIXED: Lint — all 9 warnings fixed (unused eslint-disable directives). Lint now fully clean (0 errors, 0 warnings).
+- FIXED: Compute homepage — removed orphaned JSX from old Client Business Case section.
+- VERIFIED: Typecheck — clean for all changed files (pre-existing errors in e2e tests + commented-out agency models are unrelated to this work).
+- VERIFIED: All marketing sub-pages (methodology, pricing, solutions/*, resources/*, privacy, terms) have unique metadata + canonicals + use MarketingShell (which delegates to ComputeNavigation + ComputeFooter).
+- Committed (0319a72), pushed, merged to main via fast-forward. Synced feature branch.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at 0319a72 on origin/main.
+- Product is coherent end-to-end: visitor → marketing → CTA → /start → calculator → results → verdict → save/report/share → billing → entitlement → admin.
+- Superadmin can sign in, see Admin entry, access all 10 control-center sections, navigate back to product.
+- Normal users never see admin entry. Backend authorization remains authoritative.
+- SEO is production-ready: no localhost, no duplicate homepage, no accidental indexing of private routes.
+- Lint: fully clean. Typecheck: clean for all production code.
+- Author: witejackel-eng <witejackel@gmail.com>.
