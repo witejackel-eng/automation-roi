@@ -80,3 +80,32 @@ Unresolved / Next-phase priorities:
 - /start app shell + calculator/results views largely inherit the dark tokens, but a focused pass for hardcoded colors in app-specific components (e.g. agency-library-view, breaking-point-slider, engagement-dashboard) would complete Phase 5.
 - Hero could be enhanced to a full immersive dark visual with the verdict stamp + threshold rail as a dominant graphic (Phase 4 polish).
 - Run the full build + Playwright e2e once a database is available.
+
+---
+Task ID: merge-and-polish
+Agent: Z.ai Code (webDevReview cron round 1)
+Task: Safely merge every branch into main; then continue QA + frontend polish per the worklog next-phase priorities.
+
+Work Log:
+- Reviewed /home/z/my-project/worklog.md to confirm prior state (feat/skydda-inspired-frontend pushed, main at 241f7dd).
+- Fetched all branches; found main + feat/skydda-inspired-frontend. Verified feature branch is a clean descendant of main (fast-forward possible, no conflicts).
+- Safety check: lint clean + typecheck clean for all changed files on the feature branch.
+- SAFELY MERGED feat/skydda-inspired-frontend into main via fast-forward (2ed6ced, 934102c). Pushed main to origin.
+- QA: agent-browser confirmed /home/z/my-project dev sandbox renders cleanly (HTTP 200, default scaffold page healthy).
+- Continued frontend polish on the two highest-priority worklog items:
+  - DecisionBadge: added a `dark` prop (dark-tuned verdict palette + 14% tint bg) so the badge reads coherently on dark/analytical sections. Light variant preserved for PDF reports.
+  - Hero (E1): transformed into an immersive dark editorial composition — editorial section index (E1 / 13) + amber marker-line eyebrow, oversized mkt-display headline, premium product-surface card (charcoal raised + amber top border) wrapping the verdict stamp + threshold rail + three real Apex statistics. Breaking-point figure amber-accented.
+- Verified: lint clean, typecheck clean for changed files.
+- Committed (bcc65bf) on feat/skydda-inspired-frontend, pushed, then fast-forward merged into main and pushed main.
+
+Stage Summary:
+- ALL BRANCHES MERGED INTO MAIN. main and feat/skydda-inspired-frontend both at bcc65bf on origin.
+- main commit history: 241f7dd -> 2ed6ced (design system) -> 934102c (worklog) -> bcc65bf (polish).
+- DecisionBadge now supports `dark` for dark surfaces; PDF reports unaffected.
+- Hero is now an immersive editorial composition with the verdict + threshold + stats inside a premium product-surface card.
+- Author throughout: witejackel-eng <witejackel@gmail.com>.
+
+Unresolved / Next-phase priorities:
+1. /start app shell + calculator/results views: focused hardcoded-color pass for app-specific components (agency-library-view, breaking-point-slider, engagement-dashboard) to complete Phase 5.
+2. Build + Playwright e2e: run once a database is available (the repo needs Prisma + env vars to run fully).
+3. Apply the `dark` prop to DecisionBadge usages in the dark product views (results screen) for full coherence.
