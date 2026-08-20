@@ -12,7 +12,8 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, AuthError } from '@/lib/session';
-import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { tenant } from "@/lib/tenant";
+import { getEffectiveEntitlement } from "@/lib/entitlement-session";
 import { has } from '@/lib/entitlement';
 import { db } from '@/lib/db';
 import { randomBytes } from 'crypto';
@@ -30,7 +31,7 @@ export async function POST(
 ) {
   try {
   const org = await requireOrg();
-  const entitlement = await getOrgEntitlement(org.id);
+  const entitlement = await getEffectiveEntitlement(org.id);
   if (!has(entitlement, 'share_links')) {
     return NextResponse.json(
       {
@@ -95,7 +96,7 @@ export async function DELETE(
 ) {
   try {
   const org = await requireOrg();
-  const entitlement = await getOrgEntitlement(org.id);
+  const entitlement = await getEffectiveEntitlement(org.id);
   if (!has(entitlement, 'share_links')) {
     return NextResponse.json(
       { error: 'Share links require Agency Pro.' },

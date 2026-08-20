@@ -4,7 +4,8 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, AuthError } from '@/lib/session';
-import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { tenant } from "@/lib/tenant";
+import { getEffectiveEntitlement } from "@/lib/entitlement-session";
 import { has } from '@/lib/entitlement';
 // db import removed — all access now via tenant() per Phase 6 F-6 fix.
 import { calculatorInputsSchema } from '@/lib/validation/schema';
@@ -25,7 +26,7 @@ interface SaveBody {
 export async function POST(req: NextRequest) {
   try {
   const org = await requireOrg();
-  const entitlement = await getOrgEntitlement(org.id);
+  const entitlement = await getEffectiveEntitlement(org.id);
   if (!has(entitlement, 'save_project')) {
     return NextResponse.json(
       { error: 'Saving projects requires Pro or higher.', requiredTier: 'pro' },
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
   const org = await requireOrg();
-  const entitlement = await getOrgEntitlement(org.id);
+  const entitlement = await getEffectiveEntitlement(org.id);
   if (!has(entitlement, 'client_history')) {
     return NextResponse.json(
       { error: 'Project history requires Agency or higher.', requiredTier: 'agency' },

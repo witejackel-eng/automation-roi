@@ -304,10 +304,10 @@ export function ResultsView() {
     { key: 'expectedConversionImprovementPct', label: 'Conversion improvement', unit: '' },
   ];
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<string | null> => {
     if (!canSave) {
       go('pricing');
-      return;
+      return null;
     }
     setSaving(true);
     try {
@@ -324,17 +324,19 @@ export function ResultsView() {
       if (res.status === 403) {
         toast({ title: 'Saving projects requires Pro.', variant: 'destructive' });
         go('pricing');
-        return;
+        return null;
       }
       if (!res.ok) {
         toast({ title: 'Could not save the project.', variant: 'destructive' });
-        return;
+        return null;
       }
       const data = (await res.json()) as { id: string };
       setSavedProjectId(data.id);
       toast({ title: 'Project saved.' });
+      return data.id;
     } catch {
       toast({ title: 'Could not reach the service.', variant: 'destructive' });
+      return null;
     } finally {
       setSaving(false);
     }
@@ -345,10 +347,8 @@ export function ResultsView() {
       go('pricing');
       return;
     }
-    if (!savedProjectId) {
-      await handleSave();
-    }
-    const projectId = savedProjectId;
+    // Fix: use the returned ID, not stale state
+    const projectId = savedProjectId ?? (await handleSave());
     if (!projectId) {
       toast({ title: 'Save the project first.', description: 'Then generate the report.' });
       return;
@@ -366,7 +366,8 @@ export function ResultsView() {
         return;
       }
       if (!res.ok) {
-        toast({ title: 'Could not generate the report.', variant: 'destructive' });
+        const err = await res.json().catch(() => ({}));
+        toast({ title: 'Could not generate the report.', description: err.error ?? '', variant: 'destructive' });
         return;
       }
       const data = (await res.json()) as { pdfUrl: string };
@@ -384,10 +385,7 @@ export function ResultsView() {
       go('pricing');
       return;
     }
-    if (!savedProjectId) {
-      await handleSave();
-    }
-    const projectId = savedProjectId;
+    const projectId = savedProjectId ?? (await handleSave());
     if (!projectId) {
       toast({ title: 'Save the project first.', description: 'Then generate the proposal.' });
       return;
@@ -405,7 +403,8 @@ export function ResultsView() {
         return;
       }
       if (!res.ok) {
-        toast({ title: 'Could not generate the proposal.', variant: 'destructive' });
+        const err = await res.json().catch(() => ({}));
+        toast({ title: 'Could not generate the proposal.', description: err.error ?? '', variant: 'destructive' });
         return;
       }
       const data = (await res.json()) as { pdfUrl: string };
@@ -423,10 +422,7 @@ export function ResultsView() {
       go('pricing');
       return;
     }
-    if (!savedProjectId) {
-      await handleSave();
-    }
-    const projectId = savedProjectId;
+    const projectId = savedProjectId ?? (await handleSave());
     if (!projectId) {
       toast({ title: 'Save the project first.', description: 'Then create a share link.' });
       return;
@@ -444,7 +440,8 @@ export function ResultsView() {
         return;
       }
       if (!res.ok) {
-        toast({ title: 'Could not create the share link.', variant: 'destructive' });
+        const err = await res.json().catch(() => ({}));
+        toast({ title: 'Could not create the share link.', description: err.error ?? '', variant: 'destructive' });
         return;
       }
       const data = (await res.json()) as { shareId: string; url: string };

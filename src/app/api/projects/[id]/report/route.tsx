@@ -1,131 +1,93 @@
 /**
- * POST /api/projects/[id]/report — render + store the client report PDF.
+ * POST /api/projects/[id]/report — generate + store the client business-case PDF.
  *
- * Renders via the deterministic @react-pdf/renderer pipeline and stores the
- * PDF using the storage abstraction (Vercel Blob in production, local FS in
- * dev). Records a Report row with the persistent URL.
+ * Entitlement: `client_report` (Pro+). Superadmin bypasses via
+ * getEffectiveEntitlement.
  *
- * @react-pdf/renderer is dynamically imported inside the handler so the heavy
- * PDF dependency tree is never loaded into the dev-server's memory unless a
- * report is actually being generated.
+ * Re-derives the results from the stored inputs (never trusts stored
+ * results — single source of truth via the calculation engine), renders
+ * the PDF via @react-pdf/renderer, stores it via storePdf(), creates a
+ * Report record, and returns { pdfUrl }.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import React from 'react';
-import { db } from '@/lib/db';
 import { requireOrg, AuthError } from '@/lib/session';
-import { tenant, getOrgEntitlement } from '@/lib/tenant';
+import { tenant } from '@/lib/tenant';
+import { getEffectiveEntitlement } from '@/lib/entitlement-session';
 import { has } from '@/lib/entitlement';
+import { calculateAllScenarios } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
 import { storePdf } from '@/lib/storage';
-import { randomUUID } from 'node:crypto';
-import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine';
-import type { ScenarioName } from '@/lib/calculations/scenarios';
+import { ClientReport } from '@/lib/pdf/client-report';
+import type { CalculatorInputs } from '@/lib/calculations/engine';
+import { renderToBuffer } from '@react-pdf/renderer';
+import * as React from 'react';
 
 export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  const { id } = await ctx.params;
+export async function POST(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-  const org = await requireOrg();
-  const entitlement = await getOrgEntitlement(org.id);
-  if (!has(entitlement, 'client_report')) {
-    return NextResponse.json(
-      { error: 'Client report generation requires Pro or higher.', requiredTier: 'pro' },
-      { status: 403 }
-    );
-  }
-
-  const project = await tenant(org.id).projects.findUnique({ id });
-  if (!project) {
-    return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
-  }
-
-  try { await req.json().catch(() => ({})); } catch { /* allow empty body */ }
-
-  let inputs: CalculatorInputs;
-  let results: Record<ScenarioName, ScenarioResult>;
-  try {
-    inputs = JSON.parse(project.inputs) as CalculatorInputs;
-    results = JSON.parse(project.results) as Record<ScenarioName, ScenarioResult>;
-  } catch {
-    return NextResponse.json({ error: 'Project data is corrupted.' }, { status: 500 });
-  }
-
-  const recommendation = recommend(results.expected);
-  const agencyTierCanBrand = has(entitlement, 'agency_branding');
-  const branding = agencyTierCanBrand
-    ? {
-        name: org.name,
-        website: org.website ?? undefined,
-        contactEmail: org.contactEmail ?? undefined,
-        phone: org.phone ?? undefined,
-        logoUrl: org.logoUrl ?? undefined,
-        brandColorHex: org.brandColorHex ?? undefined,
-      }
-    : null;
-
-  let pdfBuffer: Buffer;
-  try {
-    // Dynamic import: keeps @react-pdf/renderer out of the dev-server's
-    // resident memory until a report is actually requested.
-    const { renderToBuffer } = await import('@react-pdf/renderer');
-    const { ClientReport } = await import('@/lib/pdf/client-report');
-    const { registerFonts } = await import('@/lib/pdf/fonts');
-    registerFonts();
-    // Output-integrity guard (Prompt 3, Task 3.1): the values passed to the
-    // PDF renderer MUST be exactly what is persisted — never a fresh
-    // recalculation.
-    const persistedResultsCheck = JSON.parse(project.results) as typeof results;
-    if (JSON.stringify(persistedResultsCheck) !== JSON.stringify(results)) {
-      const { logSystemEvent } = await import('@/lib/observability/system-event');
-      await logSystemEvent({
-        eventType: 'OUTPUT_INTEGRITY_VIOLATION',
-        organizationId: org.id,
-        severity: 'error',
-        metadata: { projectId: id, route: 'report' },
-      });
-      return NextResponse.json({ error: 'Internal error: output integrity check failed.' }, { status: 500 });
+    const org = await requireOrg();
+    const entitlement = await getEffectiveEntitlement(org.id);
+    if (!has(entitlement, 'client_report')) {
+      return NextResponse.json(
+        { error: 'Client report requires Pro or higher.', requiredTier: 'pro' },
+        { status: 403 }
+      );
     }
-    pdfBuffer = await renderToBuffer(
+
+    const { id: projectId } = await params;
+    const project = await tenant(org.id).projects.findUnique({ id: projectId });
+    if (!project) {
+      return NextResponse.json({ error: 'Project not found.' }, { status: 404 });
+    }
+
+    // Re-derive from stored inputs — single source of truth.
+    const inputs = JSON.parse(project.inputs) as CalculatorInputs;
+    const results = calculateAllScenarios(inputs);
+    const recommendation = recommend(results.expected);
+
+    // Branding: Agency+ can use org branding; Pro gets unwatermarked Viableo.
+    const canBrand = entitlement.capabilities.agency_branding;
+    const branding = canBrand
+      ? { name: org.name, logoUrl: org.logoUrl ?? undefined, brandColorHex: org.brandColorHex ?? undefined }
+      : null;
+
+    const fileName = `client-report-${projectId}-${Date.now()}.pdf`;
+
+    const buffer = await renderToBuffer(
       <ClientReport
         inputs={inputs}
         results={results}
         recommendation={recommendation}
         branding={branding}
-        agencyTierCanBrand={agencyTierCanBrand}
+        agencyTierCanBrand={canBrand}
         generatedAt={new Date()}
       />
     );
+
+    const stored = await storePdf(fileName, buffer as unknown as Buffer);
+
+    // Create Report record (tenant reports.create takes { data, projectId }).
+    await tenant(org.id).reports.create({
+      data: {
+        reportType: 'client_report',
+        pdfUrl: stored.url,
+      },
+      projectId,
+    });
+
+    return NextResponse.json({ pdfUrl: stored.url });
   } catch (err) {
-    console.error('PDF render failed:', err);
-    return NextResponse.json({ error: 'Could not render the report.' }, { status: 500 });
-  }
-
-  const fileName = `${id}-report-${randomUUID()}.pdf`;
-  const stored = await storePdf(fileName, pdfBuffer);
-
-  const report = await db.report.create({
-    data: {
-      projectId: id,
-      reportType: 'client_report',
-      pdfUrl: stored.url,
-    },
-  });
-
-  const { logSystemEvent } = await import('@/lib/observability/system-event');
-  await logSystemEvent({
-    eventType: 'REPORT_GENERATED',
-    organizationId: org.id,
-    metadata: { projectId: id, reportId: report.id },
-  }).catch(() => {});
-
-  return NextResponse.json({
-    id: report.id,
-    pdfUrl: report.pdfUrl,
-    createdAt: report.createdAt,
-  });
-  } catch (e) {
-    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
-    throw e;
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    console.error('[api/projects/report]', err);
+    return NextResponse.json(
+      { error: 'Failed to generate the report.' },
+      { status: 500 }
+    );
   }
 }
