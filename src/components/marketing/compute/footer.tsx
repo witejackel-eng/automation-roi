@@ -39,7 +39,7 @@ export function ComputeFooter() {
       <div className="relative h-[340px] w-full overflow-hidden md:h-[420px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Upscaled%20Image%20%2810%29-UnDKstODkIENp5xqTYUEpt0Sm8tNOw.png"
+          src="/marketing/compute/footer/panoramic.png"
           alt=""
           aria-hidden="true"
           className="h-full w-full object-cover object-center"

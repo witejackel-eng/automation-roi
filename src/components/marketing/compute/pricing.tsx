@@ -106,6 +106,16 @@ export function ComputePricing() {
               <span className="text-ink-muted">Upgrade when you need it.</span>
             </h2>
           </div>
+          {/* Whale visual — the actual COMPUTE whale.png (preserved per directive) */}
+          <div className="relative hidden h-64 w-64 justify-self-end lg:block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/marketing/compute/pricing/whale.png"
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-contain"
+            />
+          </div>
         </div>
 
         {/* Billing toggle */}
