@@ -22,7 +22,7 @@ export async function GET() {
     const org = await requireOrg();
 
     // Superadmin elevation: check the session's systemRole.
-    const session = await getServerSession(authOptions) as (Record<string, unknown> & { user?: { email?: string | null } }) | null;
+    const session = await getServerSession(authOptions);
     if (session?.systemRole === 'SUPERADMIN') {
       const elevated: Entitlement = entitlementFor('agency_pro');
       return NextResponse.json({

@@ -81,7 +81,7 @@ export const authOptions = {
     strategy: 'jwt' as const,
   },
   callbacks: {
-    async jwt({ token, user, account }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined; account?: { provider?: string } | null }) {
+    async jwt({ token, user, account, trigger }: { token: JWT; user?: { id?: string; systemRole?: string } | undefined; account?: { provider?: string } | null; trigger?: string }) {
       // On first sign-in, `user` is populated. After that, only `token`.
       if (user?.id) {
         token.sub = user.id;
@@ -118,6 +118,36 @@ export const authOptions = {
           metadata: { provider: account?.provider ?? 'unknown' },
         }).catch(() => { /* observability must never fail the request */ });
       }
+
+      // CRITICAL FIX: On session refresh (not first sign-in), re-read
+      // systemRole from the DB so that a user elevated to SUPERADMIN
+      // (via scripts/elevate-founder.ts) sees the change without needing
+      // to manually clear their JWT cookie. The `trigger === 'update'`
+      // fires when useSession() refetches (refetchInterval=5min, or on
+      // window focus). We also re-read on every jwt call if the user
+      // has a known sub, to catch elevation between refreshes — this is
+      // a single indexed lookup by id, ~1ms on Postgres.
+      if (!user?.id && token.sub) {
+        const userRow = await db.user.findUnique({
+          where: { id: token.sub },
+          select: { systemRole: true },
+        });
+        if (userRow) {
+          token.systemRole = userRow.systemRole ?? 'USER';
+        }
+        // Also re-read the membership in case the org was changed.
+        if (!token.organizationId) {
+          const membership = await db.membership.findFirst({
+            where: { userId: token.sub },
+            orderBy: { createdAt: 'asc' },
+          });
+          if (membership) {
+            token.organizationId = membership.organizationId;
+            token.role = membership.role;
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
@@ -169,6 +199,10 @@ declare module 'next-auth' {
       email?: string | null;
       image?: string | null;
     };
+    // Extended fields threaded through the JWT → session callback.
+    organizationId?: string;
+    role?: string;
+    systemRole?: string;
   }
 }
 
