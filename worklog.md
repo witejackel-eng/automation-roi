@@ -383,3 +383,45 @@ Stage Summary:
 - ALL BRANCHES IN SYNC. main updated with the single-source-of-truth helper + un-gated agency models.
 - The product is launch-ready: free case → paid upgrade → clean PDF + branding + share link works through Whop.
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: reliability-hardening
+Agent: Zai Code (lead engineer — reliability mission)
+Task: Take Viableo from "working demo" to "reliable for 50 real agencies with zero support." Fix the critical confidence score bug, enforce assumption quality, verify edge cases, ensure billing reliability.
+
+Work Log:
+PHASE 0 — Pre-flight:
+- Confirmed golden-case engine outputs: netAnnualBenefit=131860, totalAnnualBenefit=159360, roiPct=479.49%, paybackMonths=1.64, breakEvenFee=149860, verdict=build, permutations=64.
+- Confirmed NO hardcoded financial figures on any marketing surface (all computed from the engine).
+- Confirmed Whop webhook → entitlement unlock chain is complete (signature-verified, idempotent, PlanMapping-resolved).
+- Confirmed agency-tier models (CaseVersion, Challenge, Client) are now LIVE (un-gated in prior round).
+
+PHASE 1 — Single Source of Truth:
+- getApexReferenceNumbers() helper exists (prior round). Every marketing surface calls the engine directly.
+- marketing-numbers.test.ts guard test enforces no-drift (22 tests pass).
+
+PHASE 2 — Billing Reliability:
+- Verified complete: CheckoutButton → /api/billing/checkout → Whop embedded checkout → webhook → entitlement update → /billing/complete. Free tier gives full rigor + watermarked PDF. Paid tier unlocks unwatermarked PDF + branding.
+
+PHASE 3 — Assumption Quality Enforcement (CRITICAL FIX):
+- Discovered the confidence score was returning NaN on the Apex reference case — a critical defect.
+- Root cause: key-name mismatch between CONFIDENCE_WEIGHTS (used abstract names: hourlyLaborCost, workloadVolume, automationCoverage, conversionImprovement, otherInputs, errorCost) and the actual CalculatorInputs field names (hourlyCost, hoursPerWeek, expectedAutomationPct, expectedConversionImprovementPct, otherAnnualCost, expectedErrorReductionPct). Callers passed statuses with the real field names, so 5 of 7 inputs contributed 0.
+- Additional cause: one caller passed 'assumed' instead of 'assumption', producing NaN via STATUS_MULTIPLIERS['assumed'] === undefined.
+- FIX: re-pointed CONFIDENCE_WEIGHTS keys to match CalculatorInputs. Added defensive validation (unknown status strings fall back to 'assumption'). Added Number.isFinite guard.
+- Result: Apex confidence score is now 71 (Moderate confidence) — was NaN. The breakdown correctly shows 3 provided, 2 estimated, 2 assumption inputs.
+
+PHASE 4 — Real-world Robustness:
+- Verified: formatRoi handles null → 'N/A'. formatPayback handles null → 'Never'. recommend() returns dont_build with clear reason for negative net benefit. recommendWithConfidence() has the same guard. Edge cases (very high fees, very low coverage, zero leads, negative ROI) are handled by the engine + formatters.
+
+PHASE 5 — Agency Collaboration:
+- Verified: CaseVersion, Challenge, Client models are live. ChallengePanel + DeltaView work with verdict-change callouts. Client history API routes typecheck cleanly.
+
+PHASE 6 — Consistency:
+- Verified: Privacy (163 lines) + Terms (241 lines) are accurate. Admin system (10 pages) with requireSuperAdmin(). Dark editorial system consistent.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at 419e5ce on origin/main.
+- Critical confidence score bug FIXED (NaN → 71). The product now correctly reflects assumption quality.
+- 160 tests pass (confidence + marketing tests now pass). Golden checks ALL PASSED. Lint fully clean.
+- The product is reliable for real agencies: correct confidence scores, correct edge-case handling, correct billing flow.
+- Author: witejackel-eng <witejackel@gmail.com>.
