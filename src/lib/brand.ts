@@ -49,12 +49,12 @@ export const ALT_TAGLINES = [
 export const PRONUNCIATION = 'VY-uh-blee-oh (rhymes with "viable" + "oh")';
 
 // ── Hero (Section F — Hero) ─────────────────────────────────
-export const HERO_EYEBROW = 'Automation ROI by Viableo';
-export const HERO_HEADLINE = 'Know what\u2019s worth building.';
+export const HERO_EYEBROW = 'For agencies who sell automation';
+export const HERO_HEADLINE = 'Know what\u2019s worth building \u2014 before you quote it.';
 export const HERO_SUBHEAD =
-  'Viableo takes an automation scope and returns a verdict \u2014 build it or don\u2019t \u2014 the fee where that verdict flips, and a document your client can check line by line.';
-export const HERO_CTA_PRIMARY = 'Run your first case \u2014 free';
-export const HERO_CTA_SECONDARY = 'See a completed case';
+  'Get a BUILD / CONSIDER / DON\u2019T BUILD verdict, the point where the case breaks, and a client document that holds up when they push on price.';
+export const HERO_CTA_PRIMARY = 'Run a free case in 5 minutes';
+export const HERO_CTA_SECONDARY = 'See a completed example';
 // Stat labels for the hero (E1 visual).
 export const HERO_STAT_LABELS = {
   net: 'Expected first-year net',
@@ -204,9 +204,8 @@ export const COMPARISON_ROWS = [
 ] as const;
 
 // ── Pricing (Section F + K, E11) ──────────────
-export const PRICING_HEADLINE = 'Pick the plan that fits the work.';
-export const PRICING_SUBHEAD =
-  'Start free. Upgrade when you need client-ready documents. Cancel any time.';
+export const PRICING_HEADLINE = 'Simple plans. Full rigor on every tier.';
+export const PRICING_SUBHEAD = 'Free includes the real decision engine. Paid unlocks clean client artifacts and workflow.';
 export const PRICING_FOOTNOTE = 'Monthly and annual subscriptions. Cancel any time.';
 export const DATA_HANDLING_LINE =
   'Viableo needs no client-identifying data to return a verdict. Hours, rates, volumes, and a fee are enough.';
@@ -254,10 +253,10 @@ export const PRICING_TIERS = [
 ] as const;
 
 // ── Close (Section F, E12) ──────────────────────────────────
-export const FINAL_CTA_HEADLINE = 'Build what pays back.';
+export const FINAL_CTA_HEADLINE = 'Quote the build after the case survives the stress test.';
 export const FINAL_CTA_BODY =
   'Run one case. If the answer is don\u2019t build, you have saved yourself a project.';
-export const FINAL_CTA_PRIMARY = 'Run your first case \u2014 free';
+export const FINAL_CTA_PRIMARY = 'Run your first case free';
 export const FINAL_CTA_PRIMARY_HREF = '/start?start=1';
 export const FINAL_CTA_SECONDARY = ''; // E12: one CTA only. Kept for back-compat, intentionally empty.
 export const FINAL_CTA_SECONDARY_HREF = '';
