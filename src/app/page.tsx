@@ -115,7 +115,7 @@ export default function HomePage() {
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/agentic-hero-9yW3wnTNMfn2U6lsVhTTZSJFEvAoSj.mp4"
+          src="/videos/hero.mp4"
           style={{
             transform: videoReady ? "scale(1.05)" : "scale(0.85)",
             transition: "transform 2s cubic-bezier(0.16, 1, 0.3, 1)",
