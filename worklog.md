@@ -218,3 +218,35 @@ Unresolved / Next-phase priorities:
 1. /start app shell + calculator/results views — the AppShell uses semantic tokens (now white) so it inherits the white system, but a focused visual polish pass would complete Phase 6.
 2. Visual browser QA against v0-skydda-ai-defense.vercel.app at desktop/tablet/mobile widths to verify the white conversion.
 3. Full production build + Playwright e2e once a database is available.
+
+---
+Task ID: compute-rebuild-and-cleanup
+Agent: Z.ai Code (implementation agent)
+Task: Execute the COMPUTE template rebuild + mandatory frontend cleanup. Rebuild the marketing frontend from scratch using the COMPUTE template as the exact visual blueprint, with cleanup passes before and after.
+
+Work Log:
+- AUDIT: inventoried the existing frontend. Found 3 accumulated generations: (1) original homepage.tsx + marketing-primitives.tsx, (2) the Skydda transplant (src/components/marketing/skydda/ — 13 files), (3) skydda-homepage.tsx. Also found orphaned Skydda assets (hero-bg.jpg, solution-*.png in public/images/).
+- CLEANUP PASS 1: removed 17 obsolete files — skydda/ (13), skydda-homepage.tsx, homepage.tsx, marketing-primitives.tsx, + 4 orphaned image assets.
+- BUILD: created the new COMPUTE marketing system in src/components/marketing/compute/:
+  - primitives.tsx: shared design system (Container, SectionLabel, DisplayHeading, NumberedSection, Metric, Card, Rule, PrimaryButton, SecondaryButton).
+  - navigation.tsx: ComputeNavigation — the ONE shared header (fixed, transparent→pill on scroll, full-screen mobile overlay). Real routes.
+  - footer.tsx: ComputeFooter — the ONE shared footer.
+  - shell.tsx: ComputeMarketingShell.
+  - hero.tsx: full-viewport hero with atmospheric grid, oversized serif headline, bottom-anchored real Apex stats.
+  - compute-homepage.tsx: 12-section composition using real Apex engine numbers.
+  - pricing.tsx, faq.tsx, cta.tsx: client-interactive sections.
+- DESIGN SYSTEM: re-pointed globals.css tokens to COMPUTE dark system (near-black #0A0A0A canvas, warm off-white #F5F3EF text, subtle gray #262626 borders, 0.25rem radius). Added Instrument Sans/Serif + JetBrains Mono fonts.
+- BRAND SYSTEM: created premium favicon.svg (V mark on dark with amber dot), logo.svg, AI-generated og-image.png (dark editorial OG card).
+- SHARED CHROME: page.tsx renders ComputeHomepage via ComputeMarketingShell. marketing-shell.tsx delegates to ComputeNavigation + ComputeFooter. marketing-primitives.tsx re-created with COMPUTE design system so all sub-pages inherit automatically.
+- CLEANUP PASS 2: verified no remaining imports of removed files, no dead imports, no unused exports. Typecheck + lint clean.
+- Preserved: Prisma, NextAuth, Whop, API contracts, all engines, all content/numbers, admin authorization, SEO (sitemap, robots, canonicals, noindex layouts).
+- Committed (e85c291), pushed, merged to main via fast-forward.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at e85c291 on origin/main.
+- ONE marketing architecture: src/components/marketing/compute/ — no competing generations.
+- ONE shared header (ComputeNavigation) + ONE shared footer (ComputeFooter) across every page.
+- Homepage uses the COMPUTE visual system: near-black canvas, oversized serif display, monospace metadata, 12-col asymmetric grids, numbered sections, real Apex numbers.
+- Top-notch brand system: premium favicon, OG image, consistent dark editorial identity.
+- 17 obsolete files removed. 0 dead imports remaining.
+- Author: witejackel-eng <witejackel@gmail.com>.
