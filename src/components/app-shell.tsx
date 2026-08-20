@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/status-pill';
 import { Logo, LogoCompact, DotSeparator, SuperadminLink } from '@/components/viableo';
+import { AppShellAuthIndicator } from '@/components/app-shell-auth-indicator';
 import {
   BRAND_TAGLINE,
   CTA_PRIMARY,
@@ -313,6 +314,10 @@ function AppLeftRail() {
           >
             Upgrade
           </Button>
+          {/* Auth state + sign out — compact for the left rail */}
+          <div className="mt-2 flex flex-col items-center gap-1">
+            <AppShellAuthIndicator />
+          </div>
         </div>
       </div>
     </aside>

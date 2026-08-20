@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AuthNavControls } from "@/components/auth-nav-controls";
 
 /**
  * ComputeNavigation — the ONE shared, consistent header for EVERY page.
@@ -93,23 +94,9 @@ export function ComputeNavigation() {
             })}
           </div>
 
-          {/* Desktop CTA */}
+          {/* Desktop CTA — auth-aware (shows avatar/email/sign-out when signed in) */}
           <div className="hidden items-center gap-4 md:flex">
-            <Link
-              href="/start?start=1"
-              className="text-xs text-ink-muted transition-colors hover:text-ink"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/start?start=1"
-              className={cn(
-                "inline-flex items-center justify-center rounded-full bg-ink text-canvas transition-all hover:bg-ink/90",
-                isScrolled ? "h-8 px-4 text-xs" : "px-6 py-2 text-sm",
-              )}
-            >
-              Run your first case
-            </Link>
+            <AuthNavControls variant="light" />
           </div>
 
           {/* Mobile Menu Button */}
@@ -150,23 +137,12 @@ export function ComputeNavigation() {
           </div>
           <div
             className={cn(
-              "flex gap-4 border-t border-ink/10 pt-8 transition-all duration-500",
+              "flex flex-col gap-4 border-t border-ink/10 pt-8 transition-all duration-500",
               isMobileMenuOpen ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
             )}
             style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
-            <Link
-              href="/start?start=1"
-              className="flex-1 rounded-full border border-ink/20 py-3 text-center text-base text-ink"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/start?start=1"
-              className="flex-1 rounded-full bg-ink py-3 text-center text-base text-canvas"
-            >
-              Run your first case
-            </Link>
+            <AuthNavControls variant="light" />
           </div>
         </div>
       </div>
