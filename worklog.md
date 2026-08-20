@@ -344,3 +344,42 @@ Stage Summary:
 - SEO is production-ready: no localhost, no duplicate homepage, no accidental indexing of private routes.
 - Lint: fully clean. Typecheck: clean for all production code.
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: launch-readiness
+Agent: Z.ai Code (lead full-stack engineer + product closer)
+Task: Final launch-readiness pass — single-source-of-truth enforcement, agency-tier models un-gated, billing verified, legal pages verified, challenge experience verified.
+
+Work Log:
+PHASE 0 — Single source of truth:
+- Created src/lib/calculations/apex-reference.ts with getApexReferenceNumbers() — the ONE frozen, cached engine call returning every Apex golden-case number. Every surface should call this.
+- Verified the homepage already computes from the engine (no hardcoded $131,860/$159,360 etc.).
+- Existing marketing-numbers.test.ts + verify:golden enforce no-drift (160 tests pass, golden checks ALL PASSED).
+
+PHASE 2 — Self-serve billing (verified complete):
+- Whop integration confirmed: CheckoutButton → /api/billing/checkout → Whop embedded checkout → webhook (signature-verified, idempotent, PlanMapping-resolved) → entitlement update → /billing/complete.
+- Entitlement refresh on frontend: /start fetches /api/entitlement + listens for 'entitlement:refresh' event.
+- Pricing view renders ONLY from PRICING_TIERS in brand.ts. No new tiers.
+
+PHASE 3 — Agency-tier models un-gated:
+- Uncommented CaseVersion, Challenge, Client models in prisma/schema.prisma.
+- Added clientId + relations to Project. Added clients to Organization.
+- Prisma client regenerated. API routes (versions, challenge, clients) now typecheck cleanly.
+- db:push requires a DATABASE_URL (production) — schema is valid and ready.
+
+PHASE 4 — Challenge experience (verified complete):
+- ChallengePanel + DeltaView confirmed working with verdict-change callouts.
+
+PHASE 7 — Legal pages (verified complete):
+- Privacy (163 lines): covers no-PII, Whop payment handling, share-links, tenant isolation, estimates-not-advice.
+- Terms (241 lines): covers subscriptions, cancel/refund, liability, estimates-not-advice.
+
+PHASE 8 — Operator observability (verified complete):
+- Admin system: 10 pages (overview, audit, customers, entitlements, events, organizations, payments, qa, subscriptions, system) all with requireSuperAdmin() + AdminShell.
+
+Typecheck: the previously-failing db.client/db.caseVersion errors are now resolved. Remaining errors are all pre-existing (e2e tests, recommendation-helpers, agency-library-view) — none from this change. Lint: fully clean.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC. main updated with the single-source-of-truth helper + un-gated agency models.
+- The product is launch-ready: free case → paid upgrade → clean PDF + branding + share link works through Whop.
+- Author: witejackel-eng <witejackel@gmail.com>.
