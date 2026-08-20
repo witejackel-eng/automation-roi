@@ -9,21 +9,22 @@ import { Logo } from "@/components/viableo";
 import { HERO_CTA_PRIMARY } from "@/lib/brand";
 
 /**
- * SkyddaHeader — the shared, consistent header for EVERY marketing page.
+ * SkyddaHeader — the ONE shared, consistent header for EVERY marketing page.
  *
- * Extracted from the Skydda hero's inline nav so the exact same header
- * geometry/behavior appears on /, /methodology, /pricing, /solutions/*,
- * /resources/*, /privacy, /terms — per the master directive:
- * "do NOT create a different header for different pages."
+ * Per the master directive: "Create one shared header component/system.
+ * Every marketing page consumes that same header. There must be no separate
+ * homepage header implementation."
+ *
+ * One component, two presentation states:
+ *   - transparent (hero variant): white text over the dark hero image, no bg
+ *   - default (sub-pages): dark text on white canvas, border-b
  *
  * Structure ported from the supplied Skydda `components/hero.tsx` navigation:
  * left logo · center nav links · right CTA · mobile hamburger + panel.
- * `transparent` prop (default false) renders the header over dark hero
- * sections with white text; on sub-pages it gets a zinc-950 backdrop.
  */
 
 const NAV_LINKS = [
-  { href: "/automation-roi", label: "Product" },
+  { href: "/", label: "Product" },
   { href: "/methodology", label: "Methodology" },
   { href: "/solutions/automation-agencies", label: "Solutions" },
   { href: "/pricing", label: "Pricing" },
@@ -34,19 +35,25 @@ export function SkyddaHeader({ transparent = false }: { transparent?: boolean })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // Color treatment depends on the presentation state.
+  const textColor = transparent ? "text-white" : "text-zinc-900";
+  const mutedColor = transparent ? "text-zinc-300" : "text-zinc-600";
+  const hoverColor = transparent ? "hover:text-white" : "hover:text-zinc-900";
+  const ctaColor = transparent ? "text-white hover:text-zinc-300" : "text-zinc-900 hover:text-zinc-600";
+
   return (
     <nav
       className={`relative z-50 px-6 py-6 md:px-12 ${
-        transparent ? "" : "border-b border-zinc-700/30 bg-zinc-950"
+        transparent ? "" : "border-b border-zinc-200 bg-white"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <Link href="/" className="flex items-center" aria-label="Viableo — home">
-          <Logo variant="reverse" />
+          <Logo variant={transparent ? "reverse" : "primary"} />
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-8 text-sm text-zinc-300 lg:flex">
+        <div className={`hidden items-center gap-8 text-sm lg:flex ${mutedColor}`}>
           {NAV_LINKS.map((item) => {
             const active = pathname === item.href;
             return (
@@ -54,8 +61,8 @@ export function SkyddaHeader({ transparent = false }: { transparent?: boolean })
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`font-normal tracking-wide transition-colors hover:text-white ${
-                  active ? "text-white" : ""
+                className={`font-normal tracking-wide transition-colors ${hoverColor} ${
+                  active ? textColor : ""
                 }`}
               >
                 {item.label}
@@ -67,7 +74,7 @@ export function SkyddaHeader({ transparent = false }: { transparent?: boolean })
         <div className="flex items-center gap-4">
           <Link
             href="/start?start=1"
-            className="hidden text-sm font-medium text-white transition-colors hover:text-zinc-300 lg:block"
+            className={`hidden text-sm font-medium transition-colors lg:block ${ctaColor}`}
           >
             {HERO_CTA_PRIMARY}
           </Link>
@@ -75,7 +82,7 @@ export function SkyddaHeader({ transparent = false }: { transparent?: boolean })
           {/* Hamburger Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-white lg:hidden"
+            className={`${textColor} lg:hidden`}
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -92,14 +99,14 @@ export function SkyddaHeader({ transparent = false }: { transparent?: boolean })
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-t border-zinc-700/30 bg-zinc-900/95 backdrop-blur-sm lg:hidden"
+            className="overflow-hidden border-t border-zinc-200 bg-white/95 backdrop-blur-sm lg:hidden"
           >
             <div className="flex flex-col gap-1 px-6 py-6">
               {NAV_LINKS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="py-3 text-zinc-300 transition-colors hover:text-white"
+                  className="py-3 text-zinc-600 transition-colors hover:text-zinc-900"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -107,7 +114,7 @@ export function SkyddaHeader({ transparent = false }: { transparent?: boolean })
               ))}
               <Link
                 href="/start?start=1"
-                className="mt-2 border-t border-zinc-700/30 py-3 font-medium text-white"
+                className="mt-2 border-t border-zinc-200 py-3 font-medium text-zinc-900"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {HERO_CTA_PRIMARY}

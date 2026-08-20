@@ -175,7 +175,7 @@ export default function AutomationAgenciesPage() {
         <SiblingLinks
           label="Related"
           links={[
-            { href: '/automation-roi', label: 'Automation ROI — the number, before you build' },
+            { href: '/', label: 'Automation ROI — the number, before you build' },
             { href: '/methodology', label: 'Methodology — how the math works' },
             { href: '/resources/automation-business-case', label: 'Resource: Automation business case' },
             { href: '/solutions/n8n-agencies', label: 'For n8n agencies' },

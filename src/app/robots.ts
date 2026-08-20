@@ -2,10 +2,10 @@
  * Robots (Master Spec §10) — explicit allow/deny.
  *
  * Public marketing routes: ALLOW.
- * Application routes (/app/*): NOINDEX.
- * Private client report routes (/r/*): NOINDEX.
+ * All private/application routes: NOINDEX via robots.txt disallow.
  *
- * The sitemap URL is declared so crawlers discover it.
+ * Crawlers can still fetch CSS/JS/images needed to render public pages
+ * (assets are not listed in disallow).
  */
 import type { MetadataRoute } from 'next';
 import { siteUrl } from '@/lib/site-url';
@@ -17,7 +17,15 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/app', '/r', '/api'],
+        disallow: [
+          '/start',
+          '/admin',
+          '/auth',
+          '/billing',
+          '/app',
+          '/r',
+          '/api',
+        ],
       },
     ],
     sitemap: `${origin}/sitemap.xml`,

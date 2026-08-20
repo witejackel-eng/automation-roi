@@ -30,84 +30,84 @@ interface FeatureItem {
 const DEFAULT_FEATURES: FeatureItem[] = [
   {
     id: "1",
-    icon: <Calculator className="h-5 w-5 text-white" />,
+    icon: <Calculator className="h-5 w-5 text-zinc-900" />,
     title: "Deterministic ROI model",
     description:
       "One scope in — ROI, payback, annual benefit, and net first-year value out. No black box, no vibes. Every number traces to an input.",
   },
   {
     id: "2",
-    icon: <Gavel className="h-5 w-5 text-white" />,
+    icon: <Gavel className="h-5 w-5 text-zinc-900" />,
     title: "BUILD / CONSIDER / DON'T BUILD",
     description:
       "A verdict, not a score. The recommendation engine weighs payback, net benefit, and confidence against fixed thresholds you can defend.",
   },
   {
     id: "3",
-    icon: <GitBranch className="h-5 w-5 text-white" />,
+    icon: <GitBranch className="h-5 w-5 text-zinc-900" />,
     title: "Conservative · Expected · Upside",
     description:
       "Three scenarios run from the same inputs, so you see the range — not a single number that falls apart under the first question.",
   },
   {
     id: "4",
-    icon: <Gauge className="h-5 w-5 text-white" />,
+    icon: <Gauge className="h-5 w-5 text-zinc-900" />,
     title: "Confidence scoring",
     description:
       "Every input is tagged measured, estimated, or assumed. The confidence score tells you — and your client — how much weight the answer can carry.",
   },
   {
     id: "5",
-    icon: <Crosshair className="h-5 w-5 text-white" />,
+    icon: <Crosshair className="h-5 w-5 text-zinc-900" />,
     title: "Break-even implementation threshold",
     description:
       "The exact fee where the verdict flips. Quote below it and the case holds; above it and it breaks. One number, defensible.",
   },
   {
     id: "6",
-    icon: <FlaskConical className="h-5 w-5 text-white" />,
+    icon: <FlaskConical className="h-5 w-5 text-zinc-900" />,
     title: "Stress testing",
     description:
       "Sweep every assumption ±20% and watch what moves the answer. 64 permutations, so you walk in knowing where the case is fragile.",
   },
   {
     id: "7",
-    icon: <FileText className="h-5 w-5 text-white" />,
+    icon: <FileText className="h-5 w-5 text-zinc-900" />,
     title: "Client business case",
     description:
       "A generated document your client can check line by line — inputs, math, scenarios, sensitivity. Not a slide deck; a defensible artifact.",
   },
   {
     id: "8",
-    icon: <FolderOpen className="h-5 w-5 text-white" />,
+    icon: <FolderOpen className="h-5 w-5 text-zinc-900" />,
     title: "Saved projects",
     description:
       "Every case is saved to your workspace. Load it, revise it, rerun it when the scope changes. No spreadsheet to lose.",
   },
   {
     id: "9",
-    icon: <Share2 className="h-5 w-5 text-white" />,
+    icon: <Share2 className="h-5 w-5 text-zinc-900" />,
     title: "Shareable analysis",
     description:
       "Send a link. The recipient sees the same verdict, the same numbers, the same document — without an account or a sales call.",
   },
   {
     id: "10",
-    icon: <Building2 className="h-5 w-5 text-white" />,
+    icon: <Building2 className="h-5 w-5 text-zinc-900" />,
     title: "Agency branding",
     description:
       "Your logo, your colors, your name on every business case. The document leaves looking like it came from your shop, not ours.",
   },
   {
     id: "11",
-    icon: <Lock className="h-5 w-5 text-white" />,
+    icon: <Lock className="h-5 w-5 text-zinc-900" />,
     title: "Entitlements & billing",
     description:
       "Plan-gated case limits, Whop checkout, subscription state. The pricing surface is real and wired to the actual purchase flow.",
   },
   {
     id: "12",
-    icon: <BookOpen className="h-5 w-5 text-white" />,
+    icon: <BookOpen className="h-5 w-5 text-zinc-900" />,
     title: "Published methodology",
     description:
       "The formulas, the thresholds, the confidence weights — all public. You and your client can read exactly how the number was built.",
@@ -150,7 +150,7 @@ export function SkyddaFeaturesSection({
   return (
     <section
       className={cn(
-        "w-full border-b border-zinc-700/30 bg-zinc-900 py-24",
+        "w-full border-b border-zinc-200 bg-white py-24",
         className,
       )}
     >
@@ -163,13 +163,13 @@ export function SkyddaFeaturesSection({
           transition={{ duration: 0.6 }}
           className="mb-16 flex flex-col gap-6"
         >
-          <div className="flex w-fit items-center gap-3 border border-zinc-700 px-4 py-2">
+          <div className="flex w-fit items-center gap-3 border border-zinc-200 px-4 py-2">
             <div className="h-2.5 w-2.5 bg-amber-500" />
             <span className="text-sm font-medium tracking-wide text-zinc-400">
               {preHeading}
             </span>
           </div>
-          <h2 className="max-w-[700px] text-balance text-4xl font-normal leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+          <h2 className="max-w-[700px] text-balance text-4xl font-normal leading-[1.1] tracking-tight text-zinc-900 md:text-5xl lg:text-6xl">
             {headline.split(" ").map((word, i) => (
               <motion.span
                 key={i}
@@ -208,7 +208,7 @@ export function SkyddaFeaturesSection({
 
               {/* Content */}
               <div className="flex flex-col gap-3">
-                <h4 className="text-xl font-medium tracking-tight text-white">
+                <h4 className="text-xl font-medium tracking-tight text-zinc-900">
                   {feature.title}
                 </h4>
                 <p className="text-balance text-base leading-relaxed text-zinc-400">
@@ -229,13 +229,13 @@ export function SkyddaFeaturesSection({
         >
           <Link
             href="/start?start=1"
-            className="bg-white px-8 py-3 text-sm font-semibold text-zinc-900 transition-all hover:bg-zinc-200 active:scale-95"
+            className="bg-zinc-900 px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-zinc-800 active:scale-95"
           >
             Run your first case
           </Link>
           <Link
             href="/methodology"
-            className="border border-zinc-600 bg-transparent px-8 py-3 text-sm font-semibold text-white transition-all hover:bg-zinc-800 active:scale-95"
+            className="border border-zinc-300 bg-transparent px-8 py-3 text-sm font-semibold text-zinc-900 transition-all hover:bg-zinc-100 active:scale-95"
           >
             Read the methodology
           </Link>

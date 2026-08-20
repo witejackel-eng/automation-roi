@@ -155,7 +155,7 @@ export default function ZapierAgenciesPage() {
             { href: '/solutions/automation-agencies', label: 'For automation agencies' },
             { href: '/solutions/n8n-agencies', label: 'For n8n agencies' },
             { href: '/solutions/make-agencies', label: 'For Make agencies' },
-            { href: '/automation-roi', label: 'Automation ROI — the number, before you build' },
+            { href: '/', label: 'Automation ROI — the number, before you build' },
           ]}
         />
 

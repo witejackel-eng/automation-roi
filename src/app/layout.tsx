@@ -167,7 +167,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <head>
         <script
           type="application/ld+json"
@@ -175,7 +175,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink`}
+        className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink overflow-x-hidden`}
       >
         {/* Accessibility: first focusable element is a skip link (WCAG 2.4.1). */}
         <a

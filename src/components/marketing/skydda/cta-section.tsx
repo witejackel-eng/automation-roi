@@ -30,7 +30,7 @@ export function SkyddaCtaSection() {
       {/* Content */}
       <div className="relative mx-auto max-w-7xl px-6 py-24 md:px-12 md:py-32 lg:py-40">
         <div className="max-w-2xl">
-          <h2 className="text-balance text-4xl font-normal tracking-tight text-white md:text-5xl lg:text-6xl">
+          <h2 className="text-balance text-4xl font-normal tracking-tight text-zinc-900 md:text-5xl lg:text-6xl">
             {FINAL_CTA_HEADLINE.split(" ").map((word, i) => (
               <motion.span
                 key={i}
@@ -44,12 +44,12 @@ export function SkyddaCtaSection() {
               </motion.span>
             ))}
           </h2>
-          <p className="mt-6 max-w-xl text-balance text-base leading-relaxed text-white/80 md:text-lg">
+          <p className="mt-6 max-w-xl text-balance text-base leading-relaxed text-zinc-400 md:text-lg">
             {FINAL_CTA_BODY}
           </p>
           <Link
             href="/start?start=1"
-            className="mt-8 inline-flex items-center gap-2 bg-white px-8 py-3 font-semibold text-black transition-all hover:bg-zinc-200 active:scale-95"
+            className="mt-8 inline-flex items-center gap-2 bg-white px-8 py-3 font-semibold text-zinc-900 transition-all hover:bg-zinc-200 active:scale-95"
           >
             {FINAL_CTA_PRIMARY}
           </Link>

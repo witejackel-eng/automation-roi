@@ -31,7 +31,7 @@ import { useApp, useTier, type View } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/status-pill';
-import { Logo, LogoCompact, DotSeparator } from '@/components/viableo';
+import { Logo, LogoCompact, DotSeparator, SuperadminLink } from '@/components/viableo';
 import {
   BRAND_TAGLINE,
   CTA_PRIMARY,
@@ -56,9 +56,10 @@ const APP_NAV: NavItem[] = [
 ];
 
 // Marketing top-nav — real routes (Pricing is a server-rendered indexable page).
-// The logo links home; Home is therefore redundant.
+// The logo links home; Home is therefore redundant. `/automation-roi` is now a
+// 308 redirect to `/`, so the canonical nav destination is `/`.
 const MARKETING_NAV_LINKS: { href: string; label: string }[] = [
-  { href: '/automation-roi', label: 'Automation ROI' },
+  { href: '/', label: 'Automation ROI' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/pricing', label: 'Pricing' },
 ];
@@ -295,6 +296,9 @@ function AppLeftRail() {
             </button>
           );
         })}
+        {/* Superadmin-only entry — renders nothing for normal users. Backend
+            /admin/* remains protected by requireSuperAdmin() server-side. */}
+        <SuperadminLink />
       </nav>
       <div className="border-t border-border p-2">
         <div className="flex flex-col items-center gap-1.5 py-2">

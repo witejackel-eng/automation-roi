@@ -37,7 +37,7 @@ export function SkyddaHero() {
         style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
       />
       {/* Subtle overlay for text readability — exact Skydda treatment */}
-      <div className="absolute inset-0 bg-zinc-950/40" />
+      <div className="absolute inset-0 bg-white/40" />
 
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col">
@@ -51,7 +51,7 @@ export function SkyddaHero() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-            className="mb-8 flex items-center gap-3 border border-zinc-700/50 px-4 py-2"
+            className="mb-8 flex items-center gap-3 border border-zinc-300 px-4 py-2"
           >
             <div className="h-2.5 w-2.5 bg-amber-500" />
             <span className="text-sm font-medium tracking-wide text-zinc-400">
@@ -60,7 +60,7 @@ export function SkyddaHero() {
           </motion.div>
 
           {/* Headline — blur-to-sharp word reveal */}
-          <h1 className="max-w-4xl text-balance text-5xl font-normal tracking-tight text-white md:text-6xl lg:text-7xl">
+          <h1 className="max-w-4xl text-balance text-5xl font-normal tracking-tight text-zinc-900 md:text-6xl lg:text-7xl">
             {HERO_HEADLINE.split(" ").map((word, i) => (
               <motion.span
                 key={i}
@@ -79,7 +79,7 @@ export function SkyddaHero() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
-            className="mt-6 max-w-xl text-balance text-center text-base leading-relaxed text-white/70 md:text-lg"
+            className="mt-6 max-w-xl text-balance text-center text-base leading-relaxed text-zinc-400 md:text-lg"
           >
             {HERO_SUBHEAD}
           </motion.p>
@@ -93,13 +93,13 @@ export function SkyddaHero() {
           >
             <Link
               href="/start?start=1"
-              className="bg-white px-8 py-3 font-semibold text-zinc-900 transition-all hover:bg-white/90 active:scale-95"
+              className="bg-zinc-900 px-8 py-3 font-semibold text-white transition-all hover:bg-zinc-800 active:scale-95"
             >
               {HERO_CTA_PRIMARY}
             </Link>
             <Link
               href="/start?start=1&example=apex"
-              className="border border-white/30 bg-transparent px-8 py-3 font-semibold text-white transition-all hover:bg-white/10 active:scale-95"
+              className="border border-zinc-300 bg-transparent px-8 py-3 font-semibold text-zinc-900 transition-all hover:bg-zinc-100 active:scale-95"
             >
               {HERO_CTA_SECONDARY}
             </Link>

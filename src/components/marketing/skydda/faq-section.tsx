@@ -63,20 +63,20 @@ export function SkyddaFaqSection() {
   return (
     <section
       id="faq"
-      className="w-full border-b border-zinc-700/30 bg-zinc-900 py-24 md:py-32"
+      className="w-full border-b border-zinc-200 bg-white py-24 md:py-32"
     >
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Left Column - Header */}
           <div className="flex flex-col gap-6">
-            <div className="flex w-fit items-center gap-3 border border-zinc-700 px-4 py-2">
+            <div className="flex w-fit items-center gap-3 border border-zinc-200 px-4 py-2">
               <div className="h-2.5 w-2.5 bg-amber-500" />
               <span className="text-sm font-medium tracking-wide text-zinc-400">
                 FAQ
               </span>
             </div>
 
-            <h2 className="text-balance text-4xl font-normal leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+            <h2 className="text-balance text-4xl font-normal leading-[1.1] tracking-tight text-zinc-900 md:text-5xl lg:text-6xl">
               {"Common Questions".split(" ").map((word, i) => (
                 <motion.span
                   key={i}
@@ -104,7 +104,7 @@ export function SkyddaFaqSection() {
               <div
                 key={faq.id}
                 className={cn(
-                  "border-t border-zinc-700/30",
+                  "border-t border-zinc-200",
                   index === faqs.length - 1 && "border-b",
                 )}
               >
@@ -112,7 +112,7 @@ export function SkyddaFaqSection() {
                   onClick={() => toggleQuestion(faq.id)}
                   className="group flex w-full items-center justify-between gap-4 py-6 text-left"
                 >
-                  <span className="text-lg font-normal text-white transition-colors group-hover:text-zinc-300 md:text-xl">
+                  <span className="text-lg font-normal text-zinc-900 transition-colors group-hover:text-zinc-600 md:text-xl">
                     {faq.question}
                   </span>
                   <motion.div

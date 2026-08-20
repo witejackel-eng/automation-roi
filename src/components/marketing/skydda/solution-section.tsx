@@ -82,17 +82,17 @@ export function SkyddaSolutionSection() {
   }, []);
 
   return (
-    <section className="flex w-full flex-col items-center overflow-hidden border-b border-zinc-700/30 bg-zinc-900 py-24 text-white">
+    <section className="flex w-full flex-col items-center overflow-hidden border-b border-zinc-200 bg-white py-24 text-zinc-900">
       <div className="max-w-7xl w-full space-y-12 px-6 md:px-12 lg:px-16">
         {/* Header Section */}
         <div className="flex max-w-[560px] flex-col gap-4">
-          <div className="flex w-fit items-center gap-3 border border-zinc-700 px-4 py-2">
+          <div className="flex w-fit items-center gap-3 border border-zinc-200 px-4 py-2">
             <div className="h-2.5 w-2.5 bg-amber-500" />
             <span className="text-sm font-medium tracking-wide text-zinc-400">
               The Solution
             </span>
           </div>
-          <h2 className="text-balance text-4xl font-normal leading-[1.1] tracking-tight text-white md:text-5xl">
+          <h2 className="text-balance text-4xl font-normal leading-[1.1] tracking-tight text-zinc-900 md:text-5xl">
             {WHAT_HEADLINE.split(" ").map((word, i) => (
               <motion.span
                 key={i}
@@ -114,7 +114,7 @@ export function SkyddaSolutionSection() {
         {/* Interactive Content Container */}
         <div className="grid min-h-[400px] grid-cols-1 items-center gap-12 lg:grid-cols-2">
           {/* Left: REAL product visual (replaces Skydda image) */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-800">
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeIndex}
@@ -127,31 +127,31 @@ export function SkyddaSolutionSection() {
                 {/* The real analytical object for the active step */}
                 {activeIndex === 0 && (
                   <div className="space-y-6">
-                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
                       Apex reference case · inputs
                     </p>
                     <dl className="grid grid-cols-2 gap-4 font-mono text-sm">
                       <div>
-                        <dt className="text-zinc-500">Implementation fee</dt>
-                        <dd className="mt-1 text-white">
+                        <dt className="text-zinc-400">Implementation fee</dt>
+                        <dd className="mt-1 text-zinc-900">
                           {formatCurrency(APEX_INPUTS.implementationFee)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-zinc-500">Hourly labor cost</dt>
-                        <dd className="mt-1 text-white">
+                        <dt className="text-zinc-400">Hourly labor cost</dt>
+                        <dd className="mt-1 text-zinc-900">
                           {formatCurrency(APEX_INPUTS.hourlyCost)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-zinc-500">Hours / week</dt>
-                        <dd className="mt-1 text-white">
+                        <dt className="text-zinc-400">Hours / week</dt>
+                        <dd className="mt-1 text-zinc-900">
                           {APEX_INPUTS.hoursPerWeek} hrs/wk
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-zinc-500">Automation coverage</dt>
-                        <dd className="mt-1 text-white">
+                        <dt className="text-zinc-400">Automation coverage</dt>
+                        <dd className="mt-1 text-zinc-900">
                           {Math.round(APEX_INPUTS.expectedAutomationPct * 100)}%
                         </dd>
                       </div>
@@ -160,7 +160,7 @@ export function SkyddaSolutionSection() {
                 )}
                 {activeIndex === 1 && (
                   <div className="space-y-6">
-                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
                       Apex reference case · expected scenario
                     </p>
                     <ThresholdLine
@@ -176,23 +176,23 @@ export function SkyddaSolutionSection() {
                     />
                     <dl className="grid grid-cols-3 gap-4 font-mono">
                       <div>
-                        <dt className="text-[11px] uppercase tracking-wider text-zinc-500">
+                        <dt className="text-[11px] uppercase tracking-wider text-zinc-400">
                           Net (yr 1)
                         </dt>
-                        <dd className="mt-1 text-lg text-white">
+                        <dd className="mt-1 text-lg text-zinc-900">
                           {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[11px] uppercase tracking-wider text-zinc-500">
+                        <dt className="text-[11px] uppercase tracking-wider text-zinc-400">
                           Payback
                         </dt>
-                        <dd className="mt-1 text-lg text-white">
+                        <dd className="mt-1 text-lg text-zinc-900">
                           {formatPayback(APEX_EXPECTED.paybackMonths)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[11px] uppercase tracking-wider text-zinc-500">
+                        <dt className="text-[11px] uppercase tracking-wider text-zinc-400">
                           Holds until
                         </dt>
                         <dd className="mt-1 text-lg text-amber-500">
@@ -204,14 +204,14 @@ export function SkyddaSolutionSection() {
                 )}
                 {activeIndex === 2 && (
                   <div className="space-y-6">
-                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+                    <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
                       Apex reference case · verdict
                     </p>
                     <div className="flex items-center gap-4">
                       <DecisionBadge decision={APEX_VERDICT} size="lg" dark />
                       <div>
-                        <p className="text-sm text-zinc-500">Recommendation</p>
-                        <p className="font-display text-2xl font-bold uppercase tracking-tight text-white">
+                        <p className="text-sm text-zinc-400">Recommendation</p>
+                        <p className="font-display text-2xl font-bold uppercase tracking-tight text-zinc-900">
                           {APEX_VERDICT === "build"
                             ? "Build"
                             : APEX_VERDICT === "consider"
@@ -235,7 +235,7 @@ export function SkyddaSolutionSection() {
               {steps.map((_, idx) => (
                 <div
                   key={idx}
-                  className="h-full flex-1 overflow-hidden bg-white/10"
+                  className="h-full flex-1 overflow-hidden bg-zinc-200"
                 >
                   {activeIndex === idx && (
                     <motion.div
@@ -262,8 +262,8 @@ export function SkyddaSolutionSection() {
                 className={cn(
                   "group relative w-full p-6 text-left outline-none transition-all duration-300",
                   activeIndex === index
-                    ? "border border-white/10 bg-white/[0.03]"
-                    : "border border-transparent bg-transparent hover:bg-white/[0.01]",
+                    ? "border border-white/10 bg-zinc-50"
+                    : "border border-transparent bg-transparent hover:bg-zinc-50",
                 )}
                 whileHover={{ x: 4 }}
                 whileTap={{ scale: 0.98 }}
@@ -274,7 +274,7 @@ export function SkyddaSolutionSection() {
                       "mt-1 p-2 transition-colors duration-300",
                       activeIndex === index
                         ? "bg-amber-500 text-black"
-                        : "bg-white/5 text-zinc-500",
+                        : "bg-zinc-100 text-zinc-400",
                     )}
                   >
                     {step.icon}
@@ -284,7 +284,7 @@ export function SkyddaSolutionSection() {
                     <h3
                       className={cn(
                         "text-xl font-medium transition-colors duration-300",
-                        activeIndex === index ? "text-white" : "text-zinc-500",
+                        activeIndex === index ? "text-zinc-900" : "text-zinc-400",
                       )}
                     >
                       {step.title}
@@ -312,7 +312,7 @@ export function SkyddaSolutionSection() {
                         : "-translate-x-2 opacity-0",
                     )}
                   >
-                    <ChevronRight className="h-5 w-5 text-white/40" />
+                    <ChevronRight className="h-5 w-5 text-zinc-900/40" />
                   </div>
                 </div>
               </motion.button>
@@ -326,7 +326,7 @@ export function SkyddaSolutionSection() {
             href="/start?start=1"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 bg-white px-8 py-4 font-medium text-black"
+            className="flex items-center gap-2 bg-zinc-900 px-8 py-4 font-medium text-white"
           >
             Run your first case
             <ChevronRight className="h-4 w-4" />

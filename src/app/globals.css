@@ -5,7 +5,7 @@
 
 /*
  * Viableo — Automation ROI design system tokens.
- * Skydda-inspired dark editorial transformation.
+ * Skydda-inspired WHITE editorial system (master directive).
  *
  * Visual language: deep near-black/zinc surfaces · charcoal raised panels ·
  * subtle zinc hairlines · muted off-white text · controlled warm amber/gold
@@ -19,18 +19,18 @@
  * colors stay semantic (build/consider/don't-build) and are tuned for dark.
  */
 @theme inline {
-  /* ── Surfaces — dark editorial zinc/charcoal ─────────────── */
-  --color-canvas: #09090B;          /* near-black zinc: primary page bg */
-  --color-surface: #131316;          /* charcoal: card / elevated */
-  --color-surface-raised: #18181B;  /* raised charcoal (zinc-900) */
-  --color-border: #26262B;          /* subtle zinc hairline */
-  --color-border-strong: #3A3A42;   /* mid-zinc, stronger separators */
+  /* ── Surfaces — WHITE editorial canvas (master directive) ── */
+  --color-canvas: #FFFFFF;          /* white: primary page bg */
+  --color-surface: #FFFFFF;          /* white: card / elevated */
+  --color-surface-raised: #FAFAFA;  /* very light gray raised */
+  --color-border: #E5E5E5;          /* zinc-200 subtle hairline */
+  --color-border-strong: #D4D4D4;   /* zinc-300 stronger separator */
 
-  /* ── Text — muted off-white on dark ─────────────────────── */
-  --color-ink: #F4F4F5;              /* off-white: primary text, nav (zinc-100) */
-  --color-ink-muted: #A1A1AA;       /* zinc-400: secondary, captions */
+  /* ── Text — dark charcoal on white ─────────────────────── */
+  --color-ink: #18181B;              /* zinc-900: primary text, nav */
+  --color-ink-muted: #52525B;        /* zinc-600: secondary, captions */
   --color-ink-faint: #71717A;        /* zinc-500: tertiary, faint labels */
-  --color-ink-soft: #D4D4D8;        /* zinc-300: muted headings, hover text */
+  --color-ink-soft: #3F3F46;         /* zinc-700: muted headings, hover */
 
   /* ── Brand / interactive accent — warm amber/gold ───────── */
   /* Rare and intentional: section markers, active indicators, status dots, */
@@ -47,21 +47,21 @@
   --color-brand-cta: #F5B544;       /* primary CTA resting fill (amber accent) */
   --color-brand-cta-hover: #D9941E; /* primary CTA hover (deeper amber) */
 
-  /* ── Decision semantics — verdict palette tuned for dark canvas ─── */
-  /* build: #34D399 (emerald) — high-contrast on dark */
-  --color-build: #34D399;
-  --color-build-bg: rgba(52, 211, 153, 0.12);
-  /* consider: #FBBF24 (amber) — distinct from brand amber via verdict scope */
-  --color-consider: #FBBF24;
-  --color-consider-bg: rgba(251, 191, 36, 0.12);
-  /* dont_build: #F87171 (red) — high-contrast on dark */
-  --color-dont-build: #F87171;
-  --color-dont-build-bg: rgba(248, 113, 113, 0.12);
+  /* ── Decision semantics — verdict palette tuned for WHITE canvas ─── */
+  /* build: #059669 (emerald-600) — AA on white (4.56:1) */
+  --color-build: #059669;
+  --color-build-bg: #ECFDF5;
+  /* consider: #B45309 (amber-700) — AA on white (4.5:1), distinct from brand amber */
+  --color-consider: #B45309;
+  --color-consider-bg: #FFFBEB;
+  /* dont_build: #DC2626 (red-600) — AA on white (4.49:1) */
+  --color-dont-build: #DC2626;
+  --color-dont-build-bg: #FEF2F2;
 
-  /* Dark-surface verdict tints (identical to above — already dark-tuned) */
-  --color-build-dark: #34D399;       /* 9.18 on #131316 */
-  --color-consider-dark: #FBBF24;    /* 10.57 on #131316 */
-  --color-dont-build-dark: #F87171;  /* 6.38 on #131316 */
+  /* Dark-surface verdict tints (kept for the product instrument panels) */
+  --color-build-dark: #34D399;
+  --color-consider-dark: #FBBF24;
+  --color-dont-build-dark: #F87171;
 
   /* ── Analytical / Semantic Colors (dark-tuned) ─────────── */
   --color-indigo: #818CF8;          /* analysis accent — lighter for dark legibility */
@@ -118,17 +118,16 @@
   --radius-lg: 8px;          /* large hero card, feature panels */
   --radius-pill: 999px;      /* nav pill, primary CTAs (actions only) */
 
-  /* ── Elevation (layered, soft, dark-aware) ───────────────
-     On dark surfaces, shadows are deeper black with subtle amber lift on hover. */
-  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.30);
-  --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.40), 0 8px 20px -8px rgba(0, 0, 0, 0.55);
-  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.40), 0 16px 36px -10px rgba(0, 0, 0, 0.60);
-  /* Quiet elevation for premium resting cards: contact + ambient wash. */
-  --shadow-quiet: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 28px -10px rgba(0, 0, 0, 0.45);
-  --shadow-quiet-hover: 0 1px 2px rgba(0, 0, 0, 0.40), 0 20px 44px -12px rgba(0, 0, 0, 0.55);
-  /* The hero verdict card — layered for a real floating product object. */
-  --shadow-hero: 0 1px 2px rgba(0, 0, 0, 0.40), 0 2px 6px rgba(0, 0, 0, 0.30), 0 24px 48px -16px rgba(0, 0, 0, 0.55), 0 8px 20px -8px rgba(0, 0, 0, 0.35);
-  --shadow-hero-hover: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35), 0 32px 64px -18px rgba(0, 0, 0, 0.65), 0 12px 24px -8px rgba(0, 0, 0, 0.45);
+  /* ── Elevation — soft, layered shadows for white canvas ─── */
+  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 20px -8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.06), 0 16px 36px -10px rgba(0, 0, 0, 0.10);
+  /* Quiet elevation for premium resting cards. */
+  --shadow-quiet: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 28px -10px rgba(0, 0, 0, 0.06);
+  --shadow-quiet-hover: 0 1px 2px rgba(0, 0, 0, 0.05), 0 20px 44px -12px rgba(0, 0, 0, 0.08);
+  /* The hero product card — layered for a floating object on white. */
+  --shadow-hero: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.03), 0 24px 48px -16px rgba(0, 0, 0, 0.08), 0 8px 20px -8px rgba(0, 0, 0, 0.04);
+  --shadow-hero-hover: 0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04), 0 32px 64px -18px rgba(0, 0, 0, 0.12), 0 12px 24px -8px rgba(0, 0, 0, 0.06);
 
   /* ── shadcn primitive remap (kept so shadcn components keep working) ─ */
   --color-background: var(--color-canvas);
@@ -137,8 +136,8 @@
   --color-card-foreground: var(--color-ink);
   --color-popover: var(--color-surface-raised);
   --color-popover-foreground: var(--color-ink);
-  --color-primary: var(--color-ink);          /* primary buttons = off-white on dark */
-  --color-primary-foreground: var(--color-canvas); /* dark text on off-white primary */
+  --color-primary: var(--color-ink);          /* primary buttons = dark on white */
+  --color-primary-foreground: var(--color-canvas); /* white text on dark primary */
   --color-secondary: var(--color-surface);
   --color-secondary-foreground: var(--color-ink);
   --color-muted: var(--color-surface);

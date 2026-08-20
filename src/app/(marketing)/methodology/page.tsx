@@ -252,7 +252,7 @@ export default function MethodologyPage() {
         <SiblingLinks
           label="Related"
           links={[
-            { href: '/automation-roi', label: 'Automation ROI — the number, before you build' },
+            { href: '/', label: 'Automation ROI — the number, before you build' },
             { href: '/resources/automation-roi', label: 'Resource: Automation ROI' },
             { href: '/resources/automation-payback', label: 'Resource: Automation payback' },
             { href: '/resources/automation-cost', label: 'Resource: Automation cost' },

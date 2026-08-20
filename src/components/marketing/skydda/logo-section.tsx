@@ -17,17 +17,17 @@ const TRUST_SIGNALS = [
 
 export function SkyddaLogoSection() {
   return (
-    <section className="relative w-full border-b border-zinc-700/30 bg-zinc-900 py-16 md:py-24">
+    <section className="relative w-full border-b border-zinc-200 bg-white py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-16">
-        <h2 className="mb-12 text-center text-4xl font-normal tracking-tight text-white md:text-5xl">
+        <h2 className="mb-12 text-center text-4xl font-normal tracking-tight text-zinc-900 md:text-5xl">
           Built for serious automation work
         </h2>
 
-        <div className="grid grid-cols-2 gap-px overflow-hidden border border-zinc-700/30 bg-zinc-700/30 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-px overflow-hidden border border-zinc-200 bg-zinc-200 md:grid-cols-3 lg:grid-cols-6">
           {TRUST_SIGNALS.map((signal) => (
             <div
               key={signal}
-              className="flex items-center justify-center bg-zinc-900 px-4 py-6 text-center"
+              className="flex items-center justify-center bg-white px-4 py-6 text-center"
             >
               <span className="text-sm font-medium tracking-wide text-zinc-400">
                 {signal}
