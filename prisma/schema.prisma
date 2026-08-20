@@ -6,15 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"  // Production runs PostgreSQL via Neon.
-  url       = env("DATABASE_URL")
-  // Direct (non-pooled) URL for migrations on PgBouncer/Neon is handled
-  // by the Vercel env var DIRECT_URL when needed. We do NOT reference
-  // it in the schema because Prisma's env() call fails at schema
-  // validation time when the variable is absent (P1012). Instead, set
-  // DATABASE_URL itself to the direct URL on Vercel, or add DIRECT_URL
-  // to env and uncomment the line below:
-  // directUrl = env("DIRECT_URL")
+  provider  = "sqlite"
+  url       = "file:./db/dev.db"
 }
 
 // ── NextAuth models (Auth.js v4 compatible) ──────────────────────
@@ -367,7 +360,7 @@ model CaseVersion {
   projectId         String
   createdAt         DateTime @default(now())
   inputHash         String
-  results           Json     @db.JsonB
+  results           Json     
   verdict           String
   confidenceScore   Int
   createdBy         String
@@ -407,7 +400,7 @@ model Client {
   organizationId    String
   name              String
   industry          String?
-  defaultAssumptions Json?    @db.JsonB
+  defaultAssumptions Json?    
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
