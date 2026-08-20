@@ -250,3 +250,26 @@ Stage Summary:
 - Top-notch brand system: premium favicon, OG image, consistent dark editorial identity.
 - 17 obsolete files removed. 0 dead imports remaining.
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: compute-exact-transplant
+Agent: Z.ai Code (implementation agent)
+Task: Execute the COMPUTE template transplant with the ACTUAL visual assets from the ZIP (hero video, footer panoramic image, metrics graph, bridge image) — not invented approximations. Per directive §4: USE THEM, do NOT replace.
+
+Work Log:
+- Copied 7 local COMPUTE images from the ZIP into public/images/ (bridge.png, whale.png, shield.png, isolated.jpg, encrypted.jpg, audit.jpg, permissions.jpg).
+- Updated hero.tsx: replaced the invented radial-glow approximation with the ACTUAL COMPUTE bg-hero.mp4 video (Vercel blob) + the exact COMPUTE overlay treatment (from-black/70 via-black/30 to-transparent + bottom gradient).
+- Updated footer.tsx: added the ACTUAL COMPUTE panoramic banner image (Upscaled Image 10) with the exact gradient-fade-to-black + side vignette treatment.
+- Updated cta.tsx: added the ACTUAL COMPUTE bridge.png image in the right-side visual slot — exact COMPUTE cta-section composition.
+- Updated compute-homepage.tsx: added the ACTUAL COMPUTE real-time-graph image above the live metrics cards.
+- The hero video, footer panoramic, and metrics graph are referenced directly from the COMPUTE template's Vercel blob CDN (preserving the exact visual experience per directive §33).
+- Content remains entirely Viableo (hero copy, Apex engine numbers, real pricing, practitioner sources). No COMPUTE product claims copied.
+- Typecheck + lint: clean (0 errors, 3 fixable warnings).
+- Committed (36ff657), pushed, merged to main via fast-forward. Synced feature branch.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at 36ff657 on origin/main.
+- The marketing site now uses the ACTUAL COMPUTE template visual assets: hero video, footer panoramic image, metrics graph, bridge image. No invented approximations.
+- ONE shared header (ComputeNavigation) + ONE shared footer (ComputeFooter with panoramic banner) across every page.
+- Content is entirely Viableo. No COMPUTE product claims copied.
+- Author: witejackel-eng <witejackel@gmail.com>.
