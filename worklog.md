@@ -150,3 +150,36 @@ Unresolved / Next-phase priorities:
 2. /start app shell + calculator/results views — apply the Skydda design system (typography, borders, spacing, button system, accent) while preserving all app architecture.
 3. Visual browser QA: compare local implementation against https://v0-skydda-ai-defense.vercel.app/ at desktop/tablet/mobile widths.
 4. Full build + Playwright e2e once a database is available.
+
+---
+Task ID: skydda-shared-shell-and-pages
+Agent: Z.ai Code (implementation agent)
+Task: Execute the MASTER DIRECTIVE — consistent Skydda header across ALL marketing pages, use the template's actual hero-bg.jpg asset, shared shell system.
+
+Work Log:
+- Read the full master directive: "Create one shared header component/system. Every marketing page consumes that same header." + "use the template's actual implementation and assets where appropriate."
+- Created branch feat/skydda-shared-shell-and-pages from main.
+- Copied the supplied Skydda template assets into public/images/: hero-bg.jpg (176KB), solution-detect.png, solution-learn.png, solution-neutralize.png.
+- Built shared chrome in src/components/marketing/skydda/:
+  - header.tsx: SkyddaHeader — extracted from the hero nav so the EXACT same header geometry/behavior (logo left · center nav links · right CTA · mobile hamburger + animated panel) appears on every page. `transparent` prop for the hero; solid zinc-950 + border-b on sub-pages. Active-route highlighting via usePathname.
+  - shell.tsx: SkyddaMarketingShell — wraps any page with SkyddaHeader + SkyddaFooter + the fixed vertical margin-line overlay (exact Skydda app/page.tsx frame).
+- Rewrote MarketingShell (src/components/marketing/marketing-shell.tsx) to delegate to SkyddaHeader + SkyddaFooter. Same export signature `MarketingShell({ children })` so /methodology, /pricing, /solutions/*, /resources/*, /privacy, /terms ALL get the consistent Skydda chrome automatically — zero page files changed. Header is now byte-for-byte identical across every route.
+- Updated hero.tsx: now uses the actual template hero-bg.jpg with the exact Skydda dark overlay treatment (bg-cover/bg-center + zinc-950/40 overlay) instead of the invented radial glow. Same composition, focal point, scale. Renders the shared SkyddaHeader with transparent prop.
+- Updated cta-section.tsx: now uses hero-bg.jpg with bg-black/40 overlay — exact Skydda cta-section.tsx treatment.
+- Updated index.ts to export SkyddaHeader + SkyddaMarketingShell.
+- Verified: the marketing content primitives (PageHero/Section/SectionHeading/ClosingCTA) use dark-tuned semantic tokens (bg-canvas=#09090B, bg-surface=#131316, text-ink=#F4F4F5, border-border=#26262B) so they render coherently on the dark Skydda shell.
+- Typecheck + lint: clean.
+- Committed (02a6e3e), pushed, merged to main via fast-forward. Synced feature branch to main.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at 02a6e3e on origin/main.
+- ONE shared Skydda header now consumed by every marketing page (homepage hero transparent variant; sub-pages solid zinc-950). No page-by-page header variation.
+- Homepage hero + final CTA use the supplied template's actual hero-bg.jpg asset with the exact Skydda overlay treatment.
+- Marketing pages (/methodology, /pricing, /solutions/*, /resources/*, /privacy, /terms) inherit the shared shell via MarketingShell → SkyddaHeader + SkyddaFooter.
+- Preserved: Prisma, NextAuth, Whop, API contracts, all engines, all content, all routes.
+- Author: witejackel-eng <witejackel@gmail.com>.
+
+Unresolved / Next-phase priorities:
+1. /start app shell + calculator/results views — apply the Skydda design system (typography, borders, spacing, button system, accent) while preserving all app architecture.
+2. Visual browser QA: compare local implementation against https://v0-skydda-ai-defense.vercel.app/ at desktop/tablet/mobile widths.
+3. Full build + Playwright e2e once a database is available.
