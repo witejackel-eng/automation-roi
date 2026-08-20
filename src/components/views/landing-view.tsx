@@ -105,13 +105,13 @@ const LADDER_CONSIDER_TO_DONT_BUILD = Math.round((24 * (_APEX_BENEFIT - _APEX_RE
 // In a real analysis some inputs are estimated — simulate that mix so the
 // confidence bar is visually meaningful (not just 100).
 const APEX_CONFIDENCE = computeConfidenceScore({
-  hourlyLaborCost: 'provided',
-  workloadVolume: 'provided',
+  hourlyCost: 'provided',
+  hoursPerWeek: 'provided',
   implementationFee: 'provided',
-  automationCoverage: 'estimated',
-  conversionImprovement: 'estimated',
-  errorCost: 'assumption',
-  otherInputs: 'assumption',
+  expectedAutomationPct: 'estimated',
+  expectedConversionImprovementPct: 'estimated',
+  expectedErrorReductionPct: 'assumption',
+  otherAnnualCost: 'assumption',
 });
 
 /** Render an ROI% as a multiplier (499% → "5.0×"). */

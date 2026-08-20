@@ -89,47 +89,47 @@ describe('confidenceLabel() — four-band boundary ladder', () => {
 describe('computeConfidenceScore()', () => {
   it('all-provided statuses -> score === 100', () => {
     const statuses: Record<string, InputStatus> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'provided',
-      conversionImprovement: 'provided',
+      expectedAutomationPct: 'provided',
+      expectedConversionImprovementPct: 'provided',
       platformApiCost: 'provided',
-      otherInputs: 'provided',
-      errorCost: 'provided',
+      otherAnnualCost: 'provided',
+      expectedErrorReductionPct: 'provided',
     };
     expect(computeConfidenceScore(statuses).score).toBe(100);
   });
 
   it('all-assumption statuses -> score === 30 (100 × 0.3)', () => {
     const statuses: Record<string, InputStatus> = {
-      hourlyLaborCost: 'assumption',
-      workloadVolume: 'assumption',
+      hourlyCost: 'assumption',
+      hoursPerWeek: 'assumption',
       implementationFee: 'assumption',
-      automationCoverage: 'assumption',
-      conversionImprovement: 'assumption',
+      expectedAutomationPct: 'assumption',
+      expectedConversionImprovementPct: 'assumption',
       platformApiCost: 'assumption',
-      otherInputs: 'assumption',
-      errorCost: 'assumption',
+      otherAnnualCost: 'assumption',
+      expectedErrorReductionPct: 'assumption',
     };
     expect(computeConfidenceScore(statuses).score).toBe(30);
   });
 
   it('Apex statuses -> score === 71 (Math.round(70.5)) and label "Moderate confidence"', () => {
     // Apex statuses:
-    //   hourlyLaborCost/workloadVolume/implementationFee = provided (15+15+15 = 45)
-    //   automationCoverage/conversionImprovement = estimated (15*0.6 + 15*0.6 = 9 + 9 = 18)
-    //   errorCost/otherInputs = assumption (5*0.3 + 10*0.3 = 1.5 + 3 = 4.5)
+    //   hourlyCost/hoursPerWeek/implementationFee = provided (15+15+15 = 45)
+    //   expectedAutomationPct/expectedConversionImprovementPct = estimated (15*0.6 + 15*0.6 = 9 + 9 = 18)
+    //   expectedErrorReductionPct/otherAnnualCost = assumption (5*0.3 + 10*0.3 = 1.5 + 3 = 4.5)
     //   platformApiCost omitted -> assumption (10*0.3 = 3)
     // Sum = 45 + 18 + 4.5 + 3 = 70.5 -> Math.round(70.5) = 71 in JS.
     const statuses: Record<string, InputStatus> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'estimated',
-      conversionImprovement: 'estimated',
-      errorCost: 'assumption',
-      otherInputs: 'assumption',
+      expectedAutomationPct: 'estimated',
+      expectedConversionImprovementPct: 'estimated',
+      expectedErrorReductionPct: 'assumption',
+      otherAnnualCost: 'assumption',
       // platformApiCost deliberately omitted -> defaults to assumption.
     };
     const result = computeConfidenceScore(statuses);
@@ -139,13 +139,13 @@ describe('computeConfidenceScore()', () => {
 
   it('breakdown sums to the raw score before rounding', () => {
     const statuses: Record<string, InputStatus> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'estimated',
-      conversionImprovement: 'estimated',
-      errorCost: 'assumption',
-      otherInputs: 'assumption',
+      expectedAutomationPct: 'estimated',
+      expectedConversionImprovementPct: 'estimated',
+      expectedErrorReductionPct: 'assumption',
+      otherAnnualCost: 'assumption',
     };
     const result = computeConfidenceScore(statuses);
     const rawSum = result.breakdown.reduce((acc, b) => acc + b.contribution, 0);
@@ -159,14 +159,14 @@ describe('computeConfidenceScore()', () => {
 describe('confidenceSummary()', () => {
   it('all-provided -> string starts with "Strong on" and contains no "relies on"', () => {
     const allProvided: Record<string, InputStatus> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'provided',
-      conversionImprovement: 'provided',
+      expectedAutomationPct: 'provided',
+      expectedConversionImprovementPct: 'provided',
       platformApiCost: 'provided',
-      otherInputs: 'provided',
-      errorCost: 'provided',
+      otherAnnualCost: 'provided',
+      expectedErrorReductionPct: 'provided',
     };
     const summary = confidenceSummary(computeConfidenceScore(allProvided).breakdown);
     expect(summary.startsWith('Strong on')).toBe(true);
@@ -175,14 +175,14 @@ describe('confidenceSummary()', () => {
 
   it('all-assumption -> string contains "relies on" and does NOT contain "Strong on"', () => {
     const allAssumption: Record<string, InputStatus> = {
-      hourlyLaborCost: 'assumption',
-      workloadVolume: 'assumption',
+      hourlyCost: 'assumption',
+      hoursPerWeek: 'assumption',
       implementationFee: 'assumption',
-      automationCoverage: 'assumption',
-      conversionImprovement: 'assumption',
+      expectedAutomationPct: 'assumption',
+      expectedConversionImprovementPct: 'assumption',
       platformApiCost: 'assumption',
-      otherInputs: 'assumption',
-      errorCost: 'assumption',
+      otherAnnualCost: 'assumption',
+      expectedErrorReductionPct: 'assumption',
     };
     const summary = confidenceSummary(computeConfidenceScore(allAssumption).breakdown);
     expect(summary).toContain('relies on');

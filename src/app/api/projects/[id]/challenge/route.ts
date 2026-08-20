@@ -110,14 +110,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     // Use a default confidence map (all 'provided' since these are
     // user-supplied overrides in a what-if context).
     const defaultStatuses: Record<string, 'provided'> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'provided',
-      conversionImprovement: 'provided',
+      expectedAutomationPct: 'provided',
+      expectedConversionImprovementPct: 'provided',
       platformApiCost: 'provided',
-      otherInputs: 'provided',
-      errorCost: 'provided',
+      otherAnnualCost: 'provided',
+      expectedErrorReductionPct: 'provided',
     };
 
     const originalConfidence = computeConfidenceScore(defaultStatuses);

@@ -31,7 +31,7 @@ const BREAK_POINT_FEE = APEX_BREAK_EVEN.implementationFee ?? 0;
 const APEX_CONFIDENCE_STATUSES: Record<string, InputStatus> = {
   hourlyCost: 'provided', leadsPerMonth: 'provided', implementationFee: 'provided',
   expectedAutomationPct: 'estimated', expectedConversionImprovementPct: 'estimated',
-  errorCost: 'assumption', otherInputs: 'assumption',
+  expectedErrorReductionPct: 'assumption', otherAnnualCost: 'assumption',
 };
 const APEX_CONFIDENCE = computeConfidenceScore(APEX_CONFIDENCE_STATUSES);
 

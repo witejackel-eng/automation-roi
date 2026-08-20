@@ -153,24 +153,24 @@ export function ResultsView() {
   // Build AssumptionsRow[] for the ViableoAssumptionsTable — hooks before early return
   const assumptionsRows: AssumptionsRow[] = React.useMemo(() => {
     const statuses: Record<string, InputStatus> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'estimated',
-      conversionImprovement: 'estimated',
+      expectedAutomationPct: 'estimated',
+      expectedConversionImprovementPct: 'estimated',
       platformApiCost: 'assumption',
-      otherInputs: 'provided',
-      errorCost: 'assumption',
+      otherAnnualCost: 'provided',
+      expectedErrorReductionPct: 'assumption',
     };
     const IMPROVEMENT_ACTIONS: Record<string, string> = {
-      hourlyLaborCost: 'Use payroll data or time-tracking tools to confirm.',
-      workloadVolume: 'Count actual tasks from the last 30 days.',
+      hourlyCost: 'Use payroll data or time-tracking tools to confirm.',
+      hoursPerWeek: 'Count actual tasks from the last 30 days.',
       implementationFee: 'Get a written quote from the build partner.',
-      automationCoverage: 'Run a small pilot to measure the actual automation rate.',
-      conversionImprovement: 'A/B test the new flow before committing to full build.',
+      expectedAutomationPct: 'Run a small pilot to measure the actual automation rate.',
+      expectedConversionImprovementPct: 'A/B test the new flow before committing to full build.',
       platformApiCost: "Check the platform's pricing page for current rates.",
-      otherInputs: 'Review vendor contracts for the latest figures.',
-      errorCost: 'Measure rework time from a sample of recent errors.',
+      otherAnnualCost: 'Review vendor contracts for the latest figures.',
+      expectedErrorReductionPct: 'Measure rework time from a sample of recent errors.',
     };
     const statusToViableo = (s: InputStatus): 'measured' | 'estimated' | 'assumed' => {
       if (s === 'provided') return 'measured';
@@ -246,14 +246,14 @@ export function ResultsView() {
     // Derive verdicts using the confidence-aware decision tree.
     // Use the same default statuses as the API challenge route (all 'provided').
     const defaultStatuses: Record<string, 'provided'> = {
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'provided',
-      conversionImprovement: 'provided',
+      expectedAutomationPct: 'provided',
+      expectedConversionImprovementPct: 'provided',
       platformApiCost: 'provided',
-      otherInputs: 'provided',
-      errorCost: 'provided',
+      otherAnnualCost: 'provided',
+      expectedErrorReductionPct: 'provided',
     };
     const origConfidence = computeConfidenceScore(defaultStatuses);
     const chalConfidence = computeConfidenceScore(defaultStatuses);
@@ -1061,14 +1061,14 @@ function ConfidenceExplainedSection({
   // Default all inputs to 'provided' since the user entered them.
   // In a real app, these would come from the store with their actual statuses.
   const [statuses, setStatuses] = React.useState<Record<string, InputStatus>>({
-    hourlyLaborCost: 'provided',
-    workloadVolume: 'provided',
+    hourlyCost: 'provided',
+    hoursPerWeek: 'provided',
     implementationFee: 'provided',
-    automationCoverage: 'estimated',
-    conversionImprovement: 'estimated',
+    expectedAutomationPct: 'estimated',
+    expectedConversionImprovementPct: 'estimated',
     platformApiCost: 'assumption',
-    otherInputs: 'provided',
-    errorCost: 'assumption',
+    otherAnnualCost: 'provided',
+    expectedErrorReductionPct: 'assumption',
   });
 
   const handleStatusChange = React.useCallback((inputKey: string, newStatus: InputStatus) => {

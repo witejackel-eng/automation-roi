@@ -195,13 +195,13 @@ describe('Marketing guard — Confidence weights and status multipliers', () => 
 
   it('Apex confidence score === 71 (computed from the documented statuses)', () => {
     const result = computeConfidenceScore({
-      hourlyLaborCost: 'provided',
-      workloadVolume: 'provided',
+      hourlyCost: 'provided',
+      hoursPerWeek: 'provided',
       implementationFee: 'provided',
-      automationCoverage: 'estimated',
-      conversionImprovement: 'estimated',
-      errorCost: 'assumption',
-      otherInputs: 'assumption',
+      expectedAutomationPct: 'estimated',
+      expectedConversionImprovementPct: 'estimated',
+      expectedErrorReductionPct: 'assumption',
+      otherAnnualCost: 'assumption',
       // platformApiCost omitted -> assumption.
     });
     expect(result.score).toBe(71);

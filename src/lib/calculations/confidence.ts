@@ -23,19 +23,21 @@ export interface InputConfidence {
 /**
  * Default weights for the seven material inputs (sum = 100).
  *
- * The heaviest weight sits on `conversionImprovement` because revenue upside
- * is the input most often overstated in automation business cases. Labor
- * inputs and cost inputs split the remaining load evenly.
+ * The keys MUST match the actual `CalculatorInputs` field names so callers
+ * can pass a statuses map using the real input keys. The heaviest weight
+ * sits on `expectedConversionImprovementPct` because revenue upside is the
+ * input most often overstated in automation business cases. Labor inputs
+ * and cost inputs split the remaining load.
  */
 export const CONFIDENCE_WEIGHTS = {
-  hourlyLaborCost: 15,
-  workloadVolume: 15,
+  hourlyCost: 15,
+  hoursPerWeek: 15,
   implementationFee: 15,
-  automationCoverage: 15,
-  conversionImprovement: 15,
+  expectedAutomationPct: 15,
+  expectedConversionImprovementPct: 15,
   platformApiCost: 10,
-  otherInputs: 10,
-  errorCost: 5,
+  otherAnnualCost: 10,
+  expectedErrorReductionPct: 5,
 } as const;
 
 /** Status → multiplier. Provided counts fully; assumption counts 30%. */
@@ -47,14 +49,14 @@ export const STATUS_MULTIPLIERS = {
 
 /** Friendly plain-language labels for each input, used in summaries. */
 export const INPUT_LABELS: Record<keyof typeof CONFIDENCE_WEIGHTS, string> = {
-  hourlyLaborCost: 'labor inputs',
-  workloadVolume: 'workload inputs',
+  hourlyCost: 'labor cost',
+  hoursPerWeek: 'workload volume',
   implementationFee: 'implementation cost',
-  automationCoverage: 'automation coverage',
-  conversionImprovement: 'revenue improvement',
+  expectedAutomationPct: 'automation coverage',
+  expectedConversionImprovementPct: 'revenue improvement',
   platformApiCost: 'platform/API cost',
-  otherInputs: 'other cost inputs',
-  errorCost: 'error cost inputs',
+  otherAnnualCost: 'other cost inputs',
+  expectedErrorReductionPct: 'error cost inputs',
 };
 
 export interface ConfidenceBreakdownRow {
@@ -76,6 +78,10 @@ export interface ConfidenceResult {
  *
  * Inputs not present in `statuses` default to `assumption` (the lowest
  * multiplier) — a missing input is treated as the weakest kind of evidence.
+ *
+ * Unknown status strings (e.g. a typo like 'assumed' instead of 'assumption')
+ * are treated as 'assumption' rather than producing NaN — a defensive guard
+ * so a single bad caller can never corrupt the score.
  */
 export function computeConfidenceScore(
   statuses: Record<string, InputStatus>
@@ -83,13 +89,22 @@ export function computeConfidenceScore(
   const breakdown: ConfidenceBreakdownRow[] = (
     Object.entries(CONFIDENCE_WEIGHTS) as Array<[string, number]>
   ).map(([input, weight]) => {
-    const status: InputStatus = statuses[input] ?? 'assumption';
+    const rawStatus = statuses[input];
+    // Defensive: unknown/invalid status strings fall back to 'assumption'
+    // (the lowest multiplier) so a typo can never produce NaN.
+    const status: InputStatus =
+      rawStatus === 'provided' || rawStatus === 'estimated' || rawStatus === 'assumption'
+        ? rawStatus
+        : 'assumption';
     const contribution = weight * STATUS_MULTIPLIERS[status];
     return { input, weight, status, contribution };
   });
 
   const raw = breakdown.reduce((sum, b) => sum + b.contribution, 0);
-  return { score: Math.round(raw), breakdown };
+  // Guard against NaN (should be impossible after the fix above, but
+  // defense-in-depth: if something goes wrong, 0 is a safer default than NaN).
+  const score = Number.isFinite(raw) ? Math.round(raw) : 0;
+  return { score, breakdown };
 }
 
 /**
