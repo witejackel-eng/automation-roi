@@ -183,3 +183,38 @@ Unresolved / Next-phase priorities:
 1. /start app shell + calculator/results views — apply the Skydda design system (typography, borders, spacing, button system, accent) while preserving all app architecture.
 2. Visual browser QA: compare local implementation against https://v0-skydda-ai-defense.vercel.app/ at desktop/tablet/mobile widths.
 3. Full build + Playwright e2e once a database is available.
+
+---
+Task ID: white-skydda-seo-consistency
+Agent: Z.ai Code (implementation agent)
+Task: Execute the MASTER DIRECTIVE — white-background Skydda, SEO repair, superadmin visibility, practitioner review section, header consistency, overflow fix.
+
+Work Log:
+- WHITE-BACKGROUND CONVERSION: re-pointed all semantic design tokens in globals.css to WHITE canvas (#FFFFFF) + dark charcoal text (#18181B) + light zinc borders (#E5E5E5). Decision semantics tuned for white (AA-pass). Shadows softened. The marketing-primitives inherit white automatically via semantic tokens. Converted all 12 skydda components from hardcoded dark zinc to the white editorial system (bg-zinc-950→bg-white, text-white→text-zinc-900, border-zinc-700→border-zinc-200). Primary buttons now dark-on-white; ghost buttons border-zinc-300.
+- HEADER CONSISTENCY: SkyddaHeader has two presentation states (transparent for hero over dark image; default dark-text-on-white for sub-pages). ONE shared component. Nav link /automation-roi → /. Every marketing page consumes it via MarketingShell.
+- SEO REPAIR:
+  - site-url.ts: production fallback is now the deterministic production origin (https://automation-roi-delta.vercel.app) — never localhost in production.
+  - /automation-roi: converted to 308 permanent redirect to / (was a duplicate indexable landing page). Removed from sitemap.
+  - robots.ts: expanded disallow to ALL private routes (/start, /admin, /auth, /billing, /app, /r, /api).
+  - Noindex layouts added for /start, /admin, /auth, /billing, /r (robots { index: false, follow: false } at route level).
+  - Internal links to top-level /automation-roi updated to / across methodology + 4 solutions pages.
+- PRACTITIONER-PROOF REVIEW SECTION: rebuilt proof-section as the Skydda 3-column review carousel (amber quote mark, large quote, attribution, left/right arrows, mobile carousel) filled with REAL source-backed practitioner statements from the repository (r/agency, r/n8n) — NOT fabricated testimonials. Attribution links to the original Reddit threads.
+- SUPERADMIN VISIBILITY: SuperadminLink client component fetches /api/auth/session, renders an Admin (Shield icon) entry in the product left rail ONLY when systemRole === SUPERADMIN. Renders nothing for normal users. Backend /admin/* remains protected by requireSuperAdmin() server-side.
+- HORIZONTAL OVERFLOW FIX: root <html> + <body> now have overflow-x-hidden to prevent any horizontal scroll from the Skydda vertical margin-line rails or wide carousels.
+- Preserved: Prisma, NextAuth, Whop, API contracts, all engines, all content/words/numbers, all pricing/plan limits, admin authorization.
+- Typecheck + lint: clean.
+- Committed (d600db4), pushed, merged to main via fast-forward. Synced feature branch.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at d600db4 on origin/main.
+- Public marketing site is now a WHITE editorial system with the Skydda template structure (header, hero, trust, problem, solution, features, proof, pricing, FAQ, CTA, footer). No dark analytical canvas on the public site.
+- ONE shared header across every marketing page.
+- /automation-roi is a 308 redirect to / (one canonical homepage). Sitemap + robots fixed. Private routes noindex.
+- Superadmin sees Admin entry in the product nav; normal users see nothing. Backend authorization authoritative.
+- Practitioner-proof review section uses real r/agency + r/n8n sources — no fake testimonials.
+- Author: witejackel-eng <witejackel@gmail.com>.
+
+Unresolved / Next-phase priorities:
+1. /start app shell + calculator/results views — the AppShell uses semantic tokens (now white) so it inherits the white system, but a focused visual polish pass would complete Phase 6.
+2. Visual browser QA against v0-skydda-ai-defense.vercel.app at desktop/tablet/mobile widths to verify the white conversion.
+3. Full production build + Playwright e2e once a database is available.
