@@ -450,3 +450,65 @@ Stage Summary:
 - The frontend now shows the signed-in state (avatar, email, sign-out, admin badge).
 - SUPERADMIN gets full product access (all capabilities unlocked).
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: full-frontend-transplant
+Agent: Z.ai Code (lead frontend + integration engineer)
+Task: Full frontend pixel transplant from three templates (agentic marketing, Orbit app, liquid-glass auth) with Viableo copy + live engine numbers, keeping all backend functions working.
+
+Work Log:
+PHASE 0 — Inventory & protect backend:
+- Read ZAI_MASTER_FRONTEND_REBUILD_PROMPT.md, SITE_COPY.md, TEMPLATE_TO_ROUTE_MAP.md fully.
+- Confirmed engine, auth, entitlement, PDF, share, admin routes compile.
+- Extracted all three template ZIPs (agentic, customer-success/Orbit, liquid-glass).
+
+PHASE 1 — Liquid Glass Auth (complete):
+- Rebuilt /auth/signin using liquid-glass template structure: glass card with floating orbs, backdrop-blur, dark canvas with amber glow.
+- Buttons wired to NextAuth Google + GitHub providers.
+- Rebuilt /auth/error in the same visual language.
+- Committed cfa3e31.
+
+PHASE 2 — Orbit App Shell (complete):
+- Replaced the old app shell with the Orbit command-dock pattern:
+  - CommandDock: 60px left rail (Calculator, Reports, Settings + SuperadminLink) with active indicator + tooltips + tier chip + auth indicator.
+  - CommandStage: animated view transitions (spring, opacity+scale+Y).
+  - MobileTopBar + MobileTabBar.
+- Preserves all backend wires: useApp store, useTier, calculator inputs, engine, entitlement.
+- Committed 1a4957b.
+
+PHASE 3 — Results actions + contrast (verified):
+- Verified: action bar (Save/Report/Proposal/Share) already uses EntitlementButton with correct entitlement flags. Race condition already fixed. Report/proposal routes already created. No hardcoded light backgrounds.
+
+PHASE 4 — Agentic Marketing Homepage (complete):
+- Created src/components/marketing/agentic/ with:
+  - reveal-text.tsx: scroll-triggered staggered word reveal (blur + opacity + translateY).
+  - navigation.tsx: AgenticNavigation (fixed, transparent→pill on scroll, full-screen mobile overlay, auth-aware).
+  - agentic-homepage.tsx: 9-section homepage (Hero, Problem, How it works, Capabilities, Product contract, Opposites, Pricing teaser, Final CTA, Footer) with Viableo copy from SITE_COPY.md.
+- All numbers from live engine via getApexReferenceNumbers().
+- Committed 391d356.
+
+PHASE 5 — Secondary marketing pages (verified):
+- All sub-pages (/pricing, /methodology, /solutions/*, /resources/*, /privacy, /terms) use MarketingShell → ComputeNavigation + ComputeFooter with dark semantic tokens. No changes needed.
+
+PHASE 6 — Share + Admin (verified):
+- Share view (/r/[shareId]) is chrome-free. Admin shell has Back to product + Marketing site links.
+
+PHASE 7 — Remove old frontend (complete):
+- Removed 12 obsolete compute/ section components + motion-primitives.tsx.
+- Kept: compute/shell.tsx, compute/navigation.tsx, compute/footer.tsx (shared chrome for sub-pages).
+- Committed eae34ef.
+
+PHASE 8 — Verification:
+- Typecheck: clean for all changed files.
+- Lint: fully clean (0 errors, 0 warnings).
+- Golden-case: ALL PASSED.
+- No broken imports.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at eae34ef on origin/main.
+- The entire user-visible frontend has been transplanted:
+  - Marketing: agentic template structure + Viableo copy + live Apex numbers.
+  - App: Orbit command-dock + stage with real calculator/results/projects/settings.
+  - Auth: liquid-glass sign-in/error wired to NextAuth.
+- All backend functions preserved: calculation engine, auth, entitlements, Whop billing, PDF, share, admin.
+- Author: witejackel-eng <witejackel@gmail.com>.
