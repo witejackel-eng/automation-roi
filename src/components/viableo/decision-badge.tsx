@@ -18,7 +18,7 @@
  */
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { DECISION_COLORS, type DecisionKey } from '@/lib/brand';
+import { DECISION_COLORS, DECISION_COLORS_DARK, type DecisionKey } from '@/lib/brand';
 
 interface DecisionBadgeProps {
   decision: DecisionKey;
@@ -26,6 +26,13 @@ interface DecisionBadgeProps {
   className?: string;
   /** Animate the symbol "drop" into place (decision-reveal, Section 10.3). */
   animate?: boolean;
+  /**
+   * Render the dark-surface variant — uses the dark-tuned verdict palette
+   * (DECISION_COLORS_DARK) with low-opacity tint backgrounds so the badge
+   * reads coherently on dark/analytical sections. The default (light)
+   * variant is retained for white-background PDF reports.
+   */
+  dark?: boolean;
 }
 
 const SIZE_CLASSES = {
@@ -40,8 +47,28 @@ const SYMBOL_SIZE = {
   lg: 'h-5 w-5',
 } as const;
 
-export function DecisionBadge({ decision, size = 'md', className, animate }: DecisionBadgeProps) {
-  const colors = DECISION_COLORS[decision];
+/**
+ * Build a dark-variant color set from DECISION_COLORS_DARK hex values.
+ * Uses a 14% tint background + full-strength text/border so the badge
+ * stays legible on charcoal/analytical surfaces (all measured AA-pass
+ * on #131316).
+ */
+function darkColors(decision: DecisionKey) {
+  const hex = DECISION_COLORS_DARK[decision];
+  // Convert #RRGGBB → rgba(r,g,b,0.14) for the tint background.
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return {
+    text: hex,
+    bg: `rgba(${r}, ${g}, ${b}, 0.14)`,
+    border: `rgba(${r}, ${g}, ${b}, 0.45)`,
+    label: DECISION_COLORS[decision].label,
+  };
+}
+
+export function DecisionBadge({ decision, size = 'md', className, animate, dark = false }: DecisionBadgeProps) {
+  const colors = dark ? darkColors(decision) : DECISION_COLORS[decision];
   const animateClass = animate ? 'dot-drop' : '';
 
   return (

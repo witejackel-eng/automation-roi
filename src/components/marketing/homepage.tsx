@@ -215,16 +215,23 @@ function SecondaryCTA({
   );
 }
 
-// ── E1 — HERO (light) ────────────────────────────────────────────────────
+// ── E1 — HERO (dark immersive editorial) ────────────────────────────────
 function HeroSection() {
   return (
-    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
+    <section className="relative bg-canvas px-4 py-20 md:px-6 md:py-28">
+      {/* editorial top hairline frame */}
+      <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-border" />
       <div className="mx-auto w-full max-w-[1100px]">
-        <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">
-          <span aria-hidden="true" className="mr-2 inline-block size-1.5 rounded-full bg-[var(--color-brand)] align-middle" />
-          {HERO_EYEBROW}
-        </p>
-        <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-6xl">
+        {/* editorial section index + amber marker eyebrow */}
+        <div className="flex items-center gap-4">
+          <span className="mkt-section-index">E1 / 13</span>
+          <span aria-hidden="true" className="mkt-marker-line" />
+          <p className="mkt-eyebrow">
+            <span aria-hidden="true" className="mkt-marker" />
+            {HERO_EYEBROW}
+          </p>
+        </div>
+        <h1 className="mkt-display mt-8 max-w-[920px]">
           {HERO_HEADLINE}
         </h1>
         <p className="mt-6 max-w-[680px] text-lg leading-relaxed text-ink-muted md:text-xl">
@@ -235,51 +242,55 @@ function HeroSection() {
           <SecondaryCTA href="/start?start=1&example=apex" label={HERO_CTA_SECONDARY} />
         </div>
 
-        {/* Hero Threshold Line — the answer, before they read a word */}
-        <figure className="mt-14">
-          <figcaption className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-faint">
-            Apex reference case · expected scenario
-          </figcaption>
-          <ThresholdLine
-            scale="hero"
-            min={0}
-            max={160000}
-            threshold={BREAK_POINT_FEE}
-            position={APEX_INPUTS.implementationFee}
-            verdict={APEX_VERDICT}
-            thresholdLabel={BREAK_POINT_FEE_FMT}
-            positionLabel={formatCurrency(APEX_INPUTS.implementationFee)}
-            favourable="below"
-          />
-        </figure>
-
-        {/* Three real statistics, computed from the engine, tabular figures */}
-        <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-              {HERO_STAT_LABELS.net}
-            </dt>
-            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-ink">
-              {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
-            </dd>
+        {/* Premium product surface: verdict stamp + threshold rail + stats */}
+        <div className="mkt-product-surface mt-14 p-6 md:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="shrink-0">
+              <p className="mkt-figure-label">
+                Apex reference case · expected scenario
+              </p>
+              <div className="mt-4 flex items-center gap-3">
+                <DecisionBadge decision={APEX_VERDICT} size="lg" dark />
+                <span className="mkt-section-index">Apex verdict</span>
+              </div>
+            </div>
+            <figure className="min-w-0 flex-1 md:max-w-[520px]">
+              <figcaption className="mkt-figure-label mb-3">Answer holds until</figcaption>
+              <ThresholdLine
+                scale="hero"
+                min={0}
+                max={160000}
+                threshold={BREAK_POINT_FEE}
+                position={APEX_INPUTS.implementationFee}
+                verdict={APEX_VERDICT}
+                thresholdLabel={BREAK_POINT_FEE_FMT}
+                positionLabel={formatCurrency(APEX_INPUTS.implementationFee)}
+                favourable="below"
+              />
+            </figure>
           </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-              {HERO_STAT_LABELS.payback}
-            </dt>
-            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-ink">
-              {formatPayback(APEX_EXPECTED.paybackMonths)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-              {HERO_STAT_LABELS.holdsUntil}
-            </dt>
-            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-ink">
-              {BREAK_POINT_FEE_FMT}
-            </dd>
-          </div>
-        </dl>
+          {/* Three real statistics, computed from the engine, tabular figures */}
+          <dl className="mt-8 grid grid-cols-1 gap-6 border-t border-border pt-6 sm:grid-cols-3">
+            <div>
+              <dt className="mkt-figure-label">{HERO_STAT_LABELS.net}</dt>
+              <dd className="mkt-figure mt-2 text-3xl md:text-4xl">
+                {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
+              </dd>
+            </div>
+            <div>
+              <dt className="mkt-figure-label">{HERO_STAT_LABELS.payback}</dt>
+              <dd className="mkt-figure mt-2 text-3xl md:text-4xl">
+                {formatPayback(APEX_EXPECTED.paybackMonths)}
+              </dd>
+            </div>
+            <div>
+              <dt className="mkt-figure-label">{HERO_STAT_LABELS.holdsUntil}</dt>
+              <dd className="mkt-figure mkt-figure-accent mt-2 text-3xl md:text-4xl">
+                {BREAK_POINT_FEE_FMT}
+              </dd>
+            </div>
+          </dl>
+        </div>
       </div>
       <Divider kind="light" verdict={APEX_VERDICT} min={0} max={160000} threshold={BREAK_POINT_FEE} position={APEX_INPUTS.implementationFee} thresholdLabel={BREAK_POINT_FEE_FMT} positionLabel={formatCurrency(APEX_INPUTS.implementationFee)} />
     </section>
@@ -465,7 +476,7 @@ function VerdictSection() {
         {/* Real Apex verdict + confidence score, from the engine */}
         <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <DecisionBadge decision={APEX_VERDICT} size="lg" />
+            <DecisionBadge decision={APEX_VERDICT} size="lg" dark />
             <div>
               <p className="text-sm" style={{ color: DARK_MUTED }}>Apex reference verdict</p>
               <p className="font-mono text-2xl font-bold tabular-nums">
