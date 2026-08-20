@@ -19,18 +19,18 @@
  * colors stay semantic (build/consider/don't-build) and are tuned for dark.
  */
 @theme inline {
-  /* ── Surfaces — WHITE editorial canvas (master directive) ── */
-  --color-canvas: #FFFFFF;          /* white: primary page bg */
-  --color-surface: #FFFFFF;          /* white: card / elevated */
-  --color-surface-raised: #FAFAFA;  /* very light gray raised */
-  --color-border: #E5E5E5;          /* zinc-200 subtle hairline */
-  --color-border-strong: #D4D4D4;   /* zinc-300 stronger separator */
+  /* ── Surfaces — COMPUTE dark editorial (near-black) ──── */
+  --color-canvas: #0A0A0A;          /* near-black: primary page bg (oklch 0.06) */
+  --color-surface: #0A0A0A;          /* same as canvas — one continuous dark field */
+  --color-surface-raised: #141414;  /* raised charcoal (oklch 0.09) */
+  --color-border: #262626;          /* subtle gray hairline (oklch 0.18) */
+  --color-border-strong: #3A3A3A;   /* mid-gray, stronger separators */
 
-  /* ── Text — dark charcoal on white ─────────────────────── */
-  --color-ink: #18181B;              /* zinc-900: primary text, nav */
-  --color-ink-muted: #52525B;        /* zinc-600: secondary, captions */
-  --color-ink-faint: #71717A;        /* zinc-500: tertiary, faint labels */
-  --color-ink-soft: #3F3F46;         /* zinc-700: muted headings, hover */
+  /* ── Text — warm off-white on dark (COMPUTE) ──────────── */
+  --color-ink: #F5F3EF;              /* warm off-white: primary text (oklch 0.94) */
+  --color-ink-muted: #8A8A8A;        /* mid-gray: secondary, captions (oklch 0.55) */
+  --color-ink-faint: #5A5A5A;        /* darker gray: tertiary, faint labels */
+  --color-ink-soft: #C0C0C0;         /* light gray: muted headings, hover text */
 
   /* ── Brand / interactive accent — warm amber/gold ───────── */
   /* Rare and intentional: section markers, active indicators, status dots, */
@@ -47,16 +47,16 @@
   --color-brand-cta: #F5B544;       /* primary CTA resting fill (amber accent) */
   --color-brand-cta-hover: #D9941E; /* primary CTA hover (deeper amber) */
 
-  /* ── Decision semantics — verdict palette tuned for WHITE canvas ─── */
-  /* build: #059669 (emerald-600) — AA on white (4.56:1) */
-  --color-build: #059669;
-  --color-build-bg: #ECFDF5;
-  /* consider: #B45309 (amber-700) — AA on white (4.5:1), distinct from brand amber */
-  --color-consider: #B45309;
-  --color-consider-bg: #FFFBEB;
-  /* dont_build: #DC2626 (red-600) — AA on white (4.49:1) */
-  --color-dont-build: #DC2626;
-  --color-dont-build-bg: #FEF2F2;
+  /* ── Decision semantics — verdict palette tuned for dark canvas ─── */
+  /* build: #34D399 (emerald-400) — high-contrast on near-black */
+  --color-build: #34D399;
+  --color-build-bg: rgba(52, 211, 153, 0.12);
+  /* consider: #FBBF24 (amber-400) — distinct from brand amber via verdict scope */
+  --color-consider: #FBBF24;
+  --color-consider-bg: rgba(251, 191, 36, 0.12);
+  /* dont_build: #F87171 (red-400) — high-contrast on near-black */
+  --color-dont-build: #F87171;
+  --color-dont-build-bg: rgba(248, 113, 113, 0.12);
 
   /* Dark-surface verdict tints (kept for the product instrument panels) */
   --color-build-dark: #34D399;
@@ -102,10 +102,12 @@
   --ease-exit: cubic-bezier(0.4, 1, 1, 1);
 
   /* ── Fonts ──────────────────────────────────────────────── */
-  /* Inter (body), IBM Plex Sans (display/headings), IBM Plex Mono (data / tabular numerals). */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-plex-sans), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+  /* COMPUTE marketing typography: Instrument Sans (body), Instrument Serif */
+  /* (display), JetBrains Mono (data/metadata). Inter + IBM Plex kept for */
+  /* the application UI / shadcn components. */
+  --font-sans: var(--font-instrument), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-serif), var(--font-plex-sans), var(--font-inter), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
 
   /* ── Radius scale — restrained editorial (Skydda-inspired) ──────
      Squared editorial blocks with thin borders. Pill radius retained
@@ -118,16 +120,16 @@
   --radius-lg: 8px;          /* large hero card, feature panels */
   --radius-pill: 999px;      /* nav pill, primary CTAs (actions only) */
 
-  /* ── Elevation — soft, layered shadows for white canvas ─── */
-  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 20px -8px rgba(0, 0, 0, 0.08);
-  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.06), 0 16px 36px -10px rgba(0, 0, 0, 0.10);
+  /* ── Elevation — soft, layered shadows for dark canvas ─── */
+  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.40), 0 8px 20px -8px rgba(0, 0, 0, 0.55);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.40), 0 16px 36px -10px rgba(0, 0, 0, 0.60);
   /* Quiet elevation for premium resting cards. */
-  --shadow-quiet: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 28px -10px rgba(0, 0, 0, 0.06);
-  --shadow-quiet-hover: 0 1px 2px rgba(0, 0, 0, 0.05), 0 20px 44px -12px rgba(0, 0, 0, 0.08);
-  /* The hero product card — layered for a floating object on white. */
-  --shadow-hero: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.03), 0 24px 48px -16px rgba(0, 0, 0, 0.08), 0 8px 20px -8px rgba(0, 0, 0, 0.04);
-  --shadow-hero-hover: 0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04), 0 32px 64px -18px rgba(0, 0, 0, 0.12), 0 12px 24px -8px rgba(0, 0, 0, 0.06);
+  --shadow-quiet: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 28px -10px rgba(0, 0, 0, 0.45);
+  --shadow-quiet-hover: 0 1px 2px rgba(0, 0, 0, 0.40), 0 20px 44px -12px rgba(0, 0, 0, 0.55);
+  /* The hero product card — layered for a floating object on dark. */
+  --shadow-hero: 0 1px 2px rgba(0, 0, 0, 0.40), 0 2px 6px rgba(0, 0, 0, 0.30), 0 24px 48px -16px rgba(0, 0, 0, 0.55), 0 8px 20px -8px rgba(0, 0, 0, 0.35);
+  --shadow-hero-hover: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35), 0 32px 64px -18px rgba(0, 0, 0, 0.65), 0 12px 24px -8px rgba(0, 0, 0, 0.45);
 
   /* ── shadcn primitive remap (kept so shadcn components keep working) ─ */
   --color-background: var(--color-canvas);
@@ -136,8 +138,8 @@
   --color-card-foreground: var(--color-ink);
   --color-popover: var(--color-surface-raised);
   --color-popover-foreground: var(--color-ink);
-  --color-primary: var(--color-ink);          /* primary buttons = dark on white */
-  --color-primary-foreground: var(--color-canvas); /* white text on dark primary */
+  --color-primary: var(--color-ink);          /* primary buttons = white on dark */
+  --color-primary-foreground: var(--color-canvas); /* dark text on white primary */
   --color-secondary: var(--color-surface);
   --color-secondary-foreground: var(--color-ink);
   --color-muted: var(--color-surface);

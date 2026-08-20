@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Inter, IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/auth-provider";
@@ -13,7 +13,7 @@ import { siteUrl } from "@/lib/site-url";
 
 const SITE_URL = siteUrl();
 
-// Inter is the primary body family (Section 5.2).
+// Inter is the primary body family (kept for app UI / shadcn components).
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -21,7 +21,7 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-// IBM Plex Sans for display headings — strong, geometric character.
+// IBM Plex Sans for display headings (app UI) — strong, geometric character.
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
   subsets: ["latin"],
@@ -29,12 +29,37 @@ const plexSans = IBM_Plex_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-// IBM Plex Mono for tabular numerals on all financial figures.
+// IBM Plex Mono for tabular numerals (app UI).
 const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500"],
+});
+
+// ── COMPUTE marketing typography ──────────────────────────────────
+// Instrument Sans: marketing body (COMPUTE blueprint).
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+// Instrument Serif: oversized display headings (the COMPUTE editorial voice).
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400"],
+});
+
+// JetBrains Mono: monospace metadata / technical labels (COMPUTE blueprint).
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -85,8 +110,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-image.png",
-        width: 1200,
-        height: 630,
+        width: 1344,
+        height: 768,
         alt: `${COMPANY_NAME} — ${BRAND_TAGLINE}`,
       },
     ],
@@ -175,7 +200,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} antialiased bg-canvas text-ink overflow-x-hidden`}
+        className={`${inter.variable} ${plexSans.variable} ${plexMono.variable} ${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased bg-canvas text-ink overflow-x-hidden`}
       >
         {/* Accessibility: first focusable element is a skip link (WCAG 2.4.1). */}
         <a

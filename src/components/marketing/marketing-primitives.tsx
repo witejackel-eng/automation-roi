@@ -1,53 +1,39 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { DotSeparator } from '@/components/viableo';
 import { CTA_PRIMARY, CTA_SECONDARY } from '@/lib/brand';
+import { siteUrl } from '@/lib/site-url';
 
 /**
- * Shared server-rendered primitives for the public marketing routes
- * (Task 8-seo). These keep voice + visual rules consistent across the
- * /automation-roi, /methodology, /solutions/*, and /resources/* pages
- * without duplicating markup in ten places.
+ * Shared marketing primitives for the public marketing routes
+ * (/methodology, /pricing, /solutions/*, /resources/*, /privacy, /terms).
  *
- * Voice (Brand Spec §4): short, plain sentences. Rule of three.
- * Visual (Brand Spec §5.1): 70/20/10 — mostly canvas/charcoal, restrained coral.
- * Headlines: HUGE + BOLD + TIGHT (tracking-[-0.02em] leading-[0.95–1.05]).
+ * COMPUTE design system: near-black canvas, oversized serif display,
+ * monospace metadata, thin borders, squared editorial blocks.
+ * Voice + content rules stay (Brand Spec §4/§5).
  */
-
-import { siteUrl } from '@/lib/site-url';
 
 // ── CTAs ────────────────────────────────────────────────────────────
 
-/** Primary CTA — charcoal pill, links to the calculator (auto-start). */
+/** Primary CTA — white pill (COMPUTE: bg-ink text-canvas). */
 export function PrimaryCTA({ className }: { className?: string }) {
   return (
-    <a
-      href="/start?start=1"
-      className={cn('mkt-cta-dark', className)}
-    >
+    <a href="/start?start=1" className={cn('inline-flex min-h-[44px] items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-medium text-canvas transition-all hover:bg-ink/90', className)}>
       {CTA_PRIMARY}
     </a>
   );
 }
 
-/** Secondary CTA — underline-wipe link to the Apex example. */
+/** Secondary CTA — outline pill. */
 export function SecondaryCTA({ className }: { className?: string }) {
   return (
-    <a
-      href="/start?start=1&example=apex"
-      className={cn(
-        'link-underline inline-flex min-h-[44px] items-center gap-1.5 px-2',
-        'text-[15px] font-medium text-ink',
-        className
-      )}
-    >
+    <a href="/start?start=1&example=apex" className={cn('inline-flex min-h-[44px] items-center justify-center rounded-full border border-ink/20 px-6 py-3 text-sm font-medium text-ink transition-all hover:bg-ink/5', className)}>
       {CTA_SECONDARY}
     </a>
   );
 }
 
-/** A CTA pair laid out for the end of every marketing page. */
+/** A CTA pair. */
 export function CTAPair({ className }: { className?: string }) {
   return (
     <div className={cn('flex flex-col gap-3 sm:flex-row sm:items-center', className)}>
@@ -59,8 +45,7 @@ export function CTAPair({ className }: { className?: string }) {
 
 // ── Layout shells ───────────────────────────────────────────────────
 
-/** Page hero. Quiet eyebrow (single amber marker), then the H1, then a
- *  single supporting paragraph. Near-monochrome editorial surface. */
+/** Page hero — monospace eyebrow, oversized serif H1. */
 export function PageHero({
   eyebrow,
   title,
@@ -71,17 +56,17 @@ export function PageHero({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="border-b border-border bg-canvas">
-      <div className="mx-auto w-full max-w-[1100px] px-4 py-24 md:px-6 md:py-40">
-        <p className="mkt-eyebrow">
-          <span aria-hidden="true" className="mkt-marker" />
+    <section className="border-b border-ink/10 bg-canvas pt-32">
+      <div className="mx-auto w-full max-w-[1400px] px-6 md:px-12 py-24 md:py-32">
+        <span className="mb-8 inline-flex items-center gap-3 font-mono text-sm text-ink-muted">
+          <span className="h-px w-8 bg-ink/30" />
           {eyebrow}
-        </p>
-        <h1 className="mkt-display mt-8">
+        </span>
+        <h1 className="font-display text-[clamp(2.5rem,6vw,6rem)] leading-[0.92] tracking-tight text-ink">
           {title}
         </h1>
         {children ? (
-          <div className="mt-10 max-w-[600px] text-[17px] leading-[1.6] text-ink-muted md:text-[19px]">
+          <div className="mt-10 max-w-[600px] text-lg leading-relaxed text-ink-muted">
             {children}
           </div>
         ) : null}
@@ -90,10 +75,7 @@ export function PageHero({
   );
 }
 
-/**
- * A prose section. `wide` switches to the 1200px grid container; the
- * default 1000px container is the comfortable reading width.
- */
+/** A prose section. */
 export function Section({
   children,
   wide = false,
@@ -106,18 +88,15 @@ export function Section({
   id?: string;
 }) {
   return (
-    <section
-      id={id}
-      className={cn('py-24 md:py-40', className)}
-    >
-      <div className={cn('mx-auto w-full px-4 md:px-6', wide ? 'max-w-[1200px]' : 'max-w-[1000px]')}>
+    <section id={id} className={cn('py-24 md:py-32', className)}>
+      <div className={cn('mx-auto w-full px-6 md:px-12', wide ? 'max-w-[1400px]' : 'max-w-[1000px]')}>
         {children}
       </div>
     </section>
   );
 }
 
-/** Section eyebrow + heading block — keeps H2 rhythm consistent. */
+/** Section eyebrow + heading block. */
 export function SectionHeading({
   eyebrow,
   title,
@@ -130,16 +109,16 @@ export function SectionHeading({
   return (
     <div className="max-w-[760px]">
       {eyebrow ? (
-        <p className="mkt-eyebrow">
-          <span aria-hidden="true" className="mkt-marker" />
+        <span className="mb-6 inline-flex items-center gap-3 font-mono text-sm text-ink-muted">
+          <span className="h-px w-8 bg-ink/30" />
           {eyebrow}
-        </p>
+        </span>
       ) : null}
-      <h2 className="mkt-display-md mt-6">
+      <h2 className="font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.95] tracking-tight text-ink">
         {title}
       </h2>
       {children ? (
-        <div className="mt-6 max-w-[600px] text-[17px] leading-[1.65] text-ink-muted md:text-[18px]">
+        <div className="mt-6 max-w-[600px] text-lg leading-relaxed text-ink-muted">
           {children}
         </div>
       ) : null}
@@ -147,25 +126,25 @@ export function SectionHeading({
   );
 }
 
-/** The closing CTA band — dark raised surface, headline, body, CTA pair. */
+/** The closing CTA band. */
 export function ClosingCTA({
   headline = 'Build what pays back.',
-  body = 'Run the numbers before you commit the build.',
+  body = 'Run one case. If the answer is don\u2019t build, you have saved yourself a project.',
 }: {
   headline?: string;
   body?: string;
 }) {
   return (
-    <section className="bg-surface text-ink border-t border-border">
-      <div className="mx-auto w-full max-w-[1100px] px-4 py-24 md:px-6 md:py-40">
-        <p className="mkt-eyebrow mb-8">
-          <span aria-hidden="true" className="mkt-marker" />
+    <section className="bg-canvas border-t border-ink/10">
+      <div className="mx-auto w-full max-w-[1400px] px-6 py-24 md:px-12 md:py-32">
+        <span className="mb-6 inline-flex items-center gap-3 font-mono text-sm text-ink-muted">
+          <span className="h-px w-8 bg-ink/30" />
           Start the analysis
-        </p>
-        <h2 className="max-w-[760px] font-display text-[clamp(2rem,5vw,3.75rem)] font-bold leading-[0.98] tracking-[-0.03em]">
+        </span>
+        <h2 className="max-w-[760px] font-display text-[clamp(2rem,5vw,4rem)] leading-[0.95] tracking-tight text-ink">
           {headline}
         </h2>
-        <p className="mt-8 max-w-[520px] text-[17px] leading-[1.6] text-ink-muted md:text-[18px]">
+        <p className="mt-8 max-w-[520px] text-lg leading-relaxed text-ink-muted">
           {body}
         </p>
         <div className="mt-10">
@@ -178,7 +157,6 @@ export function ClosingCTA({
 
 // ── Inline link ─────────────────────────────────────────────────────
 
-/** Internal link with the underline-wipe hover. */
 export function InlineLink({
   href,
   children,
@@ -187,10 +165,7 @@ export function InlineLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      href={href}
-      className="link-underline text-ink underline-offset-4 hover:text-brand"
-    >
+    <Link href={href} className="text-amber-400 underline underline-offset-4 hover:text-amber-300">
       {children}
     </Link>
   );
@@ -198,11 +173,6 @@ export function InlineLink({
 
 // ── Sibling-links strip ─────────────────────────────────────────────
 
-/**
- * A small "related" strip pointing at sibling marketing routes. Used at
- * the bottom of every page so internal link density stays high without
- * feeling like a sitemap dump.
- */
 export function SiblingLinks({
   label = 'Keep reading',
   links,
@@ -211,8 +181,8 @@ export function SiblingLinks({
   links: { href: string; label: string }[];
 }) {
   return (
-    <Section className="border-t border-border bg-canvas py-12 md:py-16">
-      <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+    <Section className="border-t border-ink/10 bg-canvas py-12 md:py-16">
+      <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
         {label}
       </p>
       <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -220,9 +190,9 @@ export function SiblingLinks({
           <li key={l.href}>
             <Link
               href={l.href}
-              className="link-underline inline-flex min-h-[44px] items-center gap-2 text-[15px] font-medium text-ink"
+              className="inline-flex min-h-[44px] items-center gap-2 text-base font-medium text-ink"
             >
-              <DotSeparator className="mx-0" />
+              <span className="h-px w-6 bg-amber-400" />
               {l.label}
             </Link>
           </li>
@@ -234,10 +204,6 @@ export function SiblingLinks({
 
 // ── JSON-LD BreadcrumbList ──────────────────────────────────────────
 
-/**
- * BreadcrumbList structured data. `crumbs` should always start with
- * Home (path "/") and end with the current page.
- */
 export function BreadcrumbJsonLd({
   crumbs,
 }: {
@@ -263,10 +229,6 @@ export function BreadcrumbJsonLd({
 
 // ── Number display (SSR-safe, no animation) ─────────────────────────
 
-/**
- * Tabular-numeral figure block for showing a real computed number.
- * Server-rendered (no count-up). Pairs label + value + caption.
- */
 export function FigureBlock({
   label,
   value,
@@ -279,20 +241,20 @@ export function FigureBlock({
   accent?: boolean;
 }) {
   return (
-    <div className="mkt-card-quiet p-6">
-      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-muted">
+    <div className="border border-ink/10 bg-ink/[0.02] p-6">
+      <p className="font-mono text-xs uppercase tracking-wider text-ink-muted">
         {label}
       </p>
       <p
         className={cn(
-          'mt-3 font-mono tnum text-4xl font-semibold tracking-[-0.02em] md:text-5xl',
-          accent ? 'text-brand' : 'text-ink'
+          'mt-3 font-display text-4xl tracking-tight md:text-5xl',
+          accent ? 'text-amber-400' : 'text-ink',
         )}
       >
         {value}
       </p>
       {caption ? (
-        <p className="mt-3 text-[14px] leading-[1.5] text-ink-muted">{caption}</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-muted">{caption}</p>
       ) : null}
     </div>
   );

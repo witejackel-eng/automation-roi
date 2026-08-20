@@ -1,20 +1,19 @@
 import type { Metadata } from 'next';
-import { SkyddaHomepage } from '@/components/marketing/skydda-homepage';
+import { ComputeHomepage } from '@/components/marketing/compute/compute-homepage';
+import { ComputeMarketingShell } from '@/components/marketing/compute/shell';
 import { COMPANY_NAME, PRODUCT_NAME } from '@/lib/brand';
+import { siteUrl } from '@/lib/site-url';
 
 /**
  * Viableo — the marketing homepage.
  *
- * Skydda frontend transplant: the homepage now mirrors the supplied Skydda
- * template structure (full-viewport hero with nav inside, trust strip,
- * problem, solution with real product UI, features grid, proof section,
- * pricing, FAQ, final CTA, footer). All content remains Automation ROI;
- * only the structural/visual implementation is transplanted.
+ * COMPUTE template transplant: the homepage is rebuilt from scratch using
+ * the COMPUTE visual system (near-black canvas, oversized serif display,
+ * monospace metadata, 12-col asymmetric grids, numbered sections, real Apex
+ * engine numbers). All content remains Automation ROI.
  *
  * Server component — preserves the JSON-LD + canonical metadata for SEO.
  */
-import { siteUrl } from '@/lib/site-url';
-
 const SITE_URL = siteUrl();
 
 export const metadata: Metadata = {
@@ -42,12 +41,12 @@ export default function HomePage() {
       'The decision system that tells an automation agency whether a build is worth doing, where the answer breaks, and hands them the artifact they can defend to the client.',
   };
   return (
-    <>
+    <ComputeMarketingShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <SkyddaHomepage />
-    </>
+      <ComputeHomepage />
+    </ComputeMarketingShell>
   );
 }
