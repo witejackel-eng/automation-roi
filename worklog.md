@@ -273,3 +273,45 @@ Stage Summary:
 - ONE shared header (ComputeNavigation) + ONE shared footer (ComputeFooter with panoramic banner) across every page.
 - Content is entirely Viableo. No COMPUTE product claims copied.
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: compute-exact-visuals
+Agent: Z.ai Code (implementation agent)
+Task: Transplant the ACTUAL COMPUTE template visual experience — all images, video, animations, section compositions — not invented approximations or text-only substitutes.
+
+Work Log:
+- Downloaded all 8 remote COMPUTE Vercel-blob assets locally into public/marketing/compute/ with a dedicated subdirectory per section. Copied 2 local images from the ZIP. Total: 10 localized visual assets:
+  - hero/bg-hero.mp4 (3.3MB video)
+  - features/features-visual.png (1.5MB)
+  - process/tree.png (920KB)
+  - infrastructure/world.png (838KB)
+  - integrations/connection.png (660KB)
+  - metrics/real-time-graph.png (700KB)
+  - developers/developers-visual.png (1.1MB)
+  - pricing/whale.png (2.4MB)
+  - cta/bridge.png (1.2MB)
+  - footer/panoramic.png (1MB)
+- Ported 5 COMPUTE section components with their exact visuals + animations:
+  - features.tsx: bento-grid + mouse-reactive particle canvas (70 floating dots with mouse-influence physics) + mirrored features image with left-edge fade.
+  - how-it-works.tsx: tree image anchored bottom-right + oversized 3-line headline + 3 interactive step cards with animated progress bars + auto-advancing active indicator.
+  - infrastructure.tsx: globe image left column + SVG connecting-lines animation (19 animated lines + 20 pulsing dots) + large stat + stacked stat cards + scenario list.
+  - integrations.tsx: full-width connection image centered + workflow touchpoint grid overlapping the image.
+  - developers.tsx: bottom-right image with left+top fade + oversized headline + 4-feature grid.
+- Updated hero to use the localized bg-hero.mp4 with the exact COMPUTE overlay treatment.
+- Updated footer with the panoramic banner image + gradient fades.
+- Updated CTA with the bridge image in the right-side visual slot.
+- Updated metrics with the real-time-graph image above the metric cards.
+- Updated pricing with the whale visual in the header area.
+- All 8 remote blob URLs replaced with localized paths — production no longer depends on external temporary blob URLs.
+- Removed old public/images/ (7 orphaned assets) — superseded by the localized public/marketing/compute/ structure.
+- All animations preserved: particle canvas physics, SVG line-drawing, pulsing dots, progress bars, scroll-reveal IntersectionObserver reveals, mouse-tracking spotlight, billing toggle spring, FAQ accordion.
+- Content remains entirely Viableo: real Apex engine numbers, real pricing, practitioner sources. No COMPUTE product claims copied.
+- Typecheck + lint: clean (0 errors, 9 fixable warnings).
+- Committed (2390b7f), pushed, merged to main via fast-forward. Synced feature branch.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at 2390b7f on origin/main.
+- The marketing site now contains the ACTUAL COMPUTE template visual experience: hero video, particle canvas, tree, globe, connection image, real-time graph, developers visual, whale, bridge, footer panoramic. No placeholders, no invented approximations, no text-only substitutes.
+- All 10 visual assets bundled locally in public/marketing/compute/ — production no longer depends on external blob URLs.
+- Content is entirely Viableo. No COMPUTE product claims copied.
+- Author: witejackel-eng <witejackel@gmail.com>.
