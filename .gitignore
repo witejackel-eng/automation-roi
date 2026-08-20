@@ -93,3 +93,4 @@ tool-results/
 tmp-shadow.db*
 postinstall.log
 *.local
+prisma/db/
