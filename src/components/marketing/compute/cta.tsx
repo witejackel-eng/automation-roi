@@ -83,6 +83,17 @@ export function ComputeCTA() {
                   </Link>
                 </div>
               </div>
+
+              {/* Right image — the actual COMPUTE bridge.png (preserved per directive §4) */}
+              <div className="hidden w-[600px] items-end justify-center lg:flex">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/bridge.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-[650px] w-full object-contain object-bottom"
+                />
+              </div>
             </div>
           </div>
 

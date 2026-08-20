@@ -35,6 +35,21 @@ const FOOTER_LINKS: Record<string, { name: string; href: string; badge?: string 
 export function ComputeFooter() {
   return (
     <footer className="relative bg-black">
+      {/* Panoramic banner image — the actual COMPUTE footer image (preserved per directive §4) */}
+      <div className="relative h-[340px] w-full overflow-hidden md:h-[420px]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Upscaled%20Image%20%2810%29-UnDKstODkIENp5xqTYUEpt0Sm8tNOw.png"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover object-center"
+        />
+        {/* Gradient fade to black at bottom — exact COMPUTE treatment */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black" />
+        {/* Subtle dark vignette on sides */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+      </div>
+
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 lg:px-12">
         {/* Main Footer */}
         <div className="py-16 lg:py-20">

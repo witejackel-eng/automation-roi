@@ -42,8 +42,25 @@ export function ComputeHero({
 
   return (
     <section className="relative flex min-h-screen flex-col items-start justify-center overflow-hidden bg-black">
-      {/* Background — atmospheric grid lines (COMPUTE pattern) */}
-      <div className="absolute inset-0 z-[2] overflow-hidden opacity-20 pointer-events-none">
+      {/* Background video — the actual COMPUTE hero video (preserved per directive §4) */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+          className="h-full w-full object-cover object-center opacity-80"
+        >
+          <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bg-hero-0BnFGdr81Ifnj3WbBZoNt1KE4D5DMT.mp4" type="video/mp4" />
+        </video>
+        {/* Subtle overlay to ensure text readability on the left — exact COMPUTE treatment */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+      </div>
+
+      {/* Subtle grid lines — exact COMPUTE pattern */}
+      <div className="pointer-events-none absolute inset-0 z-[2] overflow-hidden opacity-20">
         {[...Array(8)].map((_, i) => (
           <div
             key={`h-${i}`}
@@ -59,16 +76,6 @@ export function ComputeHero({
           />
         ))}
       </div>
-      {/* Radial atmospheric glow */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 30% 40%, rgba(245, 181, 68, 0.06) 0%, transparent 60%)",
-        }}
-      />
-      {/* Vignette for text contrast */}
-      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-[1400px] px-6 py-32 lg:px-12 lg:py-40">

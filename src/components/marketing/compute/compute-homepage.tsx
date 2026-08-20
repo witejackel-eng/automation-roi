@@ -232,6 +232,15 @@ export function ComputeHomepage() {
 
       {/* ── 6. LIVE BUSINESS-CASE METRICS ───────────────────── */}
       <NumberedSection number="05" title="Live business-case metrics">
+        {/* The actual COMPUTE real-time graph image (preserved per directive §4) */}
+        <div className="mb-8 w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/real-time-graph-INFmn3u0MlUwvNPynoIhwxtPaPjxM5.png"
+            alt="Real-time business-case metrics visualization"
+            className="h-auto w-full object-cover"
+          />
+        </div>
         <div className="grid grid-cols-1 gap-px overflow-hidden border border-ink/10 bg-ink/10 md:grid-cols-2 lg:grid-cols-5">
           <Card className="border-0 bg-canvas">
             <Metric value={FMT_ROI} label="ROI" sublabel="expected scenario" />
