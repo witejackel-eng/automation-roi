@@ -31,9 +31,23 @@ export function AdminShell({ title, children }: { title: string; children: React
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="flex items-center justify-between px-6 py-3">
-          <div>
-            <span className="text-xs uppercase tracking-wider text-muted-foreground">Viableo</span>
-            <h1 className="text-lg font-semibold">Superadmin</h1>
+          <div className="flex items-center gap-4">
+            <div>
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">Viableo</span>
+              <h1 className="text-lg font-semibold">Superadmin</h1>
+            </div>
+            <Link
+              href="/start"
+              className="rounded border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              ← Back to product
+            </Link>
+            <Link
+              href="/"
+              className="rounded px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              Marketing site
+            </Link>
           </div>
           <span className="rounded-full bg-yellow-400/20 px-3 py-1 text-xs font-medium text-yellow-700 dark:text-yellow-500">
             Superadmin mode

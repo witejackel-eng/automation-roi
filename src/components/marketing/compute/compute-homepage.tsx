@@ -148,7 +148,7 @@ export function ComputeHomepage() {
       <NumberedSection number="05" title="Live business-case metrics">
         {/* The actual COMPUTE real-time graph image (preserved per directive §4) */}
         <div className="mb-8 w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img
             src="/marketing/compute/metrics/real-time-graph.png"
             alt="Real-time business-case metrics visualization"

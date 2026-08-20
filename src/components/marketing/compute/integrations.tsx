@@ -73,7 +73,7 @@ export function ComputeIntegrations() {
           isVisible ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         <img
           src="/marketing/compute/integrations/connection.png"
           alt=""

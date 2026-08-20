@@ -37,7 +37,7 @@ export function ComputeFooter() {
     <footer className="relative bg-black">
       {/* Panoramic banner image — the actual COMPUTE footer image (preserved per directive §4) */}
       <div className="relative h-[340px] w-full overflow-hidden md:h-[420px]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+        { }
         <img
           src="/marketing/compute/footer/panoramic.png"
           alt=""

@@ -235,7 +235,7 @@ export function ComputeFeatures() {
 
             {/* Right: mirrored image, full height — localized COMPUTE features-visual.png */}
             <div className="relative hidden w-[42%] shrink-0 overflow-hidden lg:block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img
                 src="/marketing/compute/features/features-visual.png"
                 alt=""

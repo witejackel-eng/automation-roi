@@ -79,7 +79,7 @@ export function ComputeInfrastructure() {
                 isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              { }
               <img
                 src="/marketing/compute/infrastructure/world.png"
                 alt="Decision framework sphere"
