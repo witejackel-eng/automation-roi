@@ -1,19 +1,20 @@
+/**
+ * Viableo marketing homepage — agentic template structure with Viableo copy.
+ *
+ * Per the ZAI_MASTER_FRONTEND_REBUILD_PROMPT Phase 4:
+ * - Structural pattern from agentic-build-and-orchestrate-ai-agents-while-you-sleep.zip
+ * - All copy from copy/SITE_COPY.md
+ * - All financial numbers from the live golden-case engine
+ * - Dark editorial palette (near-black canvas, amber accent)
+ * - CTAs wired to real Viableo routes
+ */
 import type { Metadata } from 'next';
-import { ComputeHomepage } from '@/components/marketing/compute/compute-homepage';
+import Link from 'next/link';
 import { ComputeMarketingShell } from '@/components/marketing/compute/shell';
 import { COMPANY_NAME, PRODUCT_NAME } from '@/lib/brand';
 import { siteUrl } from '@/lib/site-url';
+import { AgenticHomepage } from '@/components/marketing/agentic/agentic-homepage';
 
-/**
- * Viableo — the marketing homepage.
- *
- * COMPUTE template transplant: the homepage is rebuilt from scratch using
- * the COMPUTE visual system (near-black canvas, oversized serif display,
- * monospace metadata, 12-col asymmetric grids, numbered sections, real Apex
- * engine numbers). All content remains Automation ROI.
- *
- * Server component — preserves the JSON-LD + canonical metadata for SEO.
- */
 const SITE_URL = siteUrl();
 
 export const metadata: Metadata = {
@@ -46,7 +47,7 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ComputeHomepage />
+      <AgenticHomepage />
     </ComputeMarketingShell>
   );
 }
