@@ -159,12 +159,14 @@ const LADDER_BUILD_FMT = formatCurrency(LADDER_BUILD_TO_CONSIDER); // "$74,930"
 const LADDER_DONT_BUILD_FMT = formatCurrency(LADDER_CONSIDER_TO_DONT_BUILD); // "$99,907"
 const PERMUTATIONS = String(PERMUTATION_COUNT); // "64"
 
-// ── Surface tokens (for inline use; matches globals.css) ──────────────────
-const DARK = '#1A181B';
-const DARK_RAISED = '#252328';
-const DARK_BORDER = '#353034';
-const DARK_TEXT = '#F5F3FF';
-const DARK_MUTED = '#9B96A5';
+// ── Surface tokens (Skydda-inspired dark editorial) ───────────────────
+// Dark analytical instrument surfaces — raised charcoal against the
+// near-black canvas. Light text reads cleanly on these.
+const DARK = '#131316';            // raised charcoal (matches --color-surface)
+const DARK_RAISED = '#18181B';     // further raised panel (--color-surface-raised)
+const DARK_BORDER = '#26262B';    // zinc hairline (--color-border)
+const DARK_TEXT = '#F4F4F5';      // off-white primary text on dark
+const DARK_MUTED = '#A1A1AA';     // zinc-400 muted text on dark
 
 // ── CTAs as real <Link> elements (mandate P0-11: every CTA a working link) ──
 function PrimaryCTA({
@@ -181,8 +183,8 @@ function PrimaryCTA({
       href={href}
       className={`inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-pill)] px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
         dark
-          ? 'bg-[#FAFAF9] text-[#171516] hover:bg-white'
-          : 'bg-[var(--color-brand-cta)] text-white hover:bg-[var(--color-brand-cta-hover)]'
+          ? 'bg-[var(--color-ink)] text-[var(--color-canvas)] hover:bg-[var(--color-ink-soft)]'
+          : 'bg-[var(--color-brand-cta)] text-[var(--color-brand-foreground)] hover:bg-[var(--color-brand-cta-hover)]'
       }`}
     >
       {label}
@@ -204,8 +206,8 @@ function SecondaryCTA({
       href={href}
       className={`inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-pill)] border px-6 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
         dark
-          ? 'border-[#353034] text-[#F5F3FF] hover:bg-[#252328]'
-          : 'border-[var(--color-border-strong)] text-[#171516] hover:bg-[#FFF1F4]'
+          ? 'border-[var(--color-border-strong)] text-ink hover:bg-[var(--color-surface-raised)]'
+          : 'border-[var(--color-border-strong)] text-ink hover:bg-[var(--color-brand-subtle)]'
       }`}
     >
       {label}
@@ -216,16 +218,16 @@ function SecondaryCTA({
 // ── E1 — HERO (light) ────────────────────────────────────────────────────
 function HeroSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[1100px]">
-        <p className="text-sm font-medium uppercase tracking-wide text-[#635F6B]">
+        <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">
           <span aria-hidden="true" className="mr-2 inline-block size-1.5 rounded-full bg-[var(--color-brand)] align-middle" />
           {HERO_EYEBROW}
         </p>
-        <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.05] tracking-tight text-[#171516] sm:text-5xl md:text-6xl">
+        <h1 className="mt-6 text-balance text-4xl font-bold leading-[1.05] tracking-tight text-ink sm:text-5xl md:text-6xl">
           {HERO_HEADLINE}
         </h1>
-        <p className="mt-6 max-w-[680px] text-lg leading-relaxed text-[#353034] md:text-xl">
+        <p className="mt-6 max-w-[680px] text-lg leading-relaxed text-ink-muted md:text-xl">
           {HERO_SUBHEAD}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -235,7 +237,7 @@ function HeroSection() {
 
         {/* Hero Threshold Line — the answer, before they read a word */}
         <figure className="mt-14">
-          <figcaption className="mb-3 text-xs font-medium uppercase tracking-wide text-[#635F6B]">
+          <figcaption className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-faint">
             Apex reference case · expected scenario
           </figcaption>
           <ThresholdLine
@@ -254,26 +256,26 @@ function HeroSection() {
         {/* Three real statistics, computed from the engine, tabular figures */}
         <dl className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-[#635F6B]">
+            <dt className="text-xs font-medium uppercase tracking-wide text-ink-faint">
               {HERO_STAT_LABELS.net}
             </dt>
-            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-[#171516]">
+            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-ink">
               {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-[#635F6B]">
+            <dt className="text-xs font-medium uppercase tracking-wide text-ink-faint">
               {HERO_STAT_LABELS.payback}
             </dt>
-            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-[#171516]">
+            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-ink">
               {formatPayback(APEX_EXPECTED.paybackMonths)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-[#635F6B]">
+            <dt className="text-xs font-medium uppercase tracking-wide text-ink-faint">
               {HERO_STAT_LABELS.holdsUntil}
             </dt>
-            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-[#171516]">
+            <dd className="mt-1 font-mono text-3xl font-bold tabular-nums text-ink">
               {BREAK_POINT_FEE_FMT}
             </dd>
           </div>
@@ -301,7 +303,7 @@ function Divider({
   thresholdLabel: string; positionLabel: string;
 }) {
   return (
-    <div className={kind === 'dark' ? 'bg-[#1A181B]' : 'bg-[#FAFAF9]'}>
+    <div className={kind === 'dark' ? 'bg-[var(--color-surface)]' : 'bg-canvas'}>
       <div className="mx-auto w-full max-w-[1100px] px-4 md:px-6">
         <ThresholdLine
           scale="divider"
@@ -322,13 +324,13 @@ function Divider({
 // ── E2 — PROBLEM (light) ──────────────────────────────────────────────────
 function ProblemSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[760px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {PROBLEM_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{PROBLEM_SUBHEAD}</p>
-        <div className="mt-8 space-y-5 text-base leading-relaxed text-[#353034]">
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{PROBLEM_SUBHEAD}</p>
+        <div className="mt-8 space-y-5 text-base leading-relaxed text-ink-muted">
           {PROBLEM_PARAS.map((p, i) => (
             <p key={i}>{p}</p>
           ))}
@@ -342,7 +344,7 @@ function ProblemSection() {
 // ── E3 — CONSEQUENCE (dark, ANALYTICAL_SURFACE) ───────────────────────────
 function ConsequenceSection() {
   return (
-    <section className="bg-[#1A181B] px-4 py-20 text-[#F5F3FF] md:px-6 md:py-28" style={{ backgroundColor: DARK }}>
+    <section className="bg-[var(--color-surface)] px-4 py-20 text-ink md:px-6 md:py-28" style={{ backgroundColor: DARK }}>
       <div className="mx-auto w-full max-w-[900px]">
         <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
           {CONSEQUENCE_HEADLINE}
@@ -388,21 +390,21 @@ function ConsequenceSection() {
 // ── E4 — WHAT VIABLEO DOES (light) ─────────────────────────────────────────
 function WhatSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[900px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {WHAT_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{WHAT_SUBHEAD}</p>
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{WHAT_SUBHEAD}</p>
         <ol className="mt-10 space-y-8">
           {WHAT_ITEMS.map((item, i) => (
             <li key={i} className="flex gap-5">
-              <span className="mt-1 font-mono text-lg font-bold tabular-nums text-[#635F6B]">
+              <span className="mt-1 font-mono text-lg font-bold tabular-nums text-ink-faint">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <div className="flex-1">
-                <p className="text-lg font-semibold text-[#171516]">{item.q}</p>
-                <p className="mt-1 text-base leading-relaxed text-[#353034]">{item.a}</p>
+                <p className="text-lg font-semibold text-ink">{item.q}</p>
+                <p className="mt-1 text-base leading-relaxed text-ink-muted">{item.a}</p>
                 {i === 1 && (
                   <div className="mt-4">
                     <ThresholdLine
@@ -477,7 +479,7 @@ function VerdictSection() {
             {VERDICT_BAND_LABELS.map((band) => (
               <li key={band.range} className="flex justify-between gap-6 py-1">
                 <span>{band.range}</span>
-                <span className="font-mono tabular-nums text-[#F5F3FF]">{band.label}</span>
+                <span className="font-mono tabular-nums text-ink">{band.label}</span>
               </li>
             ))}
           </ul>
@@ -573,15 +575,15 @@ function BreakItSection() {
           <ul className="mt-3 space-y-2 text-sm" style={{ color: DARK_MUTED }}>
             <li className="flex items-center justify-between gap-4">
               <span>Build at or below</span>
-              <span className="font-mono tabular-nums text-[#F5F3FF]">{LADDER_BUILD_FMT}</span>
+              <span className="font-mono tabular-nums text-ink">{LADDER_BUILD_FMT}</span>
             </li>
             <li className="flex items-center justify-between gap-4">
               <span>Consider</span>
-              <span className="font-mono tabular-nums text-[#F5F3FF]">{LADDER_BUILD_FMT} – {LADDER_DONT_BUILD_FMT}</span>
+              <span className="font-mono tabular-nums text-ink">{LADDER_BUILD_FMT} – {LADDER_DONT_BUILD_FMT}</span>
             </li>
             <li className="flex items-center justify-between gap-4">
               <span>Don&apos;t build above</span>
-              <span className="font-mono tabular-nums text-[#F5F3FF]">{LADDER_DONT_BUILD_FMT}</span>
+              <span className="font-mono tabular-nums text-ink">{LADDER_DONT_BUILD_FMT}</span>
             </li>
           </ul>
         </div>
@@ -620,7 +622,7 @@ function BreakItSection() {
         <p className="mt-10">
           <Link
             href={BREAK_LINK_HREF}
-            className="inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-pill)] border px-6 py-3 text-sm font-semibold transition-colors hover:bg-[#252328]"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-[var(--radius-pill)] border px-6 py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-surface-raised)]"
             style={{ borderColor: DARK_BORDER, color: DARK_TEXT }}
           >
             {BREAK_LINK}
@@ -635,27 +637,27 @@ function BreakItSection() {
 // ── E7 — THE CLIENT REPORT (light) ─────────────────────────────────────────
 function ClientReportSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[900px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {CLIENT_REPORT_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{CLIENT_REPORT_SUBHEAD}</p>
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{CLIENT_REPORT_SUBHEAD}</p>
 
         <div className="mt-8 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white p-6">
-          <p className="text-sm font-medium uppercase tracking-wide text-[#635F6B]">
+          <p className="text-sm font-medium uppercase tracking-wide text-ink-faint">
             Input status weighting
           </p>
-          <p className="mt-2 text-base text-[#353034]">{CLIENT_REPORT_WEIGHTING_LINE}</p>
-          <p className="mt-3 text-base text-[#353034]">{CLIENT_REPORT_CONSEQUENCE_LINE}</p>
+          <p className="mt-2 text-base text-ink-muted">{CLIENT_REPORT_WEIGHTING_LINE}</p>
+          <p className="mt-3 text-base text-ink-muted">{CLIENT_REPORT_CONSEQUENCE_LINE}</p>
           <ul className="mt-4 space-y-2 text-sm">
             {Object.entries(CONFIDENCE_WEIGHTS).map(([key, weight]) => {
               const status: InputStatus = APEX_CONFIDENCE_STATUSES[key] ?? 'assumption';
               const mult = STATUS_MULTIPLIERS[status];
               return (
                 <li key={key} className="flex flex-col gap-1 border-b border-[var(--color-border)] py-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                  <span className="text-[#353034]">{key}</span>
-                  <span className="flex flex-wrap items-center gap-2 font-mono text-xs tabular-nums text-[#635F6B]">
+                  <span className="text-ink-muted">{key}</span>
+                  <span className="flex flex-wrap items-center gap-2 font-mono text-xs tabular-nums text-ink-faint">
                     <span>weight {weight}</span>
                     <span aria-hidden="true">·</span>
                     <span className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide" style={{ backgroundColor: statusColor(status), color: '#171516' }}>
@@ -687,13 +689,13 @@ function statusColor(status: InputStatus): string {
 // ── E8 — PROOF (light) ─────────────────────────────────────────────────────
 function ProofSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[760px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {PROOF_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{PROOF_SUBHEAD}</p>
-        <div className="mt-8 space-y-5 text-base leading-relaxed text-[#353034]">
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{PROOF_SUBHEAD}</p>
+        <div className="mt-8 space-y-5 text-base leading-relaxed text-ink-muted">
           {PROOF_PARAS.map((p, i) => (
             <p key={i}>
               {i === 1 ? (
@@ -734,18 +736,18 @@ function ProofSection() {
 // ── E9 — WHERE IT FITS (light) ─────────────────────────────────────────────
 function WhereSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[900px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {WHERE_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{WHERE_SUBHEAD}</p>
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{WHERE_SUBHEAD}</p>
         <ol className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-4">
           {AGENCY_WORKFLOW.map((stage, i) => (
             <li key={stage} className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white p-4">
-              <p className="font-mono text-xs tabular-nums text-[#635F6B]">Step {i + 1}</p>
-              <p className="mt-1 text-lg font-semibold text-[#171516]">{stage}</p>
-              <p className="mt-1 text-sm text-[#353034]">
+              <p className="font-mono text-xs tabular-nums text-ink-faint">Step {i + 1}</p>
+              <p className="mt-1 text-lg font-semibold text-ink">{stage}</p>
+              <p className="mt-1 text-sm text-ink-muted">
                 {stage === 'Discover' && 'Map the workflow.'}
                 {stage === 'Prove' && 'Run Viableo.'}
                 {stage === 'Propose' && 'Quote the verdict.'}
@@ -769,26 +771,26 @@ function ComparisonSection() {
     { key: 'viableo' as const, label: 'Viableo' },
   ];
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[1000px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {COMPARISON_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{COMPARISON_SUBHEAD}</p>
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{COMPARISON_SUBHEAD}</p>
         <div className="mt-8 overflow-x-auto">
           <table className="w-full table-fixed border-collapse text-sm">
             <thead>
               <tr>
-                <th className="py-3 pr-6 text-left font-semibold text-[#171516]">What you need</th>
+                <th className="py-3 pr-6 text-left font-semibold text-ink">What you need</th>
                 {cols.map((c) => (
-                  <th key={c.key} className="py-3 px-3 text-center font-semibold text-[#171516]">{c.label}</th>
+                  <th key={c.key} className="py-3 px-3 text-center font-semibold text-ink">{c.label}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {COMPARISON_ROWS.map((row) => (
                 <tr key={row.need} className="border-t border-[var(--color-border)]">
-                  <td className="py-3 pr-6 text-[#353034]">{row.need}</td>
+                  <td className="py-3 pr-6 text-ink-muted">{row.need}</td>
                   {cols.map((c) => {
                     const v = row[c.key];
                     return (
@@ -814,12 +816,12 @@ function ComparisonSection() {
 // ── E11 — PRICING (light) ──────────────────────────────────────────────────
 function PricingSection() {
   return (
-    <section className="bg-[#FAFAF9] px-4 py-20 md:px-6 md:py-28">
+    <section className="bg-canvas px-4 py-20 md:px-6 md:py-28">
       <div className="mx-auto w-full max-w-[1000px]">
-        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-[#171516] sm:text-4xl">
+        <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
           {PRICING_HEADLINE}
         </h2>
-        <p className="mt-4 text-lg leading-relaxed text-[#353034]">{PRICING_SUBHEAD}</p>
+        <p className="mt-4 text-lg leading-relaxed text-ink-muted">{PRICING_SUBHEAD}</p>
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PRICING_TIERS.map((tier) => {
             const isFree = tier.key === 'free';
@@ -830,11 +832,11 @@ function PricingSection() {
                 key={tier.key}
                 className="flex flex-col rounded-[var(--radius-md)] border border-[var(--color-border)] bg-white p-6"
               >
-                <p className="text-sm font-semibold text-[#171516]">{tier.name}</p>
-                <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-[#171516]">{tier.price}</p>
-                <p className="text-sm text-[#635F6B]">{tier.cadence}</p>
-                <p className="mt-4 text-sm text-[#353034]">{tier.blurb}</p>
-                <p className="mt-1 text-xs text-[#635F6B]">{tier.identity}</p>
+                <p className="text-sm font-semibold text-ink">{tier.name}</p>
+                <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-ink">{tier.price}</p>
+                <p className="text-sm text-ink-faint">{tier.cadence}</p>
+                <p className="mt-4 text-sm text-ink-muted">{tier.blurb}</p>
+                <p className="mt-1 text-xs text-ink-faint">{tier.identity}</p>
                 <div className="mt-auto pt-6">
                   <Link
                     href={href}
@@ -852,8 +854,8 @@ function PricingSection() {
             );
           })}
         </div>
-        <p className="mt-6 text-sm text-[#635F6B]">{PRICING_FOOTNOTE}</p>
-        <p className="mt-2 text-sm text-[#635F6B]">{DATA_HANDLING_LINE}</p>
+        <p className="mt-6 text-sm text-ink-faint">{PRICING_FOOTNOTE}</p>
+        <p className="mt-2 text-sm text-ink-faint">{DATA_HANDLING_LINE}</p>
       </div>
       <Divider kind="light" verdict={APEX_VERDICT} min={0} max={160000} threshold={BREAK_POINT_FEE} position={APEX_INPUTS.implementationFee} thresholdLabel={BREAK_POINT_FEE_FMT} positionLabel={formatCurrency(APEX_INPUTS.implementationFee)} />
     </section>

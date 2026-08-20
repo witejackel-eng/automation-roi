@@ -45,22 +45,22 @@ const STATUS_COLORS: Record<
   { text: string; bg: string; label: string; dot: string }
 > = {
   provided: {
-    text: '#1F8A5A', // muted emerald — echoes BUILD
-    bg: '#E7F4ED',
+    text: '#34D399', // muted emerald — echoes BUILD (dark-tuned)
+    bg: 'rgba(52, 211, 153, 0.12)',
     label: 'Provided',
-    dot: '#1F8A5A',
+    dot: '#34D399',
   },
   estimated: {
-    text: '#C98A1B', // muted amber — echoes CONSIDER
-    bg: '#FBF1E0',
+    text: '#FBBF24', // muted amber — echoes CONSIDER (dark-tuned)
+    bg: 'rgba(251, 191, 36, 0.12)',
     label: 'Estimated',
-    dot: '#C98A1B',
+    dot: '#FBBF24',
   },
   assumption: {
-    text: '#6F6C72', // muted neutral stone
-    bg: '#EFEDF0',
+    text: '#A1A1AA', // muted neutral zinc (dark-tuned)
+    bg: 'rgba(161, 161, 170, 0.12)',
     label: 'Assumption',
-    dot: '#6F6C72',
+    dot: '#A1A1AA',
   },
 };
 
@@ -119,12 +119,12 @@ export function ConfidenceScoreCard({ statuses, className }: ConfidenceScoreCard
   // background, the same pattern as the DecisionBadge.
   const scoreColor =
     score >= 80
-      ? '#1F8A5A' // emerald — High
+      ? '#34D399' // emerald — High (dark-tuned)
       : score >= 60
-        ? '#1F8A5A' // emerald — Moderate (still positive territory)
+        ? '#34D399' // emerald — Moderate (still positive territory)
         : score >= 40
-          ? '#C98A1B' // amber — Material uncertainty
-          : '#B70F38'; // crimson — Low
+          ? '#FBBF24' // amber — Material uncertainty
+          : '#F87171'; // red — Low (dark-tuned)
 
   // Breakdown bar segments — each input's contribution out of 100.
   // Rendered as a single flex row of 1px-gap segments. Provided = emerald,
@@ -136,7 +136,7 @@ export function ConfidenceScoreCard({ statuses, className }: ConfidenceScoreCard
   return (
     <section
       className={cn(
-        'rounded-lg border border-[#E9E7E8] bg-white p-5',
+        'rounded-lg border border-border bg-surface-raised p-5',
         className
       )}
       aria-label="Confidence score"
@@ -150,7 +150,7 @@ export function ConfidenceScoreCard({ statuses, className }: ConfidenceScoreCard
           >
             {score}
           </span>
-          <span className="font-mono text-sm text-[#727076] tabular-nums">/100</span>
+          <span className="font-mono text-sm text-ink-muted tabular-nums">/100</span>
         </div>
         <span
           className="text-[11px] font-medium uppercase tracking-[0.04em]"
@@ -161,11 +161,11 @@ export function ConfidenceScoreCard({ statuses, className }: ConfidenceScoreCard
       </div>
 
       {/* One-line summary */}
-      <p className="mt-3 text-sm leading-snug text-[#353034]">{summary}</p>
+      <p className="mt-3 text-sm leading-snug text-ink-muted">{summary}</p>
 
       {/* Weighted breakdown bar */}
       <div className="mt-4">
-        <div className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.04em] text-[#A8A5AA]">
+        <div className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.04em] text-ink-faint">
           Weighted contribution by input
         </div>
         <div
@@ -193,7 +193,7 @@ export function ConfidenceScoreCard({ statuses, className }: ConfidenceScoreCard
         </div>
 
         {/* Legend */}
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-[#727076]">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-ink-muted">
           {(['provided', 'estimated', 'assumption'] as InputStatus[]).map((s) => (
             <span key={s} className="inline-flex items-center gap-1">
               <span

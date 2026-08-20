@@ -5,84 +5,82 @@
 
 /*
  * Viableo — Automation ROI design system tokens.
- * Canonical per the Viableo Brand & Product Implementation spec (Section 5.1).
+ * Skydda-inspired dark editorial transformation.
  *
- * Usage ratio (ENFORCED): 70% off-white/white light surface · 20% charcoal
- * typography/structure · 10% coral accent (a ceiling, not a target).
+ * Visual language: deep near-black/zinc surfaces · charcoal raised panels ·
+ * subtle zinc hairlines · muted off-white text · controlled warm amber/gold
+ * accent (rare and intentional — markers, active states, key data points).
  *
- * Coral is exposed as `brand` so existing components using bg-brand / text-brand
- * automatically inherit the Viableo coral system. Decision colors are scoped
- * ONLY to the Decision badge component (Section 9.3) — never buttons / links /
- * backgrounds / chart colors.
+ * Squared editorial blocks with thin borders (restrained radius). Pill radius
+ * retained ONLY for compact actions (nav pill, primary CTAs).
+ *
+ * The amber accent is exposed as `brand` so existing components using
+ * bg-brand / text-brand automatically inherit the new accent system. Decision
+ * colors stay semantic (build/consider/don't-build) and are tuned for dark.
  */
 @theme inline {
-  /* ── Surfaces ────────────────────────────────────────────── */
-  --color-canvas: #FAFAF9;          /* warm off-white: primary page bg (premium, not sterile) */
-  --color-surface: #FFFFFF;          /* --white: card / elevated */
-  --color-surface-raised: #FFFFFF;
-  --color-border: #ECEAE8;           /* warm-tinted hairline, slightly softer than pure gray */
-  --color-border-strong: #CFCCC9;    /* between light-gray and mid-gray */
+  /* ── Surfaces — dark editorial zinc/charcoal ─────────────── */
+  --color-canvas: #09090B;          /* near-black zinc: primary page bg */
+  --color-surface: #131316;          /* charcoal: card / elevated */
+  --color-surface-raised: #18181B;  /* raised charcoal (zinc-900) */
+  --color-border: #26262B;          /* subtle zinc hairline */
+  --color-border-strong: #3A3A42;   /* mid-zinc, stronger separators */
 
-  /* ── Text ────────────────────────────────────────────────── */
-  --color-ink: #171516;              /* --charcoal: primary text, nav */
-  --color-ink-muted: #727076;        /* --mid-gray: tertiary, borders */
-  --color-ink-faint: #635F6B;          /* corrected: 5.95 on canvas. Was #A8A5AA (2.33 FAIL). */
-  --color-ink-soft: #353034;         /* --soft-charcoal: muted headings on dark */
+  /* ── Text — muted off-white on dark ─────────────────────── */
+  --color-ink: #F4F4F5;              /* off-white: primary text, nav (zinc-100) */
+  --color-ink-muted: #A1A1AA;       /* zinc-400: secondary, captions */
+  --color-ink-faint: #71717A;        /* zinc-500: tertiary, faint labels */
+  --color-ink-soft: #D4D4D8;        /* zinc-300: muted headings, hover text */
 
-  /* ── Brand / interactive accent — Viableo Coral ─────────── */
-  /* RESTRICTED USAGE: --color-brand (#FF164B) on --color-canvas (#FAFAF9) = 3.68:1,   */
-  /* BELOW the WCAG AA 4.5:1 threshold for body text. This token MUST be used ONLY for:   */
-  /*   1. Logo / large display type (>= 18px or >= 14px bold = WCAG "large text")       */
-  /*   2. Non-text / decorative contexts (dots, bars, icons, dividers)                    */
-  /*   3. Interactive hover states (hover:text-brand, hover:bg-brand)                     */
-  /* DO NOT use text-brand on body-text-sized elements on canvas/surface backgrounds.     */
-  /* For CTA buttons with white text, use --color-brand-cta instead (white-on = 6.69:1).  */
-  --color-brand: #FF164B;           /* --viableo-coral: primary accent */
-  --color-brand-hover: #B70F38;     /* --deep-crimson: hover, dark-surface accent */
-  --color-brand-subtle: #FFF1F4;    /* ~12% coral tint for hover backgrounds */
-  --color-brand-foreground: #FFFFFF;
-  --color-crimson: #B70F38;         /* explicit deep-crimson token */
+  /* ── Brand / interactive accent — warm amber/gold ───────── */
+  /* Rare and intentional: section markers, active indicators, status dots, */
+  /* key data points, hover states. NOT used as a flood fill.               */
+  /* amber #F5B544 on canvas #09090B = 8.9:1 (AA pass for text + large).    */
+  --color-brand: #F5B544;           /* warm amber-gold: primary accent */
+  --color-brand-hover: #D9941E;     /* deeper amber: hover, pressed */
+  --color-brand-subtle: rgba(245, 181, 68, 0.10); /* ~10% amber tint for hover bg */
+  --color-brand-foreground: #0A0A0B; /* dark text on amber fills */
+  --color-crimson: #9B0A2E;         /* retained deep-crimson for dont-build semantics */
 
-  /* ── CTA fills (mandate §4.4 — primary CTA was #FF164B, white-on = 3.84 FAIL) ── */
-  /* Promote the already-existing #B70F38 to the resting fill (white-on = 6.69 PASS). */
-  --color-brand-cta: #B70F38;       /* primary CTA resting fill */
-  --color-brand-cta-hover: #8F0526; /* primary CTA hover (white-on = 9.47) */
+  /* ── CTA fills — primary CTA is amber with dark text (rare accent moment) ── */
+  /* amber #F5B544 with #0A0A0B text = 8.9:1 (AAA). Hover deepens to amber-brown. */
+  --color-brand-cta: #F5B544;       /* primary CTA resting fill (amber accent) */
+  --color-brand-cta-hover: #D9941E; /* primary CTA hover (deeper amber) */
 
-  /* ── Decision semantics — single verdict palette (mandate §4.4) ─────────── */
-  /* Re-pointed to the brand.ts DECISION_COLORS text hexes. Fixes two AA failures. */
-  /* build: #0D6B3F on #E7F4ED = 5.81 (was #1F8A5A = 3.83 FAIL) */
-  --color-build: #0D6B3F;
-  --color-build-bg: #E7F4ED;
-  /* consider: #8B5E0A on #FBF1E0 = 5.07 (was #C98A1B = 2.63 FAIL) */
-  --color-consider: #8B5E0A;
-  --color-consider-bg: #FBF1E0;
-  /* dont_build: #9B0A2E on #FBE9EE = 7.26 (was #B70F38 = 5.73 PASS — now deeper crimson) */
-  --color-dont-build: #9B0A2E;
-  --color-dont-build-bg: #FBE9EE;
+  /* ── Decision semantics — verdict palette tuned for dark canvas ─── */
+  /* build: #34D399 (emerald) — high-contrast on dark */
+  --color-build: #34D399;
+  --color-build-bg: rgba(52, 211, 153, 0.12);
+  /* consider: #FBBF24 (amber) — distinct from brand amber via verdict scope */
+  --color-consider: #FBBF24;
+  --color-consider-bg: rgba(251, 191, 36, 0.12);
+  /* dont_build: #F87171 (red) — high-contrast on dark */
+  --color-dont-build: #F87171;
+  --color-dont-build-bg: rgba(248, 113, 113, 0.12);
 
-  /* Dark-surface verdict tints (mandate §4.4 — new, measured on #1A181B) */
-  --color-build-dark: #34D399;       /* 9.18 on #1A181B */
-  --color-consider-dark: #FBBF24;    /* 10.57 on #1A181B */
-  --color-dont-build-dark: #F87171;  /* 6.38 on #1A181B */
+  /* Dark-surface verdict tints (identical to above — already dark-tuned) */
+  --color-build-dark: #34D399;       /* 9.18 on #131316 */
+  --color-consider-dark: #FBBF24;    /* 10.57 on #131316 */
+  --color-dont-build-dark: #F87171;  /* 6.38 on #131316 */
 
-  /* ── Analytical / Semantic Colors ─────────────────────── */
-  --color-indigo: #4338CA;          /* analysis, scenarios, data surfaces */
-  --color-indigo-muted: #818CF8;    /* lighter indigo for accents */
-  --color-indigo-bg: #EEF2FF;       /* ~6% indigo tint for analytical surfaces */
+  /* ── Analytical / Semantic Colors (dark-tuned) ─────────── */
+  --color-indigo: #818CF8;          /* analysis accent — lighter for dark legibility */
+  --color-indigo-muted: #A5B4FC;    /* lighter indigo for accents on dark */
+  --color-indigo-bg: rgba(129, 140, 248, 0.10); /* indigo tint on dark */
   --color-indigo-deep: #1E1B4B;     /* deep indigo for dark analytical modules */
 
-  --color-cobalt: #1E40AF;          /* secondary analytical accent */
-  --color-cobalt-bg: #EFF6FF;       /* ~6% cobalt tint */
+  --color-cobalt: #60A5FA;          /* secondary analytical accent (lighter blue) */
+  --color-cobalt-bg: rgba(96, 165, 250, 0.10); /* cobalt tint on dark */
 
-  /* Deep analytical surfaces */
-  --color-ink-deep: #0F0E10;        /* near-black for dark product surfaces */
-  --color-surface-analytical: #1A181B; /* dark charcoal for analytical modules */
-  --color-surface-analytical-raised: #252328; /* slightly lighter charcoal */
-  --color-surface-analytical-border: #353034; /* border for dark surfaces */
+  /* Deep analytical surfaces — distinct from canvas for instrument emphasis */
+  --color-ink-deep: #050506;        /* near-pure-black for deepest product surfaces */
+  --color-surface-analytical: #0C0C0F; /* deep instrument surface (below canvas) */
+  --color-surface-analytical-raised: #161619; /* raised instrument panel */
+  --color-surface-analytical-border: #2A2A30; /* border for analytical surfaces */
 
-  /* Indigo analytical surface (light) */
-  --color-surface-indigo: #F5F3FF;   /* very faint purple wash */
-  --color-surface-indigo-border: #E9E5F5; /* border for indigo surfaces */
+  /* Indigo analytical surface (dark) */
+  --color-surface-indigo: #12121A;   /* faint indigo-charcoal wash */
+  --color-surface-indigo-border: #23232E; /* border for indigo surfaces */
 
   /* ── Rox-inspired authority palette (Opposite #10) ─────── */
   --color-navy-900: #0F172A;
@@ -109,57 +107,53 @@
   --font-display: var(--font-plex-sans), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  /* ── Radius scale (coherent language) ───────────────────────
-     Pills for actions (nav, primary CTAs). Rounded rectangles for
-     surfaces. Smaller rounding for compact controls. Consistency
-     over any single number. */
-  --radius: 12px;            /* default surface (cards, panels) */
-  --radius-xs: 4px;          /* tiny badges, tags */
-  --radius-sm: 8px;          /* small controls, inputs, secondary buttons */
-  --radius-md: 12px;         /* cards, elevated surfaces */
-  --radius-lg: 16px;         /* large hero card, feature panels */
-  --radius-pill: 999px;      /* nav pill, primary CTAs */
+  /* ── Radius scale — restrained editorial (Skydda-inspired) ──────
+     Squared editorial blocks with thin borders. Pill radius retained
+     ONLY for compact actions (nav pill, primary CTAs). Surfaces stay
+     near-squared for the financial-report / editorial feeling. */
+  --radius: 4px;            /* default surface (cards, panels) — near-squared */
+  --radius-xs: 2px;          /* tiny badges, tags */
+  --radius-sm: 4px;          /* small controls, inputs, secondary buttons */
+  --radius-md: 6px;          /* cards, elevated surfaces */
+  --radius-lg: 8px;          /* large hero card, feature panels */
+  --radius-pill: 999px;      /* nav pill, primary CTAs (actions only) */
 
-  /* ── Elevation (layered, soft, low-contrast) ───────────────
-     A coherent shadow language: surface → elevated card → floating
-     nav → interactive hover. Each is a soft, diffused layer — never
-     a generic dark drop shadow. */
-  --shadow-surface: 0 1px 2px rgba(23, 21, 22, 0.03);
-  --shadow-floating: 0 1px 2px rgba(23, 21, 22, 0.04), 0 8px 20px -8px rgba(23, 21, 22, 0.10);
-  --shadow-card-hover: 0 1px 2px rgba(23, 21, 22, 0.04), 0 16px 36px -10px rgba(23, 21, 22, 0.12);
-  /* Quiet elevation for the hero verdict mock + premium resting cards:
-     two stacked layers — a tight contact shadow + a soft ambient wash. */
-  --shadow-quiet: 0 1px 2px rgba(23, 21, 22, 0.04), 0 12px 28px -10px rgba(23, 21, 22, 0.07);
-  --shadow-quiet-hover: 0 1px 2px rgba(23, 21, 22, 0.05), 0 20px 44px -12px rgba(23, 21, 22, 0.11);
-  /* The hero verdict card — slightly stronger than quiet, layered for
-     the sense of a real floating product object. */
-  --shadow-hero: 0 1px 2px rgba(23, 21, 22, 0.04), 0 2px 6px rgba(23, 21, 22, 0.03), 0 24px 48px -16px rgba(23, 21, 22, 0.10), 0 8px 20px -8px rgba(23, 21, 22, 0.05);
-  --shadow-hero-hover: 0 1px 2px rgba(23, 21, 22, 0.05), 0 2px 8px rgba(23, 21, 22, 0.04), 0 32px 64px -18px rgba(23, 21, 22, 0.14), 0 12px 24px -8px rgba(23, 21, 22, 0.07);
+  /* ── Elevation (layered, soft, dark-aware) ───────────────
+     On dark surfaces, shadows are deeper black with subtle amber lift on hover. */
+  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.40), 0 8px 20px -8px rgba(0, 0, 0, 0.55);
+  --shadow-card-hover: 0 1px 2px rgba(0, 0, 0, 0.40), 0 16px 36px -10px rgba(0, 0, 0, 0.60);
+  /* Quiet elevation for premium resting cards: contact + ambient wash. */
+  --shadow-quiet: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 28px -10px rgba(0, 0, 0, 0.45);
+  --shadow-quiet-hover: 0 1px 2px rgba(0, 0, 0, 0.40), 0 20px 44px -12px rgba(0, 0, 0, 0.55);
+  /* The hero verdict card — layered for a real floating product object. */
+  --shadow-hero: 0 1px 2px rgba(0, 0, 0, 0.40), 0 2px 6px rgba(0, 0, 0, 0.30), 0 24px 48px -16px rgba(0, 0, 0, 0.55), 0 8px 20px -8px rgba(0, 0, 0, 0.35);
+  --shadow-hero-hover: 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.35), 0 32px 64px -18px rgba(0, 0, 0, 0.65), 0 12px 24px -8px rgba(0, 0, 0, 0.45);
 
   /* ── shadcn primitive remap (kept so shadcn components keep working) ─ */
   --color-background: var(--color-canvas);
   --color-foreground: var(--color-ink);
   --color-card: var(--color-surface-raised);
   --color-card-foreground: var(--color-ink);
-  --color-popover: #FFFFFF;
+  --color-popover: var(--color-surface-raised);
   --color-popover-foreground: var(--color-ink);
-  --color-primary: var(--color-ink);          /* primary buttons = charcoal on light */
-  --color-primary-foreground: #FFFFFF;
-  --color-secondary: var(--color-canvas);
+  --color-primary: var(--color-ink);          /* primary buttons = off-white on dark */
+  --color-primary-foreground: var(--color-canvas); /* dark text on off-white primary */
+  --color-secondary: var(--color-surface);
   --color-secondary-foreground: var(--color-ink);
-  --color-muted: var(--color-canvas);
+  --color-muted: var(--color-surface);
   --color-muted-foreground: var(--color-ink-muted);
-  --color-accent: var(--color-canvas);
+  --color-accent: var(--color-surface);
   --color-accent-foreground: var(--color-ink);
   --color-destructive: var(--color-dont-build);
-  --color-destructive-foreground: #FFFFFF;
+  --color-destructive-foreground: #0A0A0B;
   --color-border-shadcn: var(--color-border);
   --color-input: var(--color-border-strong);
   --color-ring: var(--color-brand);
   --color-sidebar: var(--color-surface);
   --color-sidebar-foreground: var(--color-ink);
   --color-sidebar-primary: var(--color-brand);
-  --color-sidebar-primary-foreground: #FFFFFF;
+  --color-sidebar-primary-foreground: var(--color-brand-foreground);
   --color-sidebar-accent: var(--color-brand-subtle);
   --color-sidebar-accent-foreground: var(--color-brand);
   --color-sidebar-border: var(--color-border);
@@ -368,11 +362,12 @@
 }
 
 /* ── Brand gradient moment — hero background + PDF cover ONLY (Section 5.1) ─ */
+/* Skydda-inspired: amber→charcoal editorial gradient for the hero moment. */
 .viableo-gradient-brand {
-  background: linear-gradient(135deg, #FF164B 0%, #B70F38 100%);
+  background: linear-gradient(135deg, #F5B544 0%, #D9941E 100%);
 }
 .viableo-gradient-diagonal {
-  background: linear-gradient(135deg, rgba(255, 22, 75, 0.08) 0%, rgba(183, 15, 56, 0.04) 100%);
+  background: linear-gradient(135deg, rgba(245, 181, 68, 0.10) 0%, rgba(217, 148, 30, 0.04) 100%);
 }
 
 /* Tilted product-card utility for hero overlap (Section 7.1). */
@@ -399,14 +394,14 @@
   min-height: 48px;
   border-radius: var(--radius-pill);
   background-color: var(--color-ink);
-  color: #ffffff;
+  color: var(--color-canvas);
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   letter-spacing: -0.01em;
-  box-shadow: 0 1px 2px rgba(23, 21, 22, 0.10);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
   transition:
     background-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -415,12 +410,12 @@
 .mkt-cta-dark:hover {
   background-color: var(--color-ink-soft);
   box-shadow:
-    0 1px 2px rgba(23, 21, 22, 0.12),
-    0 10px 24px -6px rgba(23, 21, 22, 0.18),
-    0 0 0 1px rgba(255, 22, 75, 0.18); /* soft coral glow ring */
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 10px 24px -6px rgba(0, 0, 0, 0.50),
+    0 0 0 1px rgba(245, 181, 68, 0.28); /* soft amber glow ring */
 }
 .mkt-cta-dark:active {
-  box-shadow: 0 1px 2px rgba(23, 21, 22, 0.10);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
 }
 .mkt-cta-dark:focus-visible {
   outline: 2px solid var(--color-brand);
@@ -580,7 +575,7 @@
 }
 .mkt-nav-pill:hover {
   border-color: var(--color-border-strong);
-  box-shadow: 0 1px 2px rgba(23, 21, 22, 0.05), 0 12px 32px -12px rgba(23, 21, 22, 0.14);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 12px 32px -12px rgba(0, 0, 0, 0.50);
 }
 /* Slight visual separator between the logo and the nav links. */
 .mkt-nav-pill-sep {
@@ -688,6 +683,240 @@
   background-image:
     radial-gradient(circle, rgba(245, 243, 255, 0.06) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SKYDDA-INSPIRED EDITORIAL PRIMITIVES
+   Vertical boundary rails · amber section markers · hairline rules ·
+   editorial number emphasis · verdict visualization styling.
+   These compose the dark editorial / financial-report feeling without
+   touching any product logic or token semantics above.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Vertical page boundary rails ───────────────────────────
+   Extremely subtle 1px lines running the page boundaries, creating
+   the editorial / financial-report frame. Applied as a wrapper.
+   Never interferes with interaction (pointer-events: none). */
+.editorial-rails {
+  position: relative;
+}
+.editorial-rails::before,
+.editorial-rails::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--color-border);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.editorial-rails::before { left: max(1rem, calc((100vw - 1200px) / 2)); }
+.editorial-rails::after { right: max(1rem, calc((100vw - 1200px) / 2)); }
+@media (max-width: 1280px) {
+  .editorial-rails::before { left: 1rem; }
+  .editorial-rails::after { right: 1rem; }
+}
+@media (max-width: 640px) {
+  /* On mobile, rails sit closer to the edge but stay subtle. */
+  .editorial-rails::before,
+  .editorial-rails::after { display: none; }
+}
+
+/* ── Amber section marker ───────────────────────────────────
+   A small amber square/dot that precedes section eyebrows — the
+   "rare and intentional" accent that signals analytical content. */
+.mkt-marker {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-brand);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.mkt-marker-line {
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background-color: var(--color-brand);
+  flex-shrink: 0;
+}
+
+/* ── Editorial hairline rule (full-width within container) ── */
+.mkt-rule {
+  height: 1px;
+  width: 100%;
+  background-color: var(--color-border);
+  border: 0;
+}
+.mkt-rule-strong {
+  height: 1px;
+  width: 100%;
+  background-color: var(--color-border-strong);
+  border: 0;
+}
+
+/* ── Editorial capability row (replaces generic feature cards) ──
+   A hairline-separated row: index marker · title · description.
+   Reads as a product capability, not a marketing card. */
+.mkt-capability-row {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 1.5rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--color-border);
+  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mkt-capability-row:hover {
+  background-color: var(--color-surface);
+}
+.mkt-capability-row:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+.mkt-capability-index {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-brand);
+  letter-spacing: 0.05em;
+  padding-top: 2px;
+}
+@media (min-width: 768px) {
+  .mkt-capability-row {
+    grid-template-columns: 64px 280px 1fr;
+    gap: 2rem;
+    padding: 2.5rem 0;
+  }
+}
+
+/* ── Editorial number display ───────────────────────────────
+   Large tabular figures for financial data points. Authoritative. */
+.mkt-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: var(--color-ink);
+}
+.mkt-figure-accent {
+  color: var(--color-brand);
+}
+.mkt-figure-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* ── Verdict visualization ──────────────────────────────────
+   The BUILD / CONSIDER / DON'T BUILD verdict as a dominant
+   editorial stamp. Uses decision semantic colors. */
+.mkt-verdict-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.mkt-verdict-stamp::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background-color: currentColor;
+}
+
+/* ── Threshold / break-even visualization rail ──────────────
+   A horizontal track with a marker showing the current value
+   vs. the decision threshold. Editorial analytical graphic. */
+.mkt-threshold-track {
+  position: relative;
+  height: 2px;
+  width: 100%;
+  background-color: var(--color-border);
+  border-radius: 1px;
+}
+.mkt-threshold-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: var(--color-brand);
+  border-radius: 1px;
+}
+.mkt-threshold-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background-color: var(--color-ink);
+  border: 2px solid var(--color-brand);
+  box-shadow: 0 0 0 4px var(--color-canvas);
+}
+.mkt-threshold-tick {
+  position: absolute;
+  top: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 10px;
+  background-color: var(--color-border-strong);
+}
+
+/* ── Confidence band ────────────────────────────────────────
+   A measured/estimated/assumed indicator strip. */
+.mkt-confidence-band {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+.mkt-confidence-band-bar {
+  height: 4px;
+  flex: 1;
+  background-color: var(--color-border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.mkt-confidence-band-fill {
+  height: 100%;
+  background-color: var(--color-brand);
+  border-radius: 1px;
+}
+
+/* ── Editorial section index (left rail numbering) ───────────
+   For the problem/solution/proof sections: a faint mono index
+   that reads like a financial report section number. */
+.mkt-section-index {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-faint);
+}
+
+/* ── Premium surface for product-visualization cards ────────
+   A charcoal raised surface with a hairline amber top border —
+   signals "this is a real operating tool". */
+.mkt-product-surface {
+  background-color: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-brand);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hero);
 }
 
 /* ── Reduced-motion support (Opposite #10, WCAG 2.1) ──── */

@@ -90,12 +90,12 @@ function HeroThresholdLine(props: ThresholdLineProps): React.ReactElement {
         <rect x={fillX} y={20} width={fillW} height={32} fill={fill} opacity={0.12} />
       )}
       {/* Axis (1px stroke, full width) */}
-      <line x1="0" y1="36" x2="100" y2="36" stroke="#635F6B" strokeWidth={0.4} />
+      <line x1="0" y1="36" x2="100" y2="36" stroke="#A1A1AA" strokeWidth={0.4} />
       {/* End labels (rendered as real <text>, stacked beneath axis at hero scale) */}
-      <text x="0" y="68" textAnchor="start" fontSize="4.5" fill="#635F6B" fontFamily="var(--font-mono)">
+      <text x="0" y="68" textAnchor="start" fontSize="4.5" fill="#A1A1AA" fontFamily="var(--font-mono)">
         {formatAxisLabel(min)}
       </text>
-      <text x="100" y="68" textAnchor="end" fontSize="4.5" fill="#635F6B" fontFamily="var(--font-mono)">
+      <text x="100" y="68" textAnchor="end" fontSize="4.5" fill="#A1A1AA" fontFamily="var(--font-mono)">
         {formatAxisLabel(max)}
       </text>
       {/* Threshold tick (2px full-height, verdict colour) */}
@@ -104,8 +104,8 @@ function HeroThresholdLine(props: ThresholdLineProps): React.ReactElement {
         {thresholdLabel}
       </text>
       {/* Position marker (10px filled circle, verdict colour) */}
-      <circle cx={markerX} cy={36} r={1.8} fill={fill} stroke="#FAFAF9" strokeWidth={0.3} />
-      <text x={markerX} y={60} textAnchor="middle" fontSize="4.5" fill="#171516" fontFamily="var(--font-mono)">
+      <circle cx={markerX} cy={36} r={1.8} fill={fill} stroke="#09090B" strokeWidth={0.3} />
+      <text x={markerX} y={60} textAnchor="middle" fontSize="4.5" fill="#F4F4F5" fontFamily="var(--font-mono)">
         {positionLabel}
       </text>
     </svg>
@@ -131,7 +131,7 @@ function DividerThresholdLine(props: ThresholdLineProps): React.ReactElement {
       className="h-[24px] w-full"
       aria-hidden={false}
     >
-      <line x1="0" y1="12" x2="100" y2="12" stroke="#A8A5AA" strokeWidth={0.3} />
+      <line x1="0" y1="12" x2="100" y2="12" stroke="#3A3A42" strokeWidth={0.3} />
       <line x1={tickX} y1="6" x2={tickX} y2="18" stroke={fill} strokeWidth={0.5} />
     </svg>
   );
@@ -160,7 +160,7 @@ function InlineThresholdLine(props: ThresholdLineProps): React.ReactElement {
       aria-hidden={false}
     >
       {fillW > 0 && <rect x={fillX} y={3} width={fillW} height={6} fill={fill} opacity={0.18} />}
-      <line x1="0" y1="6" x2="64" y2="6" stroke="#635F6B" strokeWidth={0.5} />
+      <line x1="0" y1="6" x2="64" y2="6" stroke="#A1A1AA" strokeWidth={0.5} />
       <line x1={tickX} y1="2" x2={tickX} y2="10" stroke={fill} strokeWidth={0.6} />
       <rect x={markerX - 1} y="4" width="2" height="4" fill={fill} />
     </svg>

@@ -76,7 +76,7 @@ const FOOTER_COLUMNS = [
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-canvas">
+    <div className="editorial-rails flex min-h-screen flex-col bg-canvas">
       <MarketingTopNav />
       <div className="flex flex-1 flex-col w-full">{children}</div>
       <MarketingFooter />
@@ -230,23 +230,23 @@ function MarketingTopNav() {
 
 function MarketingFooter() {
   return (
-    <footer className="mt-auto bg-ink text-white">
+    <footer className="mt-auto bg-surface text-ink border-t border-border">
       <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-24">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-6">
           {/* Brand column */}
           <div className="col-span-2">
             <Logo variant="reverse" />
-            <p className="mt-5 max-w-[260px] text-[14px] leading-[1.6] text-[#A5A0AE]">
+            <p className="mt-5 max-w-[260px] text-[14px] leading-[1.6] text-ink-muted">
               {BRAND_TAGLINE}
             </p>
-            <p className="mt-3 max-w-[260px] text-[12px] leading-[1.5] text-[#A5A0AE]">
+            <p className="mt-3 max-w-[260px] text-[12px] leading-[1.5] text-ink-faint">
               {DATA_HANDLING_LINE}
             </p>
           </div>
           {/* Link columns */}
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.title}>
-              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#A5A0AE]">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
                 {col.title}
               </h3>
               <ul className="mt-4 space-y-2.5">
@@ -254,7 +254,7 @@ function MarketingFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="link-underline text-[13px] text-white/70 transition-colors hover:text-white"
+                      className="link-underline text-[13px] text-ink-muted transition-colors hover:text-ink"
                     >
                       {link.label}
                     </Link>
@@ -264,10 +264,10 @@ function MarketingFooter() {
             </div>
           ))}
         </div>
-        <div className="mt-16 flex flex-col gap-3 border-t border-white/10 pt-6 text-[12px] text-[#A5A0AE] md:flex-row md:items-center md:justify-between">
+        <div className="mt-16 flex flex-col gap-3 border-t border-border pt-6 text-[12px] text-ink-faint md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2.5">
             <span>{COMPANY_NAME}</span>
-            <span aria-hidden="true" className="size-1 rounded-full bg-white/25" />
+            <span aria-hidden="true" className="size-1 rounded-full bg-ink-muted" />
             <span>{new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-2.5">

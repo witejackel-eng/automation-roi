@@ -59,11 +59,8 @@ export function CTAPair({ className }: { className?: string }) {
 
 // ── Layout shells ───────────────────────────────────────────────────
 
-/**
- * Page hero. Quiet eyebrow (single charcoal dot), then the H1, then a
- * single supporting paragraph. No coral top-rule — the marketing surface
- * is near-monochrome per the piplanning.io-inspired redesign.
- */
+/** Page hero. Quiet eyebrow (single amber marker), then the H1, then a
+ *  single supporting paragraph. Near-monochrome editorial surface. */
 export function PageHero({
   eyebrow,
   title,
@@ -77,7 +74,7 @@ export function PageHero({
     <section className="border-b border-border bg-canvas">
       <div className="mx-auto w-full max-w-[1100px] px-4 py-24 md:px-6 md:py-40">
         <p className="mkt-eyebrow">
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
+          <span aria-hidden="true" className="mkt-marker" />
           {eyebrow}
         </p>
         <h1 className="mkt-display mt-8">
@@ -134,7 +131,7 @@ export function SectionHeading({
     <div className="max-w-[760px]">
       {eyebrow ? (
         <p className="mkt-eyebrow">
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-ink-muted" />
+          <span aria-hidden="true" className="mkt-marker" />
           {eyebrow}
         </p>
       ) : null}
@@ -150,7 +147,7 @@ export function SectionHeading({
   );
 }
 
-/** The closing CTA band — dark surface, headline, body, CTA pair. */
+/** The closing CTA band — dark raised surface, headline, body, CTA pair. */
 export function ClosingCTA({
   headline = 'Build what pays back.',
   body = 'Run the numbers before you commit the build.',
@@ -159,12 +156,16 @@ export function ClosingCTA({
   body?: string;
 }) {
   return (
-    <section className="bg-ink text-white">
+    <section className="bg-surface text-ink border-t border-border">
       <div className="mx-auto w-full max-w-[1100px] px-4 py-24 md:px-6 md:py-40">
+        <p className="mkt-eyebrow mb-8">
+          <span aria-hidden="true" className="mkt-marker" />
+          Start the analysis
+        </p>
         <h2 className="max-w-[760px] font-display text-[clamp(2rem,5vw,3.75rem)] font-bold leading-[0.98] tracking-[-0.03em]">
           {headline}
         </h2>
-        <p className="mt-8 max-w-[520px] text-[17px] leading-[1.6] text-white/65 md:text-[18px]">
+        <p className="mt-8 max-w-[520px] text-[17px] leading-[1.6] text-ink-muted md:text-[18px]">
           {body}
         </p>
         <div className="mt-10">
