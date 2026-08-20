@@ -1,0 +1,10 @@
+export { SkyddaHero } from "./hero";
+export { SkyddaLogoSection } from "./logo-section";
+export { SkyddaProblemSection } from "./problem-section";
+export { SkyddaSolutionSection } from "./solution-section";
+export { SkyddaFeaturesSection } from "./features-section";
+export { SkyddaProofSection } from "./proof-section";
+export { SkyddaPricingSection } from "./pricing-section";
+export { SkyddaFaqSection } from "./faq-section";
+export { SkyddaCtaSection } from "./cta-section";
+export { SkyddaFooter } from "./footer";

@@ -1,18 +1,17 @@
 import type { Metadata } from 'next';
-import { MarketingShell } from '@/components/marketing/marketing-shell';
-import { ViableoHomepage } from '@/components/marketing/homepage';
+import { SkyddaHomepage } from '@/components/marketing/skydda-homepage';
 import { COMPANY_NAME, PRODUCT_NAME } from '@/lib/brand';
 
 /**
  * Viableo — the marketing homepage.
  *
- * SERVER COMPONENT. Renders the full 12-section narrative (E1–E13) as static
- * HTML. No 'use client', no useSearchParams, no Suspense bailout — the entire
- * argument is present in the server-rendered body for crawlers and for visitors
- * with JavaScript disabled.
+ * Skydda frontend transplant: the homepage now mirrors the supplied Skydda
+ * template structure (full-viewport hero with nav inside, trust strip,
+ * problem, solution with real product UI, features grid, proof section,
+ * pricing, FAQ, final CTA, footer). All content remains Automation ROI;
+ * only the structural/visual implementation is transplanted.
  *
- * The application (calculator / results / projects / settings / pricing views)
- * lives at /start, reached via `<Link href="/start?start=1">` from every CTA.
+ * Server component — preserves the JSON-LD + canonical metadata for SEO.
  */
 import { siteUrl } from '@/lib/site-url';
 
@@ -43,12 +42,12 @@ export default function HomePage() {
       'The decision system that tells an automation agency whether a build is worth doing, where the answer breaks, and hands them the artifact they can defend to the client.',
   };
   return (
-    <MarketingShell>
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ViableoHomepage />
-    </MarketingShell>
+      <SkyddaHomepage />
+    </>
   );
 }
