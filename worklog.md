@@ -425,3 +425,28 @@ Stage Summary:
 - 160 tests pass (confidence + marketing tests now pass). Golden checks ALL PASSED. Lint fully clean.
 - The product is reliable for real agencies: correct confidence scores, correct edge-case handling, correct billing flow.
 - Author: witejackel-eng <witejackel@gmail.com>.
+
+---
+Task ID: founder-access-and-auth-ui
+Agent: Z.ai Code (lead engineer)
+Task: Fix founder access — elevate witejackel@gmail.com to SUPERADMIN, give full product access, fix the frontend "not showing signed-in" problem.
+
+Work Log:
+PHASE 1 — Elevate founder to SUPERADMIN:
+- Created scripts/elevate-founder.ts — direct Prisma script that sets systemRole = 'SUPERADMIN', ensures Organization + owner Membership, ensures License with agency_pro tier. Usage: DATABASE_URL=<url> bun run scripts/elevate-founder.ts --email witejackel@gmail.com
+
+PHASE 2 — Full product access for SUPERADMIN:
+- Modified /api/entitlement/route.ts: if session.systemRole === 'SUPERADMIN', returns agency_pro tier with all capabilities unlocked. Normal users unaffected.
+
+PHASE 3 — Fix "not showing signed-in":
+- Created auth-nav-controls.tsx (shared AuthNavControls using useSession) + app-shell-auth-indicator.tsx (compact version for left rail). Both show avatar/initials + email + Sign out + Admin link (if SUPERADMIN). Wired into ComputeNavigation (desktop + mobile) and AppLeftRail.
+
+PHASE 4 — Verification:
+- Typecheck + lint fully clean. Founder will be SUPERADMIN after running the script. UI shows auth state. /admin accessible. All features unlocked for SUPERADMIN. Normal users still gated.
+
+Stage Summary:
+- ALL BRANCHES IN SYNC at eb62ac6 on origin/main.
+- Founder can be elevated with a single script command.
+- The frontend now shows the signed-in state (avatar, email, sign-out, admin badge).
+- SUPERADMIN gets full product access (all capabilities unlocked).
+- Author: witejackel-eng <witejackel@gmail.com>.
