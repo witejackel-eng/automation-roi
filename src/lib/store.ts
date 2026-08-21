@@ -8,6 +8,7 @@ import type { ScenarioName } from '@/lib/calculations/scenarios';
 import type { Entitlement, Tier } from '@/lib/entitlement';
 
 export type View =
+  | 'dashboard'
   | 'landing'
   | 'pricing'
   | 'calculator'
@@ -73,6 +74,10 @@ interface AppState {
   // Navigation
   go: (v: View) => void;
 
+  // Sidebar state
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (v: boolean) => void;
+
   // Calculator complete → set results + go to results
   setCalculation: (
     inputs: CalculatorInputs,
@@ -103,7 +108,9 @@ interface AppState {
 }
 
 export const useApp = create<AppState>((set) => ({
-  view: 'landing',
+  view: 'dashboard',
+  sidebarCollapsed: false,
+  setSidebarCollapsed: (v) => set({ sidebarCollapsed: v }),
   entitlement: null,
   setEntitlement: (e) => set({ entitlement: e }),
 

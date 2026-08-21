@@ -25,6 +25,7 @@ import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
 import { AppShell } from '@/components/app-shell';
+import { DashboardView } from '@/components/views/dashboard-view';
 import { LandingView } from '@/components/views/landing-view';
 import { CalculatorView } from '@/components/views/calculator-view';
 import { ResultsView } from '@/components/views/results-view';
@@ -86,7 +87,7 @@ function StartApp() {
   // flash "locked then unlocked". Once loaded, render the chosen view.
   return (
     <AppShell>
-      {!entitlement && view !== 'landing' && view !== 'calculator' ? (
+      {!entitlement && view !== 'landing' && view !== 'calculator' && view !== 'dashboard' ? (
         <div className="mx-auto w-full max-w-[1200px] px-4 py-16 md:px-6">
           <div className="h-7 w-1/3 animate-pulse rounded bg-surface" />
           <div className="mt-6 space-y-4">
@@ -95,6 +96,8 @@ function StartApp() {
             ))}
           </div>
         </div>
+      ) : view === 'dashboard' ? (
+        <DashboardView />
       ) : view === 'landing' ? (
         <LandingView />
       ) : view === 'calculator' ? (
