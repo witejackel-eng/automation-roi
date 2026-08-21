@@ -7,6 +7,7 @@ import {
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
 import { PaymentFilters } from './_components/payment-filters'
+import { PaymentExportButton } from './_components/payment-export-button'
 import { formatCurrency, formatDateTime, shortId } from '@/lib/format'
 import { TIER_LABEL } from '@/lib/brand'
 
@@ -46,17 +47,18 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
   const status = statusRaw === 'succeeded' || statusRaw === 'failed' || statusRaw === 'pending' ? statusRaw : 'all'
   const page = Math.max(1, Number(sp.page ?? 1) || 1)
 
-  const [list, totals] = await Promise.all([
+  const [list, totals, allPayments] = await Promise.all([
     listPaymentsForAdmin({ page, pageSize: PAGE_SIZE, search, status: status === 'all' ? undefined : status }),
     Promise.all([
       listPaymentsForAdmin({ pageSize: 1 }),
       listPaymentsForAdmin({ status: 'succeeded', pageSize: 100 }),
       listPaymentsForAdmin({ status: 'failed', pageSize: 1 }),
     ]),
+    listPaymentsForAdmin({ page: 1, pageSize: 10000, search, status: status === 'all' ? undefined : status }),
   ])
 
   const succeededRows = totals[1].rows
-  const refundedCount = succeededRows.filter((p) => Number(p.refundedAmount ?? 0) > 0).length
+  const refundedCount = succeededRows.filter((p) => (p.refundedAmount ?? 0) > 0).length
   const refundedApproximated = succeededRows.length >= 100 && totals[1].total > 100
 
   return (
@@ -64,6 +66,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
       <SectionHeader
         title="Payments"
         subtitle="Payment events and billing exceptions"
+        actions={<PaymentExportButton payments={allPayments.rows} />}
       />
 
       {/* KPI cards */}
@@ -105,7 +108,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
               </thead>
               <tbody>
                 {list.rows.map((p) => {
-                  const refunded = Number(p.refundedAmount ?? 0) > 0
+                  const refunded = (p.refundedAmount ?? 0) > 0
                   return (
                     <tr key={p.id}>
                       <td>

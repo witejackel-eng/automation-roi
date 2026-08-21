@@ -1168,3 +1168,184 @@
   .vcp-table tbody tr { transition: none; }
 }
 
+/* ── KPI Card refinements ─────────────────────────────────────────── */
+.vcp-kpi-card {
+  background: var(--vcp-surface);
+  border: 1px solid var(--vcp-border);
+  border-radius: var(--vcp-radius);
+  box-shadow: var(--vcp-shadow-card);
+  padding: 18px 20px;
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+.vcp-kpi-card-interactive {
+  cursor: pointer;
+}
+.vcp-kpi-card-interactive:hover {
+  border-color: var(--vcp-border-strong);
+  box-shadow: var(--vcp-shadow-raised);
+  transform: translateY(-1px);
+}
+
+/* Icon pill — small rounded background for KPI icons */
+.vcp-kpi-icon-pill {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.vcp-kpi-icon-success { background: var(--vcp-success-bg); color: var(--vcp-success); }
+.vcp-kpi-icon-warning { background: var(--vcp-warning-bg); color: var(--vcp-warning); }
+.vcp-kpi-icon-error { background: var(--vcp-error-bg); color: var(--vcp-error); }
+.vcp-kpi-icon-info { background: var(--vcp-info-bg); color: var(--vcp-info); }
+.vcp-kpi-icon-neutral { background: var(--vcp-surface-sunken); color: var(--vcp-ink-muted); }
+.vcp-kpi-icon-coral { background: var(--vcp-coral-tint); color: var(--vcp-coral); }
+.vcp-kpi-icon-pill svg { width: 14px; height: 14px; }
+
+/* Accent bar at bottom of KPI card */
+.vcp-kpi-accent { opacity: 0.7; }
+.vcp-kpi-accent-success { background: var(--vcp-success); }
+.vcp-kpi-accent-warning { background: var(--vcp-warning); }
+.vcp-kpi-accent-error { background: var(--vcp-error); }
+.vcp-kpi-accent-info { background: var(--vcp-info); }
+.vcp-kpi-accent-coral { background: var(--vcp-coral); }
+.vcp-kpi-accent-neutral { background: var(--vcp-ink-faint); }
+
+/* Trend value micro-interaction */
+.vcp-trend { transition: opacity 150ms ease; }
+.vcp-kpi-card:hover .vcp-trend { opacity: 1; }
+
+/* ── Status pill borders (subtle definition) ──────────────────────── */
+.vcp-pill-border {
+  border: 1px solid transparent;
+}
+.vcp-pill-border.vcp-pill-success { border-color: rgba(21, 128, 61, 0.15); }
+.vcp-pill-border.vcp-pill-warning { border-color: rgba(180, 83, 9, 0.15); }
+.vcp-pill-border.vcp-pill-error { border-color: rgba(220, 38, 38, 0.15); }
+.vcp-pill-border.vcp-pill-info { border-color: rgba(29, 78, 216, 0.15); }
+.vcp-pill-border.vcp-pill-coral { border-color: rgba(255, 22, 75, 0.15); }
+.vcp-pill-sm {
+  font-size: 10px; padding: 1px 6px;
+}
+
+/* ── Pulse dot (for live indicators) ──────────────────────────────── */
+.vcp-dot-pulse {
+  position: relative;
+}
+.vcp-dot-pulse::after {
+  content: ""; position: absolute; inset: 0; border-radius: 999px;
+  background: inherit; animation: vcp-dot-pulse-ring 2s ease-out infinite;
+}
+@keyframes vcp-dot-pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* ── Table row hover — left accent border ────────────────────────── */
+.vcp-table tbody tr {
+  position: relative;
+}
+.vcp-table tbody tr::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 2px; background: var(--vcp-coral); opacity: 0;
+  transition: opacity 120ms ease;
+}
+.vcp-table tbody tr:hover::before { opacity: 1; }
+
+/* ── Pagination buttons ──────────────────────────────────────────── */
+.vcp-page-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 30px; height: 30px; padding: 0 8px;
+  border-radius: var(--vcp-radius-sm);
+  border: 1px solid var(--vcp-border);
+  background: var(--vcp-surface);
+  color: var(--vcp-ink-muted);
+  font-size: 12px; font-weight: 500;
+  transition: all 140ms ease;
+  text-decoration: none;
+}
+.vcp-page-btn:hover {
+  border-color: var(--vcp-border-strong);
+  color: var(--vcp-ink);
+  background: var(--vcp-surface-sunken);
+}
+.vcp-page-btn-active {
+  background: var(--vcp-ink-strong);
+  color: #fff;
+  border-color: var(--vcp-ink-strong);
+}
+.vcp-page-btn-active:hover {
+  background: var(--vcp-ink);
+  color: #fff;
+  border-color: var(--vcp-ink);
+}
+.vcp-page-btn-disabled {
+  opacity: 0.35; pointer-events: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .vcp-shimmer { animation: none; }
+  .vcp-table tbody tr { transition: none; }
+  .vcp-kpi-card { transition: none; }
+  .vcp-dot-pulse::after { animation: none; }
+}
+
+/* ── Keyboard help overlay ────────────────────────────────────────── */
+.vcp-kbd-help {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(10, 9, 8, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+body.vcp-kbd-help-visible .vcp-kbd-help {
+  display: flex;
+  animation: vcp-fade-in 120ms ease;
+}
+.vcp-kbd-help-card {
+  background: var(--vcp-surface);
+  border: 1px solid var(--vcp-border);
+  border-radius: var(--vcp-radius);
+  box-shadow: var(--vcp-shadow-pop);
+  padding: 24px 28px;
+  max-width: 520px; width: 100%;
+}
+@keyframes vcp-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.vcp-kbd-key {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 24px; padding: 0 6px;
+  background: var(--vcp-surface-sunken);
+  border: 1px solid var(--vcp-border);
+  border-radius: var(--vcp-radius-sm);
+  font-family: var(--vcp-font-mono);
+  font-size: 11px; font-weight: 500;
+  color: var(--vcp-ink);
+}
+.vcp-kbd-key-inline {
+  display: inline-flex; align-items: center;
+  padding: 0 4px; height: 18px;
+  background: var(--vcp-surface-sunken);
+  border: 1px solid var(--vcp-border);
+  border-radius: 3px;
+  font-family: var(--vcp-font-mono);
+  font-size: 10px; font-weight: 500;
+  color: var(--vcp-ink-muted);
+}
+
+/* "g" pressed indicator — subtle top bar */
+body.vcp-kbd-g-pressed::after {
+  content: "Press a key… (g pressed)";
+  position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+  z-index: 90;
+  background: var(--vcp-ink-strong); color: #fff;
+  font-size: 11px; font-weight: 500;
+  padding: 4px 12px; border-radius: var(--vcp-radius-pill);
+  box-shadow: var(--vcp-shadow-pop);
+  animation: vcp-fade-in 100ms ease;
+  pointer-events: none;
+}
+

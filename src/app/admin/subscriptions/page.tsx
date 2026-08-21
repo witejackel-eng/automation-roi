@@ -11,6 +11,7 @@ import type { StatusVariant } from '@/components/admin/ui'
 import { formatDate, shortId } from '@/lib/format'
 import { TIER_TO_CANONICAL, type Tier } from '@/lib/brand'
 import { SubFilters } from './_components/sub-filters'
+import { SubscriptionExportButton } from './_components/subscription-export-button'
 import { CreditCard, CheckCircle2, AlertCircle, Ban } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -53,12 +54,13 @@ export default async function SubscriptionsPage({
   const status = VALID_STATUSES.has(rawStatus) ? rawStatus : 'all'
 
   // KPIs are GLOBAL counts (unfiltered by search). The table uses the filters.
-  const [totalList, activeList, pastDueList, overview, table] = await Promise.all([
+  const [totalList, activeList, pastDueList, overview, table, allSubs] = await Promise.all([
     listSubscriptionsForAdmin({ pageSize: 1 }),
     listSubscriptionsForAdmin({ status: 'active', pageSize: 1 }),
     listSubscriptionsForAdmin({ status: 'past_due', pageSize: 1 }),
     getOverviewMetrics(),
     listSubscriptionsForAdmin({ page, pageSize: 25, search: search || undefined, status: status === 'all' ? undefined : status }),
+    listSubscriptionsForAdmin({ page: 1, pageSize: 10000, search: search || undefined, status: status === 'all' ? undefined : status }),
   ])
 
   return (
@@ -67,9 +69,12 @@ export default async function SubscriptionsPage({
         title="Subscriptions"
         subtitle="Current billing state across Viableo"
         actions={
-          <span className="text-[12px] text-[var(--vcp-ink-muted)]">
-            {table.total} {table.total === 1 ? 'subscription' : 'subscriptions'}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[12px] text-[var(--vcp-ink-muted)]">
+              {table.total} {table.total === 1 ? 'subscription' : 'subscriptions'}
+            </span>
+            <SubscriptionExportButton subscriptions={allSubs.rows} />
+          </div>
         }
       />
 

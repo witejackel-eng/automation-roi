@@ -7,6 +7,7 @@ import {
   StatusPill, Pagination, type StatusVariant,
 } from '@/components/admin/ui'
 import { CustomerFilters } from './_components/customer-filters'
+import { CustomerExportButton } from './_components/customer-export-button'
 import { TIER_TO_CANONICAL } from '@/lib/brand'
 import type { Tier } from '@/lib/brand'
 import { formatDate, timeAgo, initials } from '@/lib/format'
@@ -36,6 +37,16 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
     attentionOnly,
   })
 
+  // Fetch all matching customers for CSV export (no pagination cap)
+  const { rows: allRows } = await listCustomersForAdmin({
+    page: 1,
+    pageSize: 10000,
+    search: q || undefined,
+    plan: plan === 'all' ? undefined : plan,
+    subscriptionStatus: subscriptionStatus === 'all' ? undefined : subscriptionStatus,
+    attentionOnly,
+  })
+
   const activeSubs = rows.filter((r) => r.subscriptionStatus === 'active').length
   const attentionCount = rows.filter((r) => r.needsAttention).length
 
@@ -45,7 +56,10 @@ export default async function CustomersPage({ searchParams }: { searchParams: Se
         title="Customers"
         subtitle="Identity, subscription, usage, and operational state"
         actions={
-          <span className="text-[12px] text-[var(--vcp-ink-muted)]">{total} total</span>
+          <div className="flex items-center gap-3">
+            <span className="text-[12px] text-[var(--vcp-ink-muted)]">{total} total</span>
+            <CustomerExportButton customers={allRows} />
+          </div>
         }
       />
 
