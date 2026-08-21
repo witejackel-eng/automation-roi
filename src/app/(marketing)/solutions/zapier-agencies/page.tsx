@@ -73,7 +73,7 @@ export default function ZapierAgenciesPage() {
             revenue math is the same whether you ship in Zapier or anywhere else —
             you just enter your numbers and read the verdict.
           </p>
-          <p className="mt-4 text-[13px] leading-[1.55] text-[#111]/30">
+          <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
             Viableo is an independent tool. It does not connect to Zapier, and is
             not affiliated with or endorsed by Zapier.
           </p>
@@ -97,14 +97,14 @@ export default function ZapierAgenciesPage() {
           <ul className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
             {REASONS.map((r) => (
               <li key={r.n}>
-                <article className="flex h-full flex-col rounded-md border border-[#111]/[0.06] bg-canvas p-6">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-[13px] font-semibold text-[#111]">
+                <article className="flex h-full flex-col rounded-md border border-border bg-canvas p-6">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-[13px] font-semibold text-ink">
                     {r.n}
                   </span>
-                  <h3 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-[-0.02em] text-[#111]">
+                  <h3 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-[-0.02em] text-ink">
                     {r.title}
                   </h3>
-                  <p className="mt-3 text-[14px] leading-[1.6] text-[#111]/50">
+                  <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted">
                     {r.body}
                   </p>
                 </article>
@@ -112,35 +112,35 @@ export default function ZapierAgenciesPage() {
             ))}
           </ul>
 
-          <div className="mt-10 rounded-md border border-[#111]/[0.06] bg-canvas p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/50">
+          <div className="mt-10 rounded-md border border-border bg-canvas p-6 md:p-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
               Worked example
             </p>
-            <p className="mt-3 text-[15px] leading-[1.6] text-[#111]/50">
+            <p className="mt-3 text-[15px] leading-[1.6] text-ink-muted">
               Apex Home Services golden case. An automation removing{' '}
-              <span className="font-mono tnum text-[#111]">20%</span> of a{' '}
-              <span className="font-mono tnum text-[#111]">
+              <span className="font-mono tnum text-ink">20%</span> of a{' '}
+              <span className="font-mono tnum text-ink">
                 {formatCurrency(APEX.annualLaborCost)}
               </span>{' '}
               annual labor cost and lifting conversion by{' '}
-              <span className="font-mono tnum text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {(APEX.conversionImprovementPct * 100).toFixed(1)}pp
               </span>
               . The math returns{' '}
-              <span className="font-mono tnum text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatRoi(APEX.roiPct)}
               </span>{' '}
               ROI, paid back in{' '}
-              <span className="font-mono tnum text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatPayback(APEX.paybackMonths)}
               </span>
               , for a net annual benefit of{' '}
-              <span className="font-mono tnum text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatCurrency(APEX.netAnnualBenefit)}
               </span>
               . The same model works on a single Zap or a multi-Zap engagement.
             </p>
-            <p className="mt-4 text-[13px] leading-[1.55] text-[#111]/30">
+            <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
               Figures are estimates, not financial advice. Full method on the{' '}
               <InlineLink href="/methodology">methodology page</InlineLink>.
             </p>

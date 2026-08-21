@@ -176,9 +176,10 @@ const jsonLd = {
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       offers: [
-        { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free", description: "forever" },
-        { "@type": "Offer", price: "49", priceCurrency: "USD", name: "Pro", description: "per month" },
-        { "@type": "Offer", price: "", priceCurrency: "USD", name: "Custom", description: "Contact us" },
+        { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
+        { "@type": "Offer", price: "29", priceCurrency: "USD", name: "Pro", description: "per month" },
+        { "@type": "Offer", price: "79", priceCurrency: "USD", name: "Agency", description: "per month" },
+        { "@type": "Offer", price: "790", priceCurrency: "USD", name: "Agency Pro", description: "per year" },
       ],
       publisher: { "@id": `${SITE_URL}/#organization` },
     },

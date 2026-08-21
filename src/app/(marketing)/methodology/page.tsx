@@ -1,42 +1,49 @@
 import type { Metadata } from 'next';
 import { MarketingShell } from '@/components/marketing/marketing-shell';
 import {
-  BreadcrumbJsonLd,
   PageHero,
   Section,
   SectionHeading,
   ClosingCTA,
   SiblingLinks,
+  BreadcrumbJsonLd,
   PrimaryCTA,
   SecondaryCTA,
+  FigureBlock,
+  InlineLink,
 } from '@/components/marketing/marketing-primitives';
+import { Dot, DotRule } from '@/components/viableo';
+import { APEX_INPUTS } from '@/lib/golden-case';
+import { calculateScenario, calculateAllScenarios } from '@/lib/calculations/engine';
+import {
+  formatCurrency,
+  formatPayback,
+  formatRoi,
+  formatPercent,
+} from '@/lib/format';
 import {
   METHODOLOGY_HEADLINE,
   METHODOLOGY_BODY,
   DECISION_LABELS,
-  VERDICT_GATES,
-  VERDICT_GATE_NOTE,
-  VERDICT_CLOSING,
-  VERDICT_BAND_LABELS,
 } from '@/lib/brand';
-import { APEX_INPUTS } from '@/lib/golden-case';
-import { calculateScenario, calculateAllScenarios } from '@/lib/calculations/engine';
-import { formatCurrency, formatPayback, formatRoi, formatPercent } from '@/lib/format';
 
 export const metadata: Metadata = {
   title: 'Methodology',
-  description: 'No black box. Just the math. Every number in a Viableo report traces back to an input you can see.',
+  description:
+    'No black box. Just the math. Every number in a Viableo report traces back to an input you can see — labor savings, revenue opportunity, and first-year cost.',
   alternates: { canonical: '/methodology' },
   openGraph: {
     type: 'website',
     title: 'Methodology | Viableo',
-    description: 'No black box. Just the math. Every number traces back to an input you can see.',
+    description:
+      'No black box. Just the math. Every number traces back to an input you can see.',
     url: '/methodology',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Methodology | Viableo',
-    description: 'No black box. Just the math. Every number traces back to an input you can see.',
+    description:
+      'No black box. Just the math. Every number traces back to an input you can see.',
   },
 };
 
@@ -63,7 +70,7 @@ export default function MethodologyPage() {
         </PageHero>
 
         {/* ── The three formulas ────────────────────────────────── */}
-        <Section>
+        <Section className="bg-surface">
           <SectionHeading
             eyebrow="The model"
             title="Three formulas. One bottom line."
@@ -81,7 +88,6 @@ export default function MethodologyPage() {
               label="Labor savings"
               formula="employees × hours/week × hourly cost × 52 × automation %"
               result={formatCurrency(APEX_EXPECTED.annualLaborSavings)}
-              tag="added"
               note="The work the automation now does. The people are still on payroll — they spend those hours on higher-leverage work instead."
               inputs={[
                 { k: 'employees', v: String(APEX_INPUTS.employeesAffected) },
@@ -93,9 +99,8 @@ export default function MethodologyPage() {
             <FormulaCard
               step="2"
               label="Revenue opportunity"
-              formula="leads/month × conversion lift × 12 × avg customer value × gross margin"
+              formula="leads/month × conversion lift × 12 × average customer value × gross margin"
               result={formatCurrency(APEX_EXPECTED.additionalGrossProfit)}
-              tag="added"
               note="The gross profit from the extra customers the automation converts. Skip the margin term to label the line as a revenue opportunity instead."
               inputs={[
                 { k: 'leads/month', v: String(APEX_INPUTS.leadsPerMonth) },
@@ -109,8 +114,8 @@ export default function MethodologyPage() {
               label="First-year cost"
               formula="implementation + (monthly AI/API × 12) + (monthly software × 12) + other annual"
               result={formatCurrency(APEX_EXPECTED.totalFirstYearCost)}
-              tag="subtracted"
               note="Every dollar it takes to build and run the automation in year one. Cost inputs are held constant across all three scenarios."
+              accent
               inputs={[
                 { k: 'implementation', v: formatCurrency(APEX_INPUTS.implementationFee) },
                 { k: 'monthly AI/API', v: formatCurrency(APEX_INPUTS.monthlyAiApiCost) },
@@ -120,28 +125,28 @@ export default function MethodologyPage() {
             />
           </div>
 
-          <div className="mt-10 bg-white border border-[#111]/[0.06] rounded-lg p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/50">
+          <div className="mt-10 rounded-md border border-border bg-canvas p-6 md:p-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
               Net annual benefit
             </p>
-            <p className="mt-3 font-mono text-2xl font-semibold tracking-[-0.01em] text-[#111] md:text-3xl">
+            <p className="mt-3 font-mono tnum text-2xl font-semibold tracking-[-0.01em] text-ink md:text-3xl">
               labor savings + revenue opportunity − first-year cost
             </p>
-            <p className="mt-4 text-[15px] leading-[1.6] text-[#111]/50">
+            <p className="mt-4 text-[15px] leading-[1.6] text-ink-muted">
               On the Apex golden case, that equals{' '}
-              <span className="font-mono text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
               </span>{' '}
               — a return of{' '}
-              <span className="font-mono text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatRoi(APEX_EXPECTED.roiPct)}
               </span>{' '}
               on a{' '}
-              <span className="font-mono text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatCurrency(APEX_EXPECTED.totalFirstYearCost)}
               </span>{' '}
               build, paid back in{' '}
-              <span className="font-mono text-[#111]">
+              <span className="font-mono tnum text-ink">
                 {formatPayback(APEX_EXPECTED.paybackMonths)}
               </span>
               .
@@ -150,7 +155,7 @@ export default function MethodologyPage() {
         </Section>
 
         {/* ── The three scenarios ───────────────────────────────── */}
-        <Section>
+        <Section className="bg-canvas">
           <SectionHeading
             eyebrow="Scenarios"
             title="Three cases. One recommendation."
@@ -191,14 +196,14 @@ export default function MethodologyPage() {
             />
           </div>
 
-          <p className="mt-8 text-[13px] leading-[1.6] text-[#111]/30">
+          <p className="mt-8 text-[13px] leading-[1.6] text-ink-faint">
             Apex Home Services golden case. Figures are estimates, not financial
             advice.
           </p>
         </Section>
 
         {/* ── The recommendation ladder ─────────────────────────── */}
-        <Section>
+        <Section className="bg-surface">
           <SectionHeading
             eyebrow="The recommendation"
             title="Three words. One verdict."
@@ -232,40 +237,17 @@ export default function MethodologyPage() {
             />
           </div>
 
-          <div className="mt-10 bg-white border border-[#111]/[0.06] rounded-lg p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/50">
-              BUILD requires all three
-            </p>
-            <ul className="mt-4 space-y-3">
-              {VERDICT_GATES.map((gate, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full bg-[#0D6B3F]" />
-                  <span className="text-[15px] leading-[1.6] text-[#111]/50">{gate}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-[14px] leading-[1.6] text-[#111]/30">
-              {VERDICT_GATE_NOTE}
-            </p>
-            <p className="mt-4 text-[14px] leading-[1.6] text-[#111]/50">
-              {VERDICT_CLOSING}
-            </p>
-          </div>
-
-          <div className="mt-6 bg-white border border-[#111]/[0.06] rounded-lg p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/50">
-              Confidence bands
-            </p>
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 md:grid-cols-4">
-              {VERDICT_BAND_LABELS.map((band) => (
-                <div key={band.range}>
-                  <dt className="text-[12px] text-[#111]/30">{band.range}</dt>
-                  <dd className="mt-0.5 text-[15px] font-medium text-[#111]">{band.label}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+          <p className="mt-8 text-[15px] leading-[1.6] text-ink-muted">
+            The full decision tree is documented in the source. The invariant: a
+            negative expected case always returns{' '}
+            <span className="font-semibold text-ink">
+              {DECISION_LABELS.dont_build}
+            </span>{' '}
+            — no amount of upside narration overrides negative economics.
+          </p>
         </Section>
+
+        <DotRule className="bg-canvas" />
 
         <SiblingLinks
           label="Related"
@@ -295,7 +277,7 @@ function FormulaCard({
   result,
   note,
   inputs,
-  tag,
+  accent = false,
 }: {
   step: string;
   label: string;
@@ -303,46 +285,45 @@ function FormulaCard({
   result: string;
   note: string;
   inputs: { k: string; v: string }[];
-  tag: string;
+  accent?: boolean;
 }) {
   return (
-    <article className="bg-white border border-[#111]/[0.06] rounded-lg p-6 md:p-8">
+    <article className="rounded-md border border-border bg-canvas p-6 md:p-8">
       <div className="flex items-center gap-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5F4F0] text-[13px] font-semibold text-[#111]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-[13px] font-semibold text-ink">
           {step}
         </span>
-        <h3 className="text-[15px] font-semibold uppercase tracking-[0.04em] text-[#111]">
+        <h3 className="text-[15px] font-semibold uppercase tracking-[0.04em] text-ink">
           {label}
         </h3>
       </div>
-      <p className="mt-4 font-mono text-[14px] leading-[1.6] text-[#111] md:text-[15px]">
+      <p className="mt-4 font-mono tnum text-[14px] leading-[1.6] text-ink md:text-[15px]">
         {formula}
       </p>
-      <p className="mt-3 text-[14px] leading-[1.6] text-[#111]/50">{note}</p>
-      <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-[#111]/[0.06] pt-4 sm:grid-cols-4">
+      <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted">{note}</p>
+      <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-border pt-4 sm:grid-cols-4">
         {inputs.map((i) => (
           <div key={i.k}>
-            <dt className="text-[11px] uppercase tracking-[0.06em] text-[#111]/30">
+            <dt className="text-[11px] uppercase tracking-[0.06em] text-ink-faint">
               {i.k}
             </dt>
-            <dd className="mt-1 font-mono text-[14px] text-[#111]">{i.v}</dd>
+            <dd className="mt-1 font-mono tnum text-[14px] text-ink">{i.v}</dd>
           </div>
         ))}
       </dl>
       <div className="mt-5 flex items-baseline gap-3">
-        <span className="font-mono text-2xl font-semibold tracking-[-0.01em] text-[#111] md:text-3xl">
+        <span className="font-mono tnum text-2xl font-semibold tracking-[-0.01em] text-ink md:text-3xl">
           {result}
         </span>
-        <span className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#111]/30">
-          <span
-            className={
-              tag === 'subtracted'
-                ? 'inline-block h-2 w-2 rounded-full bg-[#9B0A2E] mr-1.5 align-middle'
-                : 'inline-block h-2 w-2 rounded-full bg-[#0D6B3F] mr-1.5 align-middle'
-            }
-            aria-hidden="true"
-          />
-          {tag}
+        <span
+          className={
+            accent
+              ? 'text-[12px] font-medium uppercase tracking-[0.08em] text-brand'
+              : 'text-[12px] font-medium uppercase tracking-[0.08em] text-ink-muted'
+          }
+        >
+          <Dot size="sm" className="mr-1.5 align-middle" />
+          {accent ? 'subtracted' : 'added'}
         </span>
       </div>
     </article>
@@ -370,39 +351,39 @@ function ScenarioCard({
     <article
       className={
         accent
-          ? 'bg-white border border-[#111]/[0.12] rounded-lg p-6'
-          : 'bg-white border border-[#111]/[0.06] rounded-lg p-6'
+          ? 'rounded-md border border-brand/40 bg-surface p-6 shadow-floating'
+          : 'rounded-md border border-border bg-surface p-6'
       }
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-[15px] font-semibold uppercase tracking-[0.04em] text-[#111]">
+        <h3 className="text-[15px] font-semibold uppercase tracking-[0.04em] text-ink">
           {label}
         </h3>
-        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/30">
+        <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
           {tag}
         </span>
       </div>
-      <p className="mt-3 text-[14px] leading-[1.55] text-[#111]/50">{change}</p>
-      <dl className="mt-5 space-y-2 border-t border-[#111]/[0.06] pt-4">
+      <p className="mt-3 text-[14px] leading-[1.55] text-ink-muted">{change}</p>
+      <dl className="mt-5 space-y-2 border-t border-border pt-4">
         <div className="flex items-baseline justify-between gap-3">
-          <dt className="text-[12px] uppercase tracking-[0.06em] text-[#111]/30">
+          <dt className="text-[12px] uppercase tracking-[0.06em] text-ink-faint">
             ROI
           </dt>
-          <dd className="font-mono text-[18px] font-semibold text-[#111]">
+          <dd className="font-mono tnum text-[18px] font-semibold text-ink">
             {roi}
           </dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <dt className="text-[12px] uppercase tracking-[0.06em] text-[#111]/30">
+          <dt className="text-[12px] uppercase tracking-[0.06em] text-ink-faint">
             Net / year
           </dt>
-          <dd className="font-mono text-[15px] text-[#111]">{net}</dd>
+          <dd className="font-mono tnum text-[15px] text-ink">{net}</dd>
         </div>
         <div className="flex items-baseline justify-between gap-3">
-          <dt className="text-[12px] uppercase tracking-[0.06em] text-[#111]/30">
+          <dt className="text-[12px] uppercase tracking-[0.06em] text-ink-faint">
             Payback
           </dt>
-          <dd className="font-mono text-[15px] text-[#111]">{payback}</dd>
+          <dd className="font-mono tnum text-[15px] text-ink">{payback}</dd>
         </div>
       </dl>
     </article>
@@ -420,29 +401,30 @@ function DecisionCard({
   when: string;
   means: string;
 }) {
+  // The dot color matches the decision badge palette.
   const dotColor =
     tone === 'build'
-      ? 'bg-[#0D6B3F]'
+      ? 'bg-[#1F8A5A]'
       : tone === 'consider'
-        ? 'bg-[#8B5E0A]'
-        : 'bg-[#9B0A2E]';
+        ? 'bg-[#C98A1B]'
+        : 'bg-[#B70F38]';
   return (
-    <article className="bg-white border border-[#111]/[0.06] rounded-lg p-6 md:p-8">
+    <article className="rounded-md border border-border bg-canvas p-6 md:p-8">
       <div className="flex items-center gap-3">
         <span
           aria-hidden="true"
           className={`inline-block h-2.5 w-2.5 rounded-full ${dotColor}`}
         />
-        <h3 className="text-[17px] font-semibold uppercase tracking-[0.02em] text-[#111]">
+        <h3 className="text-[17px] font-semibold uppercase tracking-[0.02em] text-ink">
           {label}
         </h3>
       </div>
-      <p className="mt-4 text-[14px] leading-[1.6] text-[#111]/50">
-        <span className="font-medium text-[#111]">When it fires. </span>
+      <p className="mt-4 text-[14px] leading-[1.6] text-ink-muted">
+        <span className="font-medium text-ink">When it fires. </span>
         {when}
       </p>
-      <p className="mt-3 text-[14px] leading-[1.6] text-[#111]/50">
-        <span className="font-medium text-[#111]">What it means. </span>
+      <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted">
+        <span className="font-medium text-ink">What it means. </span>
         {means}
       </p>
     </article>
