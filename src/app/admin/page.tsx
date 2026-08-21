@@ -173,6 +173,12 @@ export default async function OverviewPage() {
           ],
           total: metrics.proMrr,
         }}
+        churnRisk={{
+          cancellations30d: metrics.cancellations30d,
+          pastDue: metrics.pastDueSubs,
+          cancelingCount: metrics.cancelingSubs,
+          total: metrics.activeSubscriptions,
+        }}
       />
     </PageContainer>
   )

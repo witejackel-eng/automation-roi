@@ -36,6 +36,8 @@ export async function getOverviewMetrics() {
     webhookErrors24h,
     authFailures24h,
     systemErrors24h,
+    pastDueSubs,
+    cancelingSubs,
   ] = await Promise.all([
     db.organization.count(),
     db.subscription.count({ where: { status: 'active' } }),
@@ -51,6 +53,8 @@ export async function getOverviewMetrics() {
     db.systemEvent.count({ where: { eventType: 'WEBHOOK_ERROR', createdAt: { gte: daysAgo(1) } } }),
     db.systemEvent.count({ where: { eventType: 'AUTH_FAILED', createdAt: { gte: daysAgo(1) } } }),
     db.systemEvent.count({ where: { severity: 'error', createdAt: { gte: daysAgo(1) } } }),
+    db.subscription.count({ where: { status: 'past_due' } }),
+    db.subscription.count({ where: { status: 'canceling' } }),
   ])
 
   // MRR: sum of monthly-equivalent recurring revenue from active subscriptions.
@@ -75,6 +79,8 @@ export async function getOverviewMetrics() {
     customActiveCount: customActive,
     newCustomers7d,
     cancellations30d,
+    pastDueSubs,
+    cancelingSubs,
     failedPayments30d,
     reportsGenerated24h: reports24h,
     payments30dCount: payments30d.length,

@@ -7,6 +7,7 @@ import {
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
 import { Sparkline } from '@/components/admin/sparkline'
+import { MiniDonut } from '@/components/admin/mini-donut'
 import { PaymentFilters } from './_components/payment-filters'
 import { PaymentExportButton } from './_components/payment-export-button'
 import { formatCurrency, formatDateTime, shortId } from '@/lib/format'
@@ -96,6 +97,57 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
           sub={refundedApproximated ? 'Showing first 100' : 'refundedAmount > 0'}
         />
       </div>
+
+      {/* Payment status donut + legend */}
+      {totals[0].total > 0 ? (
+        <div className="vcp-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[13px] font-semibold text-[var(--vcp-ink-strong)]">Payment status</h3>
+            <span className="text-[11px] text-[var(--vcp-ink-faint)]">{totals[0].total} total</span>
+          </div>
+          <div className="flex items-center gap-6 flex-wrap">
+            <MiniDonut
+              segments={[
+                { label: 'Successful', value: totals[1].total, color: 'var(--vcp-success)' },
+                { label: 'Failed', value: totals[2].total, color: 'var(--vcp-error)' },
+                { label: 'Pending', value: Math.max(0, totals[0].total - totals[1].total - totals[2].total), color: 'var(--vcp-warning)' },
+              ]}
+              size={120}
+              thickness={14}
+              centerValue={totals[0].total}
+              centerLabel="payments"
+            />
+            <div className="flex flex-col gap-2.5 min-w-[160px]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--vcp-success)' }} />
+                  <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">Successful</span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{totals[1].total}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--vcp-error)' }} />
+                  <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">Failed</span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{totals[2].total}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--vcp-warning)' }} />
+                  <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">Pending</span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{Math.max(0, totals[0].total - totals[1].total - totals[2].total)}</span>
+              </div>
+            </div>
+            {totals[2].total > 0 ? (
+              <div className="ml-auto vcp-pill vcp-pill-error">
+                {((totals[2].total / totals[0].total) * 100).toFixed(1)}% failure rate
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <PaymentFilters status={status} />
 

@@ -16,6 +16,7 @@ export function RightRail({
   productActivity,
   planDistribution,
   revenueByPlan,
+  churnRisk,
 }: {
   systemStatus?: { label: string; variant: 'success' | 'warning' | 'error' | 'neutral' }
   criticalEvents?: { id: string; eventType: string; severity: string; organizationId: string | null; createdAt: Date | string }[]
@@ -23,6 +24,7 @@ export function RightRail({
   productActivity?: { label: string; value: string | number; href?: string }[]
   planDistribution?: { segments: { label: string; value: number; color: string }[]; total: number }
   revenueByPlan?: { segments: { label: string; value: number; verified: boolean; color: string }[]; total: number }
+  churnRisk?: { cancellations30d: number; pastDue: number; cancelingCount: number; total: number }
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -156,6 +158,57 @@ export function RightRail({
               Verified MRR is derived from active Pro subscriptions at $49/mo. Custom-tier revenue requires manual verification.
             </p>
           ) : null}
+        </RailCard>
+      ) : null}
+
+      {/* Churn risk card */}
+      {churnRisk ? (
+        <RailCard title="Churn risk" action={<Link href="/admin/subscriptions?status=canceled" className="text-[11px] text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-coral)] vcp-focus rounded">Subs</Link>}>
+          {(() => {
+            const totalAtRisk = churnRisk.cancellations30d + churnRisk.pastDue + churnRisk.cancelingCount
+            const variant = totalAtRisk > 0 ? (churnRisk.cancellations30d > 2 ? 'error' : 'warning') : 'success'
+            const label = totalAtRisk === 0 ? 'No churn risk' : `${totalAtRisk} signal${totalAtRisk === 1 ? '' : 's'}`
+            const dotClass = variant === 'error' ? 'vcp-dot-error' : variant === 'warning' ? 'vcp-dot-warning' : 'vcp-dot-success'
+            const pillClass = variant === 'error' ? 'vcp-pill-error' : variant === 'warning' ? 'vcp-pill-warning' : 'vcp-pill-success'
+            return (
+              <>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={cn('vcp-dot', dotClass)} style={{ boxShadow: 'none', width: 7, height: 7 }} />
+                  <span className={cn('vcp-pill', pillClass)}>{label}</span>
+                </div>
+                <ul className="flex flex-col gap-2.5">
+                  {churnRisk.cancellations30d > 0 ? (
+                    <li className="flex items-center justify-between gap-2">
+                      <span className="text-[12px] text-[var(--vcp-ink-muted)]">Canceled (30d)</span>
+                      <span className="text-[13px] font-semibold vcp-tnum" style={{ color: 'var(--vcp-error)' }}>{churnRisk.cancellations30d}</span>
+                    </li>
+                  ) : null}
+                  {churnRisk.pastDue > 0 ? (
+                    <li className="flex items-center justify-between gap-2">
+                      <span className="text-[12px] text-[var(--vcp-ink-muted)]">Past due</span>
+                      <span className="text-[13px] font-semibold vcp-tnum" style={{ color: 'var(--vcp-warning)' }}>{churnRisk.pastDue}</span>
+                    </li>
+                  ) : null}
+                  {churnRisk.cancelingCount > 0 ? (
+                    <li className="flex items-center justify-between gap-2">
+                      <span className="text-[12px] text-[var(--vcp-ink-muted)]">Canceling</span>
+                      <span className="text-[13px] font-semibold vcp-tnum" style={{ color: 'var(--vcp-warning)' }}>{churnRisk.cancelingCount}</span>
+                    </li>
+                  ) : null}
+                  {totalAtRisk === 0 ? (
+                    <li className="text-[12px] text-[var(--vcp-ink-muted)] py-1">
+                      All active subscriptions are in good standing.
+                    </li>
+                  ) : null}
+                </ul>
+                {churnRisk.total > 0 ? (
+                  <p className="mt-3 pt-3 border-t border-[var(--vcp-border)] text-[10px] text-[var(--vcp-ink-faint)]">
+                    {churnRisk.total} active subscription{churnRisk.total === 1 ? '' : 's'} total
+                  </p>
+                ) : null}
+              </>
+            )
+          })()}
         </RailCard>
       ) : null}
     </div>

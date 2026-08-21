@@ -8,6 +8,7 @@ import {
 } from '@/components/admin/ui'
 import { ActivityTimeline } from '@/components/admin/activity-timeline'
 import { CapabilityBadges } from '@/components/admin/capability-badges'
+import { SubscriptionLifecycle } from '@/components/admin/subscription-lifecycle'
 import {
   formatDate, formatDateTime, timeAgo, shortId, initials,
 } from '@/lib/format'
@@ -71,6 +72,16 @@ export default async function CustomerDetailPage({ params }: { params: Params })
           <IdentityCard identity={identity} />
           <OrganizationCard organization={organization} />
           <SubscriptionCard subscription={subscription} />
+          {subscription ? (
+            <SubscriptionLifecycle
+              createdAt={subscription.createdAt}
+              currentPeriodStart={subscription.currentPeriodStart}
+              currentPeriodEnd={subscription.currentPeriodEnd}
+              cancelAtPeriodEnd={subscription.cancelAtPeriodEnd}
+              canceledAt={subscription.canceledAt}
+              status={subscription.status}
+            />
+          ) : null}
           <EntitlementsCard entitlement={entitlement} />
           <UsageCard usage={usage} />
           <ActivityTimeline entries={recentEvents} maxItems={12} />
