@@ -6,10 +6,12 @@ import {
   SectionHeader, PageContainer, ErrorState,
   StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
+import { ActivityTimeline } from '@/components/admin/activity-timeline'
+import { CapabilityBadges } from '@/components/admin/capability-badges'
 import {
   formatDate, formatDateTime, timeAgo, shortId, initials,
 } from '@/lib/format'
-import { TIER_TO_CANONICAL, CAPABILITY_LABEL } from '@/lib/brand'
+import { TIER_TO_CANONICAL } from '@/lib/brand'
 import type { Tier, Capability } from '@/lib/brand'
 import { ChevronLeft } from 'lucide-react'
 
@@ -71,7 +73,7 @@ export default async function CustomerDetailPage({ params }: { params: Params })
           <SubscriptionCard subscription={subscription} />
           <EntitlementsCard entitlement={entitlement} />
           <UsageCard usage={usage} />
-          <RecentActivityCard recentEvents={recentEvents} />
+          <ActivityTimeline entries={recentEvents} maxItems={12} />
         </div>
 
         {/* Side column */}
@@ -211,7 +213,7 @@ function SubscriptionCard({ subscription }: { subscription: Subscription }) {
 type Entitlement = {
   tier: Tier
   capabilities: Capability[]
-  source: string
+  source: 'subscription' | 'license' | 'default'
   active: boolean
 }
 
@@ -232,17 +234,7 @@ function EntitlementsCard({ entitlement }: { entitlement: Entitlement }) {
         <span className="text-[12px] text-[var(--vcp-ink-muted)]">Source: {sourceLabel}</span>
       </div>
       <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--vcp-ink-faint)] mb-2">Capabilities</div>
-      {entitlement.capabilities.length === 0 ? (
-        <p className="text-[13px] text-[var(--vcp-ink-muted)]">No capabilities granted.</p>
-      ) : (
-        <div className="flex flex-wrap gap-1.5">
-          {entitlement.capabilities.map((cap) => (
-            <span key={cap} className="vcp-pill vcp-pill-outline">
-              {CAPABILITY_LABEL[cap] ?? cap}
-            </span>
-          ))}
-        </div>
-      )}
+      <CapabilityBadges capabilities={entitlement.capabilities} />
     </div>
   )
 }
@@ -267,43 +259,6 @@ function UsageStat({ label, value }: { label: string; value: number }) {
     <div className="rounded-[var(--vcp-radius-sm)] bg-[var(--vcp-surface-sunken)] px-3 py-2.5 flex flex-col gap-1">
       <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">{label}</span>
       <span className="text-[22px] leading-none font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{value}</span>
-    </div>
-  )
-}
-
-type SystemEventRow = {
-  id: string
-  eventType: string
-  severity: string
-  createdAt: Date
-  requestId: string | null
-}
-
-function RecentActivityCard({ recentEvents }: { recentEvents: SystemEventRow[] }) {
-  return (
-    <div className="vcp-card overflow-hidden">
-      <div className="px-4 py-3 border-b border-[var(--vcp-border)]">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Recent activity</h3>
-      </div>
-      <div className="overflow-x-auto vcp-scroll">
-        <table className="vcp-table">
-          <thead>
-            <tr><th>Event</th><th>Severity</th><th>When</th><th>Request ID</th></tr>
-          </thead>
-          <tbody>
-            {recentEvents.length === 0 ? (
-              <tr><td colSpan={4} className="text-center text-[var(--vcp-ink-muted)] py-8">No operational events recorded.</td></tr>
-            ) : recentEvents.slice(0, 10).map((e) => (
-              <tr key={e.id}>
-                <td className="vcp-mono font-medium text-[var(--vcp-ink)]">{e.eventType}</td>
-                <td><SeverityPill severity={e.severity} /></td>
-                <td className="text-[var(--vcp-ink-muted)]">{timeAgo(e.createdAt)}</td>
-                <td className="vcp-mono text-[12px] text-[var(--vcp-ink-faint)]">{e.requestId ? shortId(e.requestId, 10) : '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   )
 }
@@ -366,12 +321,6 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
       <dd className="text-[13px] text-[var(--vcp-ink)]">{value}</dd>
     </div>
   )
-}
-
-function SeverityPill({ severity }: { severity: string }) {
-  const v: StatusVariant = severity === 'error' ? 'error' : severity === 'warn' ? 'warning' : 'neutral'
-  const label = severity === 'error' ? 'Error' : severity === 'warn' ? 'Warning' : 'Info'
-  return <StatusPill variant={v}>{label}</StatusPill>
 }
 
 function subStatusVariant(status: string): StatusVariant {

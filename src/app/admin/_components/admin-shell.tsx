@@ -10,6 +10,7 @@ import {
   AlertTriangle, AlertCircle, Search, RefreshCw, Bell, ChevronRight, Menu, X, Keyboard,
 } from 'lucide-react'
 import { KeyboardNavHandler, KeyboardHelpOverlay } from '@/components/admin/keyboard-nav'
+import { LiveRefreshIndicator } from '@/components/admin/live-refresh-indicator'
 
 const NAV = [
   {
@@ -161,7 +162,7 @@ export function AdminShell({ children, rightRail }: { children: React.ReactNode;
             </form>
 
             <div className="flex items-center gap-1 ml-auto">
-              <SystemStatusBadge />
+              <LiveRefreshIndicator />
               <button
                 onClick={() => document.body.classList.toggle('vcp-kbd-help-visible')}
                 className="hidden sm:block vcp-focus rounded p-2 text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-ink)] hover:bg-[var(--vcp-surface-sunken)] transition-colors"
@@ -170,9 +171,6 @@ export function AdminShell({ children, rightRail }: { children: React.ReactNode;
               >
                 <Keyboard size={16} />
               </button>
-              <a href="/admin" className="vcp-focus rounded p-2 text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-ink)] hover:bg-[var(--vcp-surface-sunken)] transition-colors" title="Refresh" aria-label="Refresh">
-                <RefreshCw size={16} />
-              </a>
               <a href="/admin/events?severity=error" className="vcp-focus rounded p-2 text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-ink)] hover:bg-[var(--vcp-surface-sunken)] transition-colors relative" title="Notifications" aria-label="Notifications">
                 <Bell size={16} />
                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[var(--vcp-coral)]" />
@@ -218,16 +216,5 @@ export function AdminShell({ children, rightRail }: { children: React.ReactNode;
       <KeyboardNavHandler />
       <KeyboardHelpOverlay />
     </div>
-  )
-}
-
-function SystemStatusBadge() {
-  // In production this reads from a real health check. Static label here for the
-  // preview harness; the System Health page shows the measured values.
-  return (
-    <span className="hidden md:inline-flex items-center gap-2 px-2.5 h-7 rounded-[var(--vcp-radius-sm)] border border-[var(--vcp-border)] text-[12px] font-medium text-[var(--vcp-ink)] bg-[var(--vcp-surface)]">
-      <span className="vcp-dot vcp-dot-success vcp-dot-pulse" />
-      System operational
-    </span>
   )
 }
