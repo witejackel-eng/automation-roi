@@ -47,6 +47,7 @@ export function KpiCard({
   variant = 'neutral',
   icon,
   interactive = false,
+  sparkline,
 }: {
   label: string
   value: React.ReactNode
@@ -55,6 +56,7 @@ export function KpiCard({
   variant?: StatusVariant
   icon?: React.ReactNode
   interactive?: boolean
+  sparkline?: React.ReactNode
 }) {
   const trendColor =
     trend?.good === undefined ? 'var(--vcp-ink-muted)' : trend.good ? 'var(--vcp-success)' : 'var(--vcp-error)'
@@ -75,16 +77,19 @@ export function KpiCard({
           <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] truncate">{label}</span>
         </div>
       </div>
-      <div className="flex items-end gap-2 mt-3">
-        <span className="text-[28px] leading-none font-semibold text-[var(--vcp-ink-strong)] vcp-tnum tracking-tight">{value}</span>
-        {trend ? (
-          <span
-            className="text-[12px] font-semibold mb-[3px] flex items-center gap-0.5 vcp-trend"
-            style={{ color: trendColor }}
-          >
-            {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '→'} {trend.value}
-          </span>
-        ) : null}
+      <div className="flex items-end justify-between gap-2 mt-3">
+        <div className="flex items-end gap-2">
+          <span className="text-[28px] leading-none font-semibold text-[var(--vcp-ink-strong)] vcp-tnum tracking-tight">{value}</span>
+          {trend ? (
+            <span
+              className="text-[12px] font-semibold mb-[3px] flex items-center gap-0.5 vcp-trend"
+              style={{ color: trendColor }}
+            >
+              {trend.direction === 'up' ? '↑' : trend.direction === 'down' ? '↓' : '→'} {trend.value}
+            </span>
+          ) : null}
+        </div>
+        {sparkline ? <div className="vcp-kpi-sparkline">{sparkline}</div> : null}
       </div>
       {sub ? <span className="text-[12px] text-[var(--vcp-ink-muted)] mt-1.5">{sub}</span> : null}
       {variant !== 'neutral' ? (

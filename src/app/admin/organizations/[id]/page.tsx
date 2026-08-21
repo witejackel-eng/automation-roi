@@ -6,6 +6,7 @@ import {
   SectionHeader, PageContainer, ErrorState, StatusPill,
 } from '@/components/admin/ui'
 import type { StatusVariant } from '@/components/admin/ui'
+import { ActivityTimeline } from '@/components/admin/activity-timeline'
 import { formatDate, formatDateTime, timeAgo, formatCurrency, shortId } from '@/lib/format'
 import { TIER_TO_CANONICAL, TIER_LABEL, CAPABILITY_LABEL, type Tier } from '@/lib/brand'
 import type { Capability } from '@/lib/brand'
@@ -309,42 +310,10 @@ export default async function OrganizationDetailPage({
           </div>
         </section>
 
-        {/* Recent activity — full width */}
-        <section className="vcp-card overflow-hidden lg:col-span-3">
-          <div className="px-5 py-4 border-b border-[var(--vcp-border)]">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Recent activity</h3>
-          </div>
-          <div className="overflow-x-auto vcp-scroll">
-            <table className="vcp-table">
-              <thead>
-                <tr>
-                  <th>Event</th>
-                  <th>Severity</th>
-                  <th>When</th>
-                  <th>Request ID</th>
-                </tr>
-              </thead>
-              <tbody>
-                {org.recentEvents.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center text-[var(--vcp-ink-muted)] py-8">No operational events for this organization.</td>
-                  </tr>
-                ) : org.recentEvents.map((e) => (
-                  <tr key={e.id}>
-                    <td className="vcp-mono text-[12.5px] font-medium text-[var(--vcp-ink)]">{e.eventType}</td>
-                    <td>
-                      <StatusPill variant={SEVERITY_VARIANT[e.severity] ?? 'neutral'}>
-                        {e.severity === 'warn' ? 'Warning' : e.severity.charAt(0).toUpperCase() + e.severity.slice(1)}
-                      </StatusPill>
-                    </td>
-                    <td className="text-[12.5px] text-[var(--vcp-ink-muted)]">{timeAgo(e.createdAt)}</td>
-                    <td className="vcp-mono text-[11.5px] text-[var(--vcp-ink-faint)]">{e.requestId ? shortId(e.requestId, 12) : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        {/* Recent activity — full width timeline */}
+        <div className="lg:col-span-3">
+          <ActivityTimeline entries={org.recentEvents} maxItems={12} />
+        </div>
 
         {/* Privacy note — full width */}
         <p className="lg:col-span-3 text-[12px] text-[var(--vcp-ink-muted)] px-1">

@@ -6,6 +6,7 @@ import {
   listPaymentsForAdmin,
 } from '@/lib/admin/operational-queries'
 import { KpiCard, SectionHeader, PageContainer } from '@/components/admin/ui'
+import { Sparkline } from '@/components/admin/sparkline'
 import { RightRail } from '@/components/admin/right-rail'
 import { TrendArea, MiniBars, DonutMix, CHART_COLORS } from '@/components/admin/charts'
 import { formatCompactCurrency, timeAgo } from '@/lib/format'
@@ -29,9 +30,14 @@ export default async function OverviewPage() {
     listPaymentsForAdmin({ status: 'failed', pageSize: 5 }),
   ])
 
+  // 7-day sparkline data (last 7 entries of the 30-day trend)
+  const growth7d = growth.slice(-7).map((d) => d.value)
+  const revenue7d = revenue.slice(-7).map((d) => d.value)
+
   const donutData = [
-    { name: 'Starter', value: mix.free, color: CHART_COLORS.muted },
-    { name: 'Pro', value: (mix.pro ?? 0) + (mix.agency ?? 0) + (mix.agency_pro ?? 0), color: CHART_COLORS.coral },
+    { name: 'Free', value: mix.free, color: CHART_COLORS.muted },
+    { name: 'Pro', value: mix.pro, color: CHART_COLORS.coral },
+    { name: 'Custom (Agency)', value: (mix.agency ?? 0) + (mix.agency_pro ?? 0), color: CHART_COLORS.info },
   ].filter((d) => d.value > 0)
 
   const billingAlerts = [
@@ -68,9 +74,9 @@ export default async function OverviewPage() {
 
       {/* Primary KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Active customers" value={metrics.activeOrganizations} sub={`${metrics.newCustomers7d} new in 7 days`} variant="info" icon={<Users size={15} />} />
+        <KpiCard label="Active customers" value={metrics.activeOrganizations} sub={`${metrics.newCustomers7d} new in 7 days`} variant="info" icon={<Users size={15} />} sparkline={<Sparkline data={growth7d} color="var(--vcp-info)" />} />
         <KpiCard label="Active subscriptions" value={metrics.activeSubscriptions} sub={`${metrics.cancellations30d} canceled in 30d`} variant="coral" icon={<CreditCard size={15} />} />
-        <KpiCard label="MRR (verified)" value={formatCompactCurrency(metrics.proMrr)} sub={`+ ${metrics.customActiveCount} custom tier`} icon={<DollarSign size={15} />} />
+        <KpiCard label="MRR (verified)" value={formatCompactCurrency(metrics.proMrr)} sub={`+ ${metrics.customActiveCount} custom tier`} icon={<DollarSign size={15} />} sparkline={<Sparkline data={revenue7d} color="var(--vcp-success)" />} />
         <KpiCard
           label="System health"
           value={<span className="flex items-center gap-2"><span className="vcp-dot vcp-dot-success" /> Operational</span>}

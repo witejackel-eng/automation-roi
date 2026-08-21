@@ -10,17 +10,8 @@
 import { db } from '@/lib/db'
 import type { Tier, Capability } from '@/lib/brand'
 import { entitlementFor, isEntitlingStatus } from '@/lib/entitlement'
-import { formatCurrency } from '@/lib/format'
 
 const PAGE_SIZE = 25
-
-// Convert the entitlement engine's Record<Capability, boolean> to the array
-// shape the admin UI expects (enabled capabilities only).
-function capabilitiesToList(caps: Record<string, boolean>): import('@/lib/brand').Capability[] {
-  return (Object.entries(caps) as [string, boolean][])
-    .filter(([, v]) => v)
-    .map(([k]) => k as import('@/lib/brand').Capability)
-}
 
 export type ListParams = {
   page?: number
@@ -121,7 +112,7 @@ export async function getRevenueTrend(days = 30) {
   for (const p of payments) {
     const key = dayKey(p.createdAt)
     const b = buckets.find((x) => x.key === key)
-    if (b) b.value += Number(p.amount)
+    if (b) b.value += p.amount
   }
   return buckets
 }
@@ -402,7 +393,7 @@ export async function getCustomerForAdmin(userId: string) {
       : null,
     entitlement: {
       tier,
-      capabilities: capabilitiesToList(entitlement.capabilities),
+      capabilities: entitlement.capabilities as Capability[],
       source: sub ? 'subscription' : license ? 'license' : 'default',
       active: entitling,
     },
@@ -510,10 +501,7 @@ export async function getOrganizationForAdmin(organizationId: string) {
   return {
     ...org,
     tier,
-    entitlement: {
-      ...entitlement,
-      capabilities: capabilitiesToList(entitlement.capabilities),
-    },
+    entitlement,
     recentEvents,
     recentPayments,
     counts: org._count,
@@ -650,8 +638,8 @@ export async function listEntitlementsForAdmin(params: ListParams = {}) {
       subscriptionStatus: sub?.status ?? null,
       subscriptionTier: sub?.tier ?? null,
       cachedTier: license?.tier ?? null,
-      capabilities: capabilitiesToList(ent.capabilities),
-      capabilityCount: capabilitiesToList(ent.capabilities).length,
+      capabilities: ent.capabilities as Capability[],
+      capabilityCount: ent.capabilities.length,
       source: sub ? 'subscription' : license ? 'license' : 'default',
       active,
       updatedAt: license?.updatedAt ?? sub?.createdAt ?? o.createdAt,
@@ -716,6 +704,45 @@ export async function getEventTypeSummary() {
     take: 30,
   })
   return grouped
+}
+
+// Heatmap data: 7 days × 24 hours grid of event counts.
+// Returns a 2D array [day][hour] of counts, plus the max count for color scaling.
+export async function getEventHeatmap(daysBack = 7): Promise<{
+  grid: number[][] // [7][24] — day 0 = oldest, day 6 = today
+  dayLabels: string[]
+  maxCount: number
+  total: number
+}> {
+  const events = await db.systemEvent.findMany({
+    where: { createdAt: { gte: daysAgo(daysBack) } },
+    select: { createdAt: true, severity: true },
+  })
+
+  // Build a 7×24 grid. Day 0 = oldest day, day 6 = today.
+  const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0))
+  const now = new Date()
+  const dayMs = 24 * 60 * 60 * 1000
+
+  let maxCount = 0
+  let total = 0
+  for (const e of events) {
+    const dayDiff = Math.floor((now.getTime() - e.createdAt.getTime()) / dayMs)
+    if (dayDiff < 0 || dayDiff >= 7) continue
+    const dayIndex = 6 - dayDiff // 0 = oldest, 6 = today
+    const hour = e.createdAt.getHours()
+    grid[dayIndex][hour]++
+    maxCount = Math.max(maxCount, grid[dayIndex][hour])
+    total++
+  }
+
+  const dayLabels: string[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * dayMs)
+    dayLabels.push(d.toLocaleDateString('en-US', { weekday: 'short' }))
+  }
+
+  return { grid, dayLabels, maxCount, total }
 }
 
 // ---------------------------------------------------------------------------
@@ -838,7 +865,7 @@ export async function adminSearch(query: string, limit = 12): Promise<SearchResu
   for (const u of users) results.push({ kind: 'customer', id: u.id, label: u.name ?? u.email ?? 'Customer', sublabel: u.email ?? '' })
   for (const o of orgs) results.push({ kind: 'organization', id: o.id, label: o.name, sublabel: o.contactEmail ?? 'Organization' })
   for (const s of subs) results.push({ kind: 'subscription', id: s.id, label: `${s.tier} · ${s.organization.name}`, sublabel: s.whopMembershipId ?? s.planKey })
-  for (const p of payments) results.push({ kind: 'payment', id: p.id, label: `${formatCurrency(p.amount)} ${p.currency} · ${p.organization.name}`, sublabel: p.whopPaymentId })
+  for (const p of payments) results.push({ kind: 'payment', id: p.id, label: `${p.amount} ${p.currency} · ${p.organization.name}`, sublabel: p.whopPaymentId })
   for (const e of events) results.push({ kind: 'event', id: e.id, label: e.eventType, sublabel: e.createdAt.toISOString() })
 
   return results.slice(0, limit)
@@ -867,25 +894,4 @@ function bucketByDay(days: number): { key: string; label: string; value: number 
     out.push({ key: dayKey(d), label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: 0 })
   }
   return out
-}
-
-// ---------------------------------------------------------------------------
-// Re-exported for the existing /api/admin/system/health route.
-// Recent webhook errors (metadata selected — operational only).
-// ---------------------------------------------------------------------------
-export async function getRecentWebhookErrors(limit = 20) {
-  return db.systemEvent.findMany({
-    where: { eventType: 'WEBHOOK_ERROR' },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-    select: {
-      id: true,
-      eventType: true,
-      severity: true,
-      organizationId: true,
-      metadata: true,
-      createdAt: true,
-      requestId: true,
-    },
-  })
 }

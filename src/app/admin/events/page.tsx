@@ -4,11 +4,13 @@ import { logSystemEvent } from '@/lib/observability/system-event'
 import {
   listSystemEventsForAdmin,
   getEventTypeSummary,
+  getEventHeatmap,
 } from '@/lib/admin/operational-queries'
 import {
   KpiCard, SectionHeader, PageContainer,
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
+import { EventsHeatmap } from '@/components/admin/events-heatmap'
 import { EventFilters } from './_components/event-filters'
 import { timeAgo, shortId } from '@/lib/format'
 
@@ -48,7 +50,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
   // Paginated, filtered list for the table — plus the four KPI counters via
   // parallel total-only fetches (no filter = total; severity-scoped = error/
   // warning/info).
-  const [list, totals, errors, warnings, infos] = await Promise.all([
+  const [list, totals, errors, warnings, infos, heatmap] = await Promise.all([
     listSystemEventsForAdmin({
       page,
       pageSize: PAGE_SIZE,
@@ -60,6 +62,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
     listSystemEventsForAdmin({ severity: 'error', pageSize: 1 }),
     listSystemEventsForAdmin({ severity: 'warn', pageSize: 1 }),
     listSystemEventsForAdmin({ severity: 'info', pageSize: 1 }),
+    getEventHeatmap(7),
   ])
 
   // Right-rail: top 10 event types by count, with a coral bar proportional to
@@ -101,6 +104,14 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
         eventType={eventTypeRaw}
         severity={severityRaw}
         eventTypeOptions={eventTypeOptions}
+      />
+
+      {/* Event density heatmap (7 days × 24 hours) */}
+      <EventsHeatmap
+        grid={heatmap.grid}
+        dayLabels={heatmap.dayLabels}
+        maxCount={heatmap.maxCount}
+        total={heatmap.total}
       />
 
       {/* Two-column layout: events table (left, 2/3) + summary card (right, 1/3) */}
