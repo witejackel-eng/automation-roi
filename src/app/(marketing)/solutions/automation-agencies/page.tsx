@@ -87,7 +87,7 @@ export default function AutomationAgenciesPage() {
         </PageHero>
 
         {/* ── Three reasons ─────────────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section className="bg-black/[0.02]">
           <SectionHeading
             eyebrow="Three reasons"
             title="See it. Break it. Sign it."
@@ -101,22 +101,22 @@ export default function AutomationAgenciesPage() {
           <ul className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
             {REASONS.map((r) => (
               <li key={r.n}>
-                <article className="flex h-full flex-col rounded-md border border-border bg-canvas p-6">
+                <article className="flex h-full flex-col rounded-md border border-black/10  p-6">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-[13px] font-semibold text-ink">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.02] text-[13px] font-semibold text-[#111]">
                       {r.n}
                     </span>
                     <span className="font-mono tnum text-[13px] font-semibold uppercase tracking-[0.06em] text-brand">
                       {r.stat}
                     </span>
                   </div>
-                  <h3 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-[-0.02em] text-ink">
+                  <h3 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-[-0.02em] text-[#111]">
                     {r.title}
                   </h3>
-                  <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted">
+                  <p className="mt-3 text-[14px] leading-[1.6] text-black/50">
                     {r.body}
                   </p>
-                  <p className="mt-auto pt-5 text-[12px] leading-[1.5] text-ink-faint">
+                  <p className="mt-auto pt-5 text-[12px] leading-[1.5] text-black/40">
                     <Dot size="sm" className="mr-1.5 align-middle" />
                     {r.caption}
                   </p>
@@ -125,7 +125,7 @@ export default function AutomationAgenciesPage() {
             ))}
           </ul>
 
-          <p className="mt-8 text-[14px] leading-[1.6] text-ink-muted">
+          <p className="mt-8 text-[14px] leading-[1.6] text-black/50">
             The full method is on the{' '}
             <InlineLink href="/methodology">methodology page</InlineLink>. The
             worked example uses the Apex Home Services golden case —{' '}
@@ -139,7 +139,7 @@ export default function AutomationAgenciesPage() {
         </Section>
 
         {/* ── Who else uses Viableo ─────────────────────────────── */}
-        <Section className="bg-canvas">
+        <Section>
           <SectionHeading
             eyebrow="Built for your stack"
             title="Whatever you build with, the math is the same."
@@ -160,7 +160,7 @@ export default function AutomationAgenciesPage() {
               <li key={s.href}>
                 <a
                   href={s.href}
-                  className="link-underline flex min-h-[44px] items-center justify-between rounded-md border border-border bg-surface px-4 py-3 text-[15px] font-medium text-ink hover:border-border-strong"
+                  className="link-underline flex min-h-[44px] items-center justify-between rounded-md border border-black/10 bg-black/[0.02] px-4 py-3 text-[15px] font-medium text-[#111] hover:border-black/20"
                 >
                   {s.label}
                   <Dot size="sm" />
@@ -170,7 +170,7 @@ export default function AutomationAgenciesPage() {
           </ul>
         </Section>
 
-        <DotRule className="bg-surface" />
+        <DotRule className="bg-black/[0.02]" />
 
         <SiblingLinks
           label="Related"

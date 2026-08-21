@@ -88,7 +88,7 @@ export default function ResourceAutomationCostPage() {
         </PageHero>
 
         {/* ── The four line items ──────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section className="bg-black/[0.02]">
           <SectionHeading
             eyebrow="The four line items"
             title="Build once. Run for a year."
@@ -100,50 +100,50 @@ export default function ResourceAutomationCostPage() {
             </p>
           </SectionHeading>
 
-          <div className="mt-8 overflow-hidden rounded-md border border-border bg-canvas">
+          <div className="mt-8 overflow-hidden rounded-md border border-black/10">
             <table className="w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-border bg-surface">
-                  <th scope="col" className="px-5 py-3 text-[12px] font-medium uppercase tracking-[0.06em] text-ink-muted">
+                <tr className="border-b border-black/10 bg-black/[0.02]">
+                  <th scope="col" className="px-5 py-3 text-[12px] font-medium uppercase tracking-[0.06em] text-black/50">
                     Line item
                   </th>
-                  <th scope="col" className="px-5 py-3 text-right text-[12px] font-medium uppercase tracking-[0.06em] text-ink-muted">
+                  <th scope="col" className="px-5 py-3 text-right text-[12px] font-medium uppercase tracking-[0.06em] text-black/50">
                     Apex value
                   </th>
-                  <th scope="col" className="hidden px-5 py-3 text-[12px] font-medium uppercase tracking-[0.06em] text-ink-muted md:table-cell">
+                  <th scope="col" className="hidden px-5 py-3 text-[12px] font-medium uppercase tracking-[0.06em] text-black/50 md:table-cell">
                     Notes
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {LINE_ITEMS.map((item) => (
-                  <tr key={item.label} className="border-b border-border last:border-b-0">
+                  <tr key={item.label} className="border-b border-black/10 last:border-b-0">
                     <td className="px-5 py-4 align-top">
-                      <p className="text-[15px] font-medium text-ink">{item.label}</p>
+                      <p className="text-[15px] font-medium text-[#111]">{item.label}</p>
                       {'monthly' in item && item.monthly ? (
-                        <p className="mt-0.5 text-[12px] text-ink-faint">× 12 months</p>
+                        <p className="mt-0.5 text-[12px] text-black/40">× 12 months</p>
                       ) : null}
                     </td>
                     <td className="px-5 py-4 text-right align-top">
-                      <span className="font-mono tnum text-[15px] text-ink">
+                      <span className="font-mono tnum text-[15px] text-[#111]">
                         {formatCurrency(item.apex)}
                       </span>
                     </td>
-                    <td className="hidden px-5 py-4 align-top text-[13px] leading-[1.55] text-ink-muted md:table-cell">
+                    <td className="hidden px-5 py-4 align-top text-[13px] leading-[1.55] text-black/50 md:table-cell">
                       {item.note}
                     </td>
                   </tr>
                 ))}
-                <tr className="bg-surface">
+                <tr className="bg-black/[0.02]">
                   <td className="px-5 py-4">
-                    <p className="text-[15px] font-semibold text-ink">First-year cost</p>
+                    <p className="text-[15px] font-semibold text-[#111]">First-year cost</p>
                   </td>
                   <td className="px-5 py-4 text-right">
                     <span className="font-mono tnum text-[18px] font-semibold text-brand">
                       {formatCurrency(APEX.totalFirstYearCost)}
                     </span>
                   </td>
-                  <td className="hidden px-5 py-4 text-[13px] leading-[1.55] text-ink-muted md:table-cell">
+                  <td className="hidden px-5 py-4 text-[13px] leading-[1.55] text-black/50 md:table-cell">
                     Implementation + (AI/API × 12) + (software × 12) + other annual.
                   </td>
                 </tr>
@@ -151,7 +151,7 @@ export default function ResourceAutomationCostPage() {
             </table>
           </div>
 
-          <p className="mt-6 text-[13px] leading-[1.55] text-ink-faint">
+          <p className="mt-6 text-[13px] leading-[1.55] text-black/40">
             The same four line items feed the denominator of every ROI calculation
             in Viableo. Cost inputs are held constant across all three scenarios
             — only the benefit assumptions move.
@@ -159,18 +159,18 @@ export default function ResourceAutomationCostPage() {
         </Section>
 
         {/* ── Worked example ───────────────────────────────────── */}
-        <Section className="bg-canvas">
+        <Section>
           <SectionHeading
             eyebrow="Worked example"
             title="What it buys you."
           >
             <p>
               The Apex build costs{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX.totalFirstYearCost)}
               </span>{' '}
               in year one. The benefit it returns is{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX.totalAnnualBenefit)}
               </span>
               . The math from there is short.
@@ -196,7 +196,7 @@ export default function ResourceAutomationCostPage() {
             />
           </div>
 
-          <p className="mt-8 text-[14px] leading-[1.6] text-ink-muted">
+          <p className="mt-8 text-[14px] leading-[1.6] text-black/50">
             Read the full cost-to-benefit math on{' '}
             <InlineLink href="/resources/automation-roi">Automation ROI</InlineLink>{' '}
             and the run-time math on{' '}
@@ -206,7 +206,7 @@ export default function ResourceAutomationCostPage() {
           </p>
         </Section>
 
-        <DotRule className="bg-surface" />
+        <DotRule className="bg-black/[0.02]" />
 
         <SiblingLinks
           label="Keep reading"

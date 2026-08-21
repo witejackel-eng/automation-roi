@@ -44,7 +44,7 @@ export default function PrivacyPage() {
           </p>
         </PageHero>
 
-        <Section className="bg-canvas">
+        <Section>
           <div className="space-y-16 md:space-y-24">
             <div>
               <SectionHeading eyebrow="What we collect" title="The minimum, on purpose.">
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
                   Questions, export requests, or deletion requests go to{' '}
                   <a
                     href={`mailto:${PRIVACY_EMAIL}`}
-                    className="link-underline text-ink underline-offset-4 hover:text-brand"
+                    className="link-underline text-[#111] underline-offset-4 hover:text-black"
                   >
                     {PRIVACY_EMAIL}
                   </a>{' '}
@@ -148,7 +148,7 @@ export default function PrivacyPage() {
             </div>
           </div>
 
-          <p className="mt-12 text-[13px] leading-[1.6] text-ink-faint">
+          <p className="mt-12 text-[13px] leading-[1.6] text-black/40">
             Last updated: Phase 3. Figures are estimates, not financial advice.
           </p>
         </Section>

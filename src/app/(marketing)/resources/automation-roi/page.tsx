@@ -70,7 +70,7 @@ export default function ResourceAutomationRoiPage() {
         </PageHero>
 
         {/* ── What it is ────────────────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section className="bg-black/[0.02]">
           <SectionHeading eyebrow="What it is" title="The number that tells you whether to build.">
             <p>
               ROI stands for return on investment. In automation, it is the
@@ -87,7 +87,7 @@ export default function ResourceAutomationRoiPage() {
         </Section>
 
         {/* ── The formula ───────────────────────────────────────── */}
-        <Section className="bg-canvas">
+        <Section>
           <SectionHeading eyebrow="The formula" title="Three lines. One ratio.">
             <p>
               ROI is the net annual benefit divided by the first-year cost. The
@@ -97,40 +97,40 @@ export default function ResourceAutomationRoiPage() {
           </SectionHeading>
 
           <div className="mt-8 space-y-4">
-            <div className="rounded-md border border-border bg-surface p-6 md:p-8">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+            <div className="rounded-md border border-black/10 bg-black/[0.02] p-6 md:p-8">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-black/50">
                 Step 1 — Labor savings
               </p>
-              <p className="mt-3 font-mono tnum text-[15px] leading-[1.6] text-ink">
+              <p className="mt-3 font-mono tnum text-[15px] leading-[1.6] text-[#111]">
                 employees × hours/week × hourly cost × 52 × automation %
               </p>
             </div>
-            <div className="rounded-md border border-border bg-surface p-6 md:p-8">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+            <div className="rounded-md border border-black/10 bg-black/[0.02] p-6 md:p-8">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-black/50">
                 Step 2 — Revenue opportunity
               </p>
-              <p className="mt-3 font-mono tnum text-[15px] leading-[1.6] text-ink">
+              <p className="mt-3 font-mono tnum text-[15px] leading-[1.6] text-[#111]">
                 leads/month × conversion lift × 12 × average customer value × gross margin
               </p>
             </div>
-            <div className="rounded-md border border-border bg-surface p-6 md:p-8">
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+            <div className="rounded-md border border-black/10 bg-black/[0.02] p-6 md:p-8">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-black/50">
                 Step 3 — First-year cost
               </p>
-              <p className="mt-3 font-mono tnum text-[15px] leading-[1.6] text-ink">
+              <p className="mt-3 font-mono tnum text-[15px] leading-[1.6] text-[#111]">
                 implementation + (monthly AI/API × 12) + (monthly software × 12) + other annual
               </p>
             </div>
           </div>
 
-          <div className="mt-8 rounded-md border-2 border-ink/10 bg-surface p-6 md:p-8">
+          <div className="mt-8 rounded-md border-2 border-ink/10 bg-black/[0.02] p-6 md:p-8">
             <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-brand">
               The ratio
             </p>
-            <p className="mt-3 font-mono tnum text-2xl font-semibold tracking-[-0.01em] text-ink md:text-3xl">
+            <p className="mt-3 font-mono tnum text-2xl font-semibold tracking-[-0.01em] text-[#111] md:text-3xl">
               ROI = (savings + revenue − cost) ÷ cost
             </p>
-            <p className="mt-4 text-[15px] leading-[1.6] text-ink-muted">
+            <p className="mt-4 text-[15px] leading-[1.6] text-black/50">
               The full method is documented on the{' '}
               <InlineLink href="/methodology">methodology page</InlineLink>.
             </p>
@@ -138,7 +138,7 @@ export default function ResourceAutomationRoiPage() {
         </Section>
 
         {/* ── Worked example ───────────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section className="bg-black/[0.02]">
           <SectionHeading
             eyebrow="Worked example"
             title="Apex Home Services."
@@ -174,25 +174,25 @@ export default function ResourceAutomationRoiPage() {
             />
           </div>
 
-          <div className="mt-8 rounded-md border border-border bg-canvas p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+          <div className="mt-8 rounded-md border border-black/10  p-6 md:p-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-black/50">
               The verdict
             </p>
-            <p className="mt-3 text-[15px] leading-[1.6] text-ink-muted">
-              <span className="font-mono tnum text-2xl font-semibold text-ink md:text-3xl">
+            <p className="mt-3 text-[15px] leading-[1.6] text-black/50">
+              <span className="font-mono tnum text-2xl font-semibold text-[#111] md:text-3xl">
                 {formatRoi(APEX_EXPECTED.roiPct)}
               </span>{' '}
               ROI. Paid back in{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatPayback(APEX_EXPECTED.paybackMonths)}
               </span>
               . Net annual benefit of{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX_EXPECTED.netAnnualBenefit)}
               </span>
               .
             </p>
-            <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
+            <p className="mt-4 text-[13px] leading-[1.55] text-black/40">
               The same math runs across three scenarios — conservative, expected,
               upside — so you can see the floor and the ceiling, not just the
               middle.
@@ -218,7 +218,7 @@ export default function ResourceAutomationRoiPage() {
             />
           </div>
 
-          <p className="mt-8 text-[13px] leading-[1.6] text-ink-faint">
+          <p className="mt-8 text-[13px] leading-[1.6] text-black/40">
             Apex Home Services is the Viableo golden case — a fixed, reproducible
             worked example. Figures are estimates, not financial advice. Read
             more on the <InlineLink href="/automation-roi">Automation ROI</InlineLink>{' '}
@@ -226,7 +226,7 @@ export default function ResourceAutomationRoiPage() {
           </p>
         </Section>
 
-        <DotRule className="bg-canvas" />
+        <DotRule />
 
         <SiblingLinks
           label="Keep reading"

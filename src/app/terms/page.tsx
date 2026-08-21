@@ -45,7 +45,7 @@ export default function TermsPage() {
           </p>
         </PageHero>
 
-        <Section className="bg-canvas">
+        <Section>
           <div className="space-y-16 md:space-y-24">
             <div>
               <SectionHeading eyebrow="The service" title="What Viableo is.">
@@ -79,53 +79,53 @@ export default function TermsPage() {
                   The value metric is a case — one full idea to decision to
                   business-case run.
                 </p>
-                <div className="mt-8 overflow-hidden rounded-md border border-border">
+                <div className="mt-8 overflow-hidden rounded-md border border-black/10">
                   <table className="w-full text-left text-[14px]">
-                    <thead className="bg-surface text-[12px] uppercase tracking-[0.06em] text-ink-muted">
+                    <thead className="bg-black/[0.02] text-[12px] uppercase tracking-[0.06em] text-black/50">
                       <tr>
                         <th className="px-4 py-3 font-medium">Tier</th>
                         <th className="px-4 py-3 font-medium">Price</th>
                         <th className="px-4 py-3 font-medium">Scope</th>
                       </tr>
                     </thead>
-                    <tbody className="font-mono tnum text-ink">
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">Free</td>
+                    <tbody className="font-mono tnum text-[#111]">
+                      <tr className="border-t border-black/10">
+                        <td className="px-4 py-3 font-sans text-[#111]">Free</td>
                         <td className="px-4 py-3">$0 / forever</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
+                        <td className="px-4 py-3 font-sans text-black/50">
                           One case per month. Full analytical rigor. Watermarked
                           report.
                         </td>
                       </tr>
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">
+                      <tr className="border-t border-black/10">
+                        <td className="px-4 py-3 font-sans text-[#111]">
                           Pro
                         </td>
                         <td className="px-4 py-3">$29 per month</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
+                        <td className="px-4 py-3 font-sans text-black/50">
                           Five cases per month. Unwatermarked PDFs, share links.
                         </td>
                       </tr>
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">Agency</td>
+                      <tr className="border-t border-black/10">
+                        <td className="px-4 py-3 font-sans text-[#111]">Agency</td>
                         <td className="px-4 py-3">$79 per month</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
+                        <td className="px-4 py-3 font-sans text-black/50">
                           Unlimited cases. Your branding on every document.
                         </td>
                       </tr>
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">
+                      <tr className="border-t border-black/10">
+                        <td className="px-4 py-3 font-sans text-[#111]">
                           Agency Pro
                         </td>
                         <td className="px-4 py-3">$790 per year</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
+                        <td className="px-4 py-3 font-sans text-black/50">
                           Everything in Agency, plus team seats and API access.
                         </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-6 text-[13px] leading-[1.6] text-ink-faint">
+                <p className="mt-6 text-[13px] leading-[1.6] text-black/40">
                   Monthly and annual subscriptions. Cancel any time.
                 </p>
               </SectionHeading>
@@ -214,7 +214,7 @@ export default function TermsPage() {
                   Questions about these terms go to{' '}
                   <a
                     href={`mailto:${TERMS_EMAIL}`}
-                    className="link-underline text-ink underline-offset-4 hover:text-brand"
+                    className="link-underline text-[#111] underline-offset-4 hover:text-black"
                   >
                     {TERMS_EMAIL}
                   </a>{' '}
@@ -226,7 +226,7 @@ export default function TermsPage() {
             </div>
           </div>
 
-          <p className="mt-12 text-[13px] leading-[1.6] text-ink-faint">
+          <p className="mt-12 text-[13px] leading-[1.6] text-black/40">
             Last updated: Phase 3. Figures are estimates, not financial advice.
           </p>
         </Section>

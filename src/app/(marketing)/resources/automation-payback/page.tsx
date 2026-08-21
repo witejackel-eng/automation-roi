@@ -67,7 +67,7 @@ export default function ResourceAutomationPaybackPage() {
         </PageHero>
 
         {/* ── What it is ────────────────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section className="bg-black/[0.02]">
           <SectionHeading eyebrow="What it is" title="The clock, not the score.">
             <p>
               Payback measures time. ROI measures return. A 500% ROI on a build
@@ -83,7 +83,7 @@ export default function ResourceAutomationPaybackPage() {
         </Section>
 
         {/* ── The formula ───────────────────────────────────────── */}
-        <Section className="bg-canvas">
+        <Section>
           <SectionHeading eyebrow="The formula" title="Implementation cost ÷ net monthly benefit.">
             <p>
               Take the implementation fee. Divide it by the net monthly benefit —
@@ -93,38 +93,38 @@ export default function ResourceAutomationPaybackPage() {
             </p>
           </SectionHeading>
 
-          <div className="mt-8 rounded-md border-2 border-ink/10 bg-surface p-6 md:p-8">
+          <div className="mt-8 rounded-md border-2 border-ink/10 bg-black/[0.02] p-6 md:p-8">
             <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-brand">
               The formula
             </p>
-            <p className="mt-3 font-mono tnum text-2xl font-semibold tracking-[-0.01em] text-ink md:text-3xl">
+            <p className="mt-3 font-mono tnum text-2xl font-semibold tracking-[-0.01em] text-[#111] md:text-3xl">
               payback (months) = implementation fee ÷ monthly net benefit
             </p>
-            <p className="mt-4 font-mono tnum text-[15px] leading-[1.6] text-ink-muted">
+            <p className="mt-4 font-mono tnum text-[15px] leading-[1.6] text-black/50">
               where monthly net benefit = (annual savings + annual revenue − first-year cost) ÷ 12
             </p>
-            <p className="mt-4 text-[15px] leading-[1.6] text-ink-muted">
+            <p className="mt-4 text-[15px] leading-[1.6] text-black/50">
               When monthly net benefit is zero or negative, payback never comes.
-              Viableo reports <span className="font-mono tnum text-ink">Never</span>{' '}
+              Viableo reports <span className="font-mono tnum text-[#111]">Never</span>{' '}
               in that case rather than printing a meaningless number.
             </p>
           </div>
         </Section>
 
         {/* ── Worked example ───────────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section className="bg-black/[0.02]">
           <SectionHeading
             eyebrow="Worked example"
             title="Apex Home Services."
           >
             <p>
               Apex pays an{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX_INPUTS.implementationFee)}
               </span>{' '}
               implementation fee. The annual math returns a net annual benefit
               of{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX.netAnnualBenefit)}
               </span>
               .
@@ -150,16 +150,16 @@ export default function ResourceAutomationPaybackPage() {
             />
           </div>
 
-          <div className="mt-8 rounded-md border border-border bg-canvas p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+          <div className="mt-8 rounded-md border border-black/10  p-6 md:p-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-black/50">
               The number
             </p>
-            <p className="mt-3 text-[15px] leading-[1.6] text-ink-muted">
-              <span className="font-mono tnum text-2xl font-semibold text-ink md:text-3xl">
+            <p className="mt-3 text-[15px] leading-[1.6] text-black/50">
+              <span className="font-mono tnum text-2xl font-semibold text-[#111] md:text-3xl">
                 {formatCurrency(APEX_INPUTS.implementationFee)}
               </span>{' '}
               ÷{' '}
-              <span className="font-mono tnum text-2xl font-semibold text-ink md:text-3xl">
+              <span className="font-mono tnum text-2xl font-semibold text-[#111] md:text-3xl">
                 {formatCurrency(APEX.monthlyNetBenefit)}
               </span>{' '}
               per month ={' '}
@@ -168,15 +168,15 @@ export default function ResourceAutomationPaybackPage() {
               </span>
               .
             </p>
-            <p className="mt-4 text-[15px] leading-[1.6] text-ink-muted">
+            <p className="mt-4 text-[15px] leading-[1.6] text-black/50">
               That same automation returns{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatRoi(APEX.roiPct)}
               </span>{' '}
               on the year — but payback is the number that tells you whether the
               bet is short enough to take.
             </p>
-            <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
+            <p className="mt-4 text-[13px] leading-[1.55] text-black/40">
               Apex is the Viableo golden case. Figures are estimates, not
               financial advice. Read more on{' '}
               <InlineLink href="/resources/automation-roi">Automation ROI</InlineLink>{' '}
@@ -186,7 +186,7 @@ export default function ResourceAutomationPaybackPage() {
           </div>
         </Section>
 
-        <DotRule className="bg-canvas" />
+        <DotRule />
 
         <SiblingLinks
           label="Keep reading"
