@@ -37,15 +37,16 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
   const sp = await searchParams
   const search = typeof sp.search === 'string' ? sp.search : ''
   const actionRaw = typeof sp.action === 'string' ? sp.action : 'all'
+  const roleRaw = typeof sp.role === 'string' ? sp.role : 'all'
   const page = Math.max(1, Number(sp.page ?? 1) || 1)
 
   // Paginated, filtered list for the table + a wide unfiltered fetch (max
   // pageSize the privacy layer allows) so the headline counters can be
   // computed without N round-trips per action.
   const [list, totals, wide] = await Promise.all([
-    listAuditLogForAdmin({ page, pageSize: PAGE_SIZE, search, action: actionRaw }),
+    listAuditLogForAdmin({ page, pageSize: PAGE_SIZE, search, action: actionRaw, role: roleRaw }),
     listAuditLogForAdmin({ pageSize: 1 }),
-    listAuditLogForAdmin({ pageSize: 100 }),
+    listAuditLogForAdmin({ pageSize: 100, role: roleRaw }),
   ])
 
   // Privileged mutations: sum the per-action totals. Each scoped call returns

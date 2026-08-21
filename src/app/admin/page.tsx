@@ -166,6 +166,13 @@ export default async function OverviewPage() {
           ],
           total: (mix.free ?? 0) + (mix.pro ?? 0) + (mix.agency ?? 0) + (mix.agency_pro ?? 0),
         }}
+        revenueByPlan={{
+          segments: [
+            { label: 'Pro (verified)', value: metrics.proMrr, verified: true, color: CHART_COLORS.coral },
+            { label: 'Custom (unverified)', value: 0, verified: false, color: CHART_COLORS.info },
+          ],
+          total: metrics.proMrr,
+        }}
       />
     </PageContainer>
   )

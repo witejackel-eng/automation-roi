@@ -15,12 +15,14 @@ export function RightRail({
   billingAlerts,
   productActivity,
   planDistribution,
+  revenueByPlan,
 }: {
   systemStatus?: { label: string; variant: 'success' | 'warning' | 'error' | 'neutral' }
   criticalEvents?: { id: string; eventType: string; severity: string; organizationId: string | null; createdAt: Date | string }[]
   billingAlerts?: { id: string; label: string; severity: 'error' | 'warning' | 'info'; href?: string }[]
   productActivity?: { label: string; value: string | number; href?: string }[]
   planDistribution?: { segments: { label: string; value: number; color: string }[]; total: number }
+  revenueByPlan?: { segments: { label: string; value: number; verified: boolean; color: string }[]; total: number }
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -125,6 +127,35 @@ export function RightRail({
               ))}
             </div>
           </div>
+        </RailCard>
+      ) : null}
+
+      {/* Revenue by plan breakdown */}
+      {revenueByPlan ? (
+        <RailCard title="Revenue by plan" action={<Link href="/admin/payments" className="text-[11px] text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-coral)] vcp-focus rounded">All</Link>}>
+          <div className="flex items-baseline justify-between mb-3">
+            <span className="text-[20px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">${revenueByPlan.total}/mo</span>
+            <span className="text-[10px] uppercase tracking-wide text-[var(--vcp-ink-faint)]">MRR</span>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {revenueByPlan.segments.map((seg) => (
+              <li key={seg.label} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: seg.color }} />
+                  <span className="text-[12px] text-[var(--vcp-ink-muted)] truncate">{seg.label}</span>
+                  {!seg.verified ? (
+                    <span className="vcp-pill vcp-pill-outline" style={{ fontSize: 9, padding: '0 5px' }}>unverified</span>
+                  ) : null}
+                </div>
+                <span className="text-[12px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">${seg.value}/mo</span>
+              </li>
+            ))}
+          </ul>
+          {revenueByPlan.segments.some((s) => !s.verified) ? (
+            <p className="mt-3 pt-3 border-t border-[var(--vcp-border)] text-[10px] text-[var(--vcp-ink-faint)] leading-relaxed">
+              Verified MRR is derived from active Pro subscriptions at $49/mo. Custom-tier revenue requires manual verification.
+            </p>
+          ) : null}
         </RailCard>
       ) : null}
     </div>

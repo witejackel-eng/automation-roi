@@ -749,12 +749,13 @@ export async function getEventHeatmap(daysBack = 7): Promise<{
 // AUDIT LOG
 // ---------------------------------------------------------------------------
 
-export async function listAuditLogForAdmin(params: ListParams & { action?: string; actionPrefix?: string } = {}) {
+export async function listAuditLogForAdmin(params: ListParams & { action?: string; actionPrefix?: string; role?: string } = {}) {
   const page = Math.max(1, params.page ?? 1)
   const pageSize = Math.min(200, params.pageSize ?? 50)
   const where: Record<string, unknown> = {}
   if (params.action && params.action !== 'all') where.action = params.action
   if (params.actionPrefix) where.action = { startsWith: params.actionPrefix }
+  if (params.role && params.role !== 'all') where.actorRole = params.role
   if (params.search) {
     where.OR = [
       { action: { contains: params.search } },
