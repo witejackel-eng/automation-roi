@@ -830,7 +830,7 @@ export function ResultsView() {
           </EntitlementButton>
           <EntitlementButton
             allowed={canShare}
-            requiredTierLabel="Agency Pro"
+            requiredTierLabel="Pro"
             onClick={handleShare}
             loading={shareLoading}
             icon={<Share2 className="size-4" strokeWidth={1.75} aria-hidden="true" />}

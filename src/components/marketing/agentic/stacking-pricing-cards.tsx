@@ -5,22 +5,16 @@ import Link from "next/link"
 
 const TIERS = [
   {
-    label: "FREE",
-    title: "Try it once",
-    desc: "One case per month. Full analytical rigor — confidence scoring, stress test, scenarios. Watermarked document.",
-    stats: [{ v: "1", l: "case/mo" }, { v: "Full", l: "rigor" }],
+    label: "STARTER",
+    title: "Try the real thing",
+    desc: "10 cases per month. Full analytical rigor — three scenarios, confidence scoring, stress test, verdict. Watermarked client PDFs.",
+    stats: [{ v: "10", l: "cases/mo" }, { v: "$0", l: "forever" }],
   },
   {
     label: "PRO",
-    title: "Full documents",
-    desc: "Five cases per month. Unwatermarked PDFs, saved projects, share links.",
-    stats: [{ v: "5", l: "cases/mo" }, { v: "$29", l: "/month" }],
-  },
-  {
-    label: "AGENCY",
-    title: "Unlimited cases",
-    desc: "Unlimited cases. Your branding on every document. Client history and team seats.",
-    stats: [{ v: "∞", l: "cases" }, { v: "$79", l: "/month" }],
+    title: "Full agency workflow",
+    desc: "Unlimited cases. Clean, unwatermarked PDFs. Your branding. Share links with approval tracking. Client directory and case library.",
+    stats: [{ v: "∞", l: "cases" }, { v: "$49", l: "/month" }],
   },
 ]
 

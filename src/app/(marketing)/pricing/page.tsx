@@ -5,18 +5,18 @@ import { COMPANY_NAME, PRODUCT_NAME, PRICING_TIERS } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+  description: `Starter and Pro plans. Start free with 10 cases a month — upgrade to Pro for unlimited cases and clean client documents.`,
   alternates: { canonical: '/pricing' },
   openGraph: {
     type: 'website',
     title: 'Pricing | Viableo',
-    description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+    description: `Starter and Pro plans. Start free with 10 cases a month — upgrade to Pro for unlimited cases and clean client documents.`,
     url: '/pricing',
   },
   twitter: {
     card: 'summary',
     title: 'Pricing | Viableo',
-    description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+    description: `Starter and Pro plans. Start free with 10 cases a month — upgrade to Pro for unlimited cases and clean client documents.`,
   },
 };
 
@@ -34,7 +34,7 @@ export default function PricingPage() {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
-    description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+    description: `Starter and Pro plans. Start free with 10 cases a month — upgrade to Pro for unlimited cases and clean client documents.`,
     brand: { '@type': 'Brand', name: COMPANY_NAME },
     offers: PRICING_TIERS.map((t) => ({
       '@type': 'Offer',

@@ -396,37 +396,21 @@ export function AgenticHomepage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" onMouseMove={handleMouse}>
             {[
               {
-                name: "Free",
+                name: "Starter",
                 price: "$0",
                 period: "",
-                sub: "Try it once",
-                features: ["1 case/month", "Full analytical rigor", "Confidence scoring", "Stress test", "Watermarked document"],
+                sub: "Try the real thing",
+                features: ["10 cases/month", "Three scenarios", "Confidence scoring", "Stress test", "Watermarked PDFs"],
                 delay: 0,
               },
               {
                 name: "Pro",
-                price: "$29",
+                price: "$49",
                 period: "/mo",
-                sub: "Full documents",
-                features: ["5 cases/month", "Unwatermarked PDFs", "Saved projects", "Share links", "All scenario types"],
+                sub: "Full agency workflow",
+                features: ["Unlimited cases", "Clean PDFs", "Share links + approvals", "Branding", "Client library"],
                 highlight: true,
                 delay: 80,
-              },
-              {
-                name: "Agency",
-                price: "$79",
-                period: "/mo",
-                sub: "Unlimited cases",
-                features: ["Unlimited cases", "Your branding", "Client history", "Team seats", "Priority support"],
-                delay: 140,
-              },
-              {
-                name: "Agency Pro",
-                price: "$790",
-                period: "/yr",
-                sub: "Make it yours",
-                features: ["Everything in Agency", "API access", "Custom integrations", "Dedicated support", "Custom contracts"],
-                delay: 200,
               },
             ].map((plan) => (
               <BentoCard
