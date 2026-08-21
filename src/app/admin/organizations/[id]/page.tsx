@@ -256,14 +256,15 @@ export default async function OrganizationDetailPage({
 
         {/* Team / Members — full width */}
         <section className="vcp-card overflow-hidden lg:col-span-3">
-          <div className="px-5 py-4 border-b border-[var(--vcp-border)]">
+          <div className="px-5 py-4 border-b border-[var(--vcp-border)] flex items-center justify-between">
             <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Team / Members</h3>
+            <span className="vcp-pill vcp-pill-outline vcp-mono">{org.counts.memberships}</span>
           </div>
           <div className="overflow-x-auto vcp-scroll">
             <table className="vcp-table">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>Member</th>
                   <th>Email</th>
                   <th>Role</th>
                   <th>System role</th>
@@ -280,8 +281,11 @@ export default async function OrganizationDetailPage({
                     <td>
                       <Link
                         href={`/admin/customers/${m.user.id}`}
-                        className="text-[13px] font-medium text-[var(--vcp-ink-strong)] hover:text-[var(--vcp-coral)] vcp-focus rounded"
+                        className="flex items-center gap-2.5 text-[13px] font-medium text-[var(--vcp-ink-strong)] hover:text-[var(--vcp-coral)] vcp-focus rounded transition-colors"
                       >
+                        <span className="w-7 h-7 rounded-full bg-[var(--vcp-coral-subtle)] flex items-center justify-center text-[10px] font-semibold text-[var(--vcp-coral)] flex-shrink-0">
+                          {(m.user.name ?? '?').charAt(0).toUpperCase()}
+                        </span>
                         {m.user.name ?? 'Unnamed'}
                       </Link>
                     </td>

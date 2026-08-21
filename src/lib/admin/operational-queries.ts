@@ -345,7 +345,7 @@ export async function getCustomerForAdmin(userId: string) {
   const entitlement = entitlementFor(tier)
   const entitling = sub ? isEntitlingStatus(sub.status, sub.cancelAtPeriodEnd, sub.currentPeriodEnd) : false
 
-  const [projectCount, reportCount, shareCount, recentEvents, recentAudit, recentPayments] = await Promise.all([
+  const [projectCount, reportCount, shareCount, recentEvents, recentAudit, recentPayments, recentShares] = await Promise.all([
     org ? db.project.count({ where: { organizationId: org.id } }) : Promise.resolve(0),
     org ? db.report.count({ where: { project: { organizationId: org.id } } }) : Promise.resolve(0),
     org ? db.share.count({ where: { project: { organizationId: org.id } } }) : Promise.resolve(0),
@@ -366,6 +366,19 @@ export async function getCustomerForAdmin(userId: string) {
       orderBy: { createdAt: 'desc' },
       take: 5,
       select: { id: true, amount: true, currency: true, status: true, createdAt: true, whopPaymentId: true },
+    }) : Promise.resolve([]),
+    org ? db.share.findMany({
+      where: { project: { organizationId: org.id } },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        shareId: true,
+        decisionState: true,
+        createdAt: true,
+        updatedAt: true,
+        project: { select: { clientName: true } },
+      },
     }) : Promise.resolve([]),
   ])
 
@@ -413,6 +426,7 @@ export async function getCustomerForAdmin(userId: string) {
     recentEvents,
     recentAudit,
     recentPayments,
+    recentShares,
   }
 }
 

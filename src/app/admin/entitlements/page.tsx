@@ -6,6 +6,7 @@ import {
   KpiCard, SectionHeader, PageContainer,
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
+import { Sparkline } from '@/components/admin/sparkline'
 import { EntitlementFilters } from './_components/entitlement-filters'
 import { timeAgo } from '@/lib/format'
 import { TIER_TO_CANONICAL, CAPABILITY_LABEL, type Tier, type Capability } from '@/lib/brand'
@@ -61,6 +62,10 @@ export default async function EntitlementsPage({ searchParams }: { searchParams:
   const subscriptionSourceCount = wide.rows.filter((r) => r.source === 'subscription').length
   const approximated = wide.total > wide.rows.length
 
+  // Capability count sparkline: distribution of capability counts across orgs.
+  // Each data point = one org's capabilityCount. Shows the spread of feature access.
+  const capabilityCounts = wide.rows.map((r) => r.capabilityCount)
+
   return (
     <PageContainer>
       <SectionHeader
@@ -71,7 +76,12 @@ export default async function EntitlementsPage({ searchParams }: { searchParams:
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard label="Organizations total" value={wide.total} sub={approximated ? `First ${wide.rows.length} shown` : 'All organizations'} />
-        <KpiCard label="With active entitlements" value={approximated ? `${activeCount}+` : activeCount} variant="success" />
+        <KpiCard
+          label="With active entitlements"
+          value={approximated ? `${activeCount}+` : activeCount}
+          variant="success"
+          sparkline={capabilityCounts.length > 1 ? <Sparkline data={capabilityCounts} color="var(--vcp-success)" /> : undefined}
+        />
         <KpiCard label="Source = subscription" value={approximated ? `${subscriptionSourceCount}+` : subscriptionSourceCount} variant="info" />
       </div>
 

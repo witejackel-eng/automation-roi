@@ -34,6 +34,24 @@ export default async function OverviewPage() {
   const growth7d = growth.slice(-7).map((d) => d.value)
   const revenue7d = revenue.slice(-7).map((d) => d.value)
 
+  // Growth trend comparison: this month vs last month
+  const now = new Date()
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const thisMonthCount = growth.filter((d) => {
+    const [year, month] = d.key.split('-').map(Number)
+    return new Date(year, month - 1) >= thisMonthStart
+  }).reduce((sum, d) => sum + d.value, 0)
+  const lastMonthCount = growth.filter((d) => {
+    const [year, month] = d.key.split('-').map(Number)
+    const d2 = new Date(year, month - 1)
+    return d2 >= lastMonthStart && d2 < thisMonthStart
+  }).reduce((sum, d) => sum + d.value, 0)
+  const growthTrendPct = lastMonthCount > 0
+    ? Math.round(((thisMonthCount - lastMonthCount) / lastMonthCount) * 100)
+    : thisMonthCount > 0 ? 100 : 0
+  const growthDirection = growthTrendPct > 0 ? 'up' : growthTrendPct < 0 ? 'down' : 'flat'
+
   const donutData = [
     { name: 'Free', value: mix.free, color: CHART_COLORS.muted },
     { name: 'Pro', value: mix.pro, color: CHART_COLORS.coral },
@@ -88,7 +106,17 @@ export default async function OverviewPage() {
 
       {/* Secondary signal cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="New customers (7d)" value={metrics.newCustomers7d} icon={<UserPlus size={15} />} />
+        <KpiCard
+          label="New customers (7d)"
+          value={metrics.newCustomers7d}
+          icon={<UserPlus size={15} />}
+          trend={{
+            value: `${growthTrendPct > 0 ? '+' : ''}${growthTrendPct}% MoM`,
+            direction: growthDirection as 'up' | 'down' | 'flat',
+            good: growthTrendPct >= 0,
+          }}
+          sub={`${thisMonthCount} this month vs ${lastMonthCount} last month`}
+        />
         <KpiCard label="Cancellations (30d)" value={metrics.cancellations30d} variant={metrics.cancellations30d > 0 ? 'warning' : 'neutral'} icon={<Ban size={15} />} />
         <KpiCard label="Failed payments" value={metrics.failedPayments30d} sub="Requires attention" variant={metrics.failedPayments30d > 0 ? 'error' : 'neutral'} icon={<AlertCircle size={15} />} />
         <KpiCard label="Reports generated (24h)" value={metrics.reportsGenerated24h} variant="info" icon={<FileText size={15} />} />

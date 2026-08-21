@@ -50,7 +50,7 @@ export default async function CustomerDetailPage({ params }: { params: Params })
     )
   }
 
-  const { identity, organization, subscription, entitlement, usage, recentEvents, recentAudit, recentPayments } = data
+  const { identity, organization, subscription, entitlement, usage, recentEvents, recentAudit, recentPayments, recentShares } = data
 
   return (
     <PageContainer>
@@ -99,6 +99,9 @@ export default async function CustomerDetailPage({ params }: { params: Params })
           />
           {recentPayments && recentPayments.length > 0 ? (
             <RecentPaymentsCard payments={recentPayments} />
+          ) : null}
+          {recentShares && recentShares.length > 0 ? (
+            <RecentSharesCard shares={recentShares} />
           ) : null}
           <AdminActionsCard recentAudit={recentAudit} />
           <PrivacyNoteCard />
@@ -396,6 +399,60 @@ function RecentPaymentsCard({ payments }: { payments: PaymentRow[] }) {
                 {p.status}
               </StatusPill>
               <span className="text-[10px] text-[var(--vcp-ink-faint)]">{timeAgo(p.createdAt)}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Recent Shares — mini share-link history in the side column
+// ---------------------------------------------------------------------------
+
+type ShareRow = {
+  id: string
+  shareId: string
+  decisionState: string
+  createdAt: Date
+  updatedAt: Date
+  project: { clientName: string }
+}
+
+function RecentSharesCard({ shares }: { shares: ShareRow[] }) {
+  const stateVariant = (state: string): StatusVariant => {
+    if (state === 'approved') return 'success'
+    if (state === 'changes_requested') return 'warning'
+    if (state === 'viewed') return 'info'
+    return 'neutral'
+  }
+  const stateLabel = (state: string): string => {
+    if (state === 'approved') return 'Approved'
+    if (state === 'changes_requested') return 'Changes'
+    if (state === 'viewed') return 'Viewed'
+    return 'Sent'
+  }
+  return (
+    <div className="vcp-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Recent shares</h3>
+        <span className="text-[11px] text-[var(--vcp-ink-faint)]">{shares.length}</span>
+      </div>
+      <ul className="flex flex-col gap-2.5">
+        {shares.map((s) => (
+          <li key={s.id} className="flex items-center justify-between gap-2 py-2 border-b border-[var(--vcp-border)] last:border-0 last:pb-0">
+            <div className="flex flex-col min-w-0 gap-0.5">
+              <span className="text-[12.5px] font-medium text-[var(--vcp-ink)] truncate">
+                {s.project.clientName || 'Untitled'}
+              </span>
+              <span className="text-[10px] text-[var(--vcp-ink-faint)] vcp-mono truncate">{s.shareId.slice(0, 16)}…</span>
+            </div>
+            <div className="flex flex-col items-end gap-0.5">
+              <StatusPill variant={stateVariant(s.decisionState)} size="sm">
+                {stateLabel(s.decisionState)}
+              </StatusPill>
+              <span className="text-[10px] text-[var(--vcp-ink-faint)]">{timeAgo(s.updatedAt)}</span>
             </div>
           </li>
         ))}
