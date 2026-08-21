@@ -9,7 +9,7 @@
  */
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, FileText, ArrowUpDown, Eye } from 'lucide-react';
+import { Search, FileText, ArrowUpDown, Eye, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -208,18 +208,30 @@ export function AgencyLibraryView({ organizationId }: AgencyLibraryViewProps) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => {
             const decisionKey = p.recommendation as DecisionKey;
+            const shareState = p.shareEngagement?.decisionState;
+            const shareViews = p.shareEngagement?.viewCount ?? 0;
+            const shareStateLabel =
+              shareState === 'approved' ? 'Approved' :
+              shareState === 'changes_requested' ? 'Changes requested' :
+              shareState === 'viewed' ? 'Viewed' :
+              shareState === 'sent' ? 'Sent' : null;
+            const shareStateVariant: 'build' | 'consider' | 'paid' | 'draft' | null =
+              shareState === 'approved' ? 'build' :
+              shareState === 'changes_requested' ? 'consider' :
+              shareState === 'viewed' ? 'paid' :
+              shareState === 'sent' ? 'draft' : null;
             return (
               <button
                 key={p.id}
                 type="button"
-                onClick={() => router.push(`/app/${p.id}`)}
+                onClick={() => router.push('/start')}
                 className="group rounded-lg border border-border bg-surface-raised p-4 text-left transition-colors duration-hover hover:border-border-strong hover:shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink group-hover:text-brand transition-colors duration-hover">
                     {p.clientName}
                   </h3>
-                  <StatusPill variant={p.recommendation}>
+                  <StatusPill variant={p.recommendation as DecisionKey}>
                     {DECISION_LABELS[decisionKey]}
                   </StatusPill>
                 </div>
@@ -239,6 +251,19 @@ export function AgencyLibraryView({ organizationId }: AgencyLibraryViewProps) {
                     </span>
                   )}
                 </div>
+
+                {/* Share decision-state row — the agency's feedback loop */}
+                {shareStateLabel && shareStateVariant ? (
+                  <div className="mt-2.5 pt-2.5 border-t border-border/50 flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-ink-faint">
+                      <Share2 className="size-3" strokeWidth={1.75} aria-hidden="true" />
+                      Client share
+                    </span>
+                    <StatusPill variant={shareStateVariant}>
+                      {shareStateLabel}
+                    </StatusPill>
+                  </div>
+                ) : null}
               </button>
             );
           })}

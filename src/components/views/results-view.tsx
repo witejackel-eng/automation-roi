@@ -37,6 +37,7 @@ import { Save, FileText, FileSignature, ArrowLeft, Share2, ArrowUp } from 'lucid
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { has } from '@/lib/entitlement';
 import { VerdictStamp } from '@/components/verdict-stamp';
 import { KpiCard } from '@/components/kpi-card';
@@ -435,7 +436,7 @@ export function ResultsView() {
         body: JSON.stringify({}),
       });
       if (res.status === 403) {
-        toast({ title: 'Share links require Agency Pro.', variant: 'destructive' });
+        toast({ title: 'Share links require Pro.', variant: 'destructive' });
         go('pricing');
         return;
       }
@@ -461,8 +462,22 @@ export function ResultsView() {
       try {
         await navigator.clipboard.writeText(fullUrl);
         toast({
-          title: 'Link copied.',
-          description: 'Share it with your client.',
+          title: 'Client link copied.',
+          description: 'Share it with your client — no login needed.',
+          action: (
+            <ToastAction
+              altText="Email link"
+              onClick={() => {
+                const subject = encodeURIComponent('Your automation business case');
+                const body = encodeURIComponent(
+                  `Here's the link to the automation business case we discussed.\n\n${fullUrl}\n\nNo sign-in needed — just open it and review. You can switch between the Conservative / Expected / Upside scenarios, and approve or request changes directly from the page.`
+                );
+                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+              }}
+            >
+              Email link
+            </ToastAction>
+          ),
         });
       } catch {
         toast({
