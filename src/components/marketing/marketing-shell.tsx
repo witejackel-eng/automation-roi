@@ -205,7 +205,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
 
         {/* Disclaimer */}
         <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-black/[0.04]">
-          <span className="text-xs text-black/20">© 2025 Viableo. Figures are estimates, not financial advice.</span>
+          <span className="text-xs text-black/20">© 2026 Viableo. All rights reserved.</span>
         </div>
       </footer>
     </div>

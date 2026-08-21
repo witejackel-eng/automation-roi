@@ -1,12 +1,13 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 
 const NAV_LINKS = [
-  { label: "Methodology",  href: "#methodology" },
-  { label: "Solutions",    href: "#solutions" },
-  { label: "Pricing",      href: "#pricing" },
-  { label: "Resources",    href: "#resources" },
+  { label: "Platform",     href: "/methodology" },
+  { label: "Solutions",    href: "/solutions/automation-agencies" },
+  { label: "Pricing",      href: "/pricing" },
+  { label: "Resources",    href: "/resources/automation-roi" },
 ]
 
 const NAV_STYLE = {
@@ -15,6 +16,8 @@ const NAV_STYLE = {
   background: "rgba(245,244,240,0.30)",
   boxShadow: "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06)",
 } as const
+
+const LINK_FONT = { fontFamily: "system-ui, -apple-system, sans-serif" } as const
 
 export function ViableoNav() {
   const [open, setOpen] = useState(false)
@@ -30,30 +33,42 @@ export function ViableoNav() {
           className="flex items-center justify-between px-5 py-3 rounded-2xl border border-black/[0.06]"
           style={NAV_STYLE}
         >
-          <span className="font-light text-sm tracking-[0.2em] text-black/70">VIABLEO</span>
+          <Link href="/" className="font-mono text-xs tracking-[0.25em] text-black/70 hover:text-black transition-colors">
+            VIABLEO
+          </Link>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-7" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+          <div className="hidden lg:flex items-center gap-6" style={LINK_FONT}>
             {NAV_LINKS.map(l => (
-              <a
+              <Link
                 key={l.label}
                 href={l.href}
                 className="text-[11px] text-black/60 hover:text-black transition-colors duration-200 tracking-wide"
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
+            <Link
+              href="/auth/signin"
+              className="text-[11px] text-black/50 hover:text-black transition-colors duration-200 tracking-wide"
+            >
+              Sign in
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="text-[10px] px-4 py-2 rounded-xl bg-[#111] text-white hover:bg-[#333] tracking-widest transition-all duration-200 hidden md:block" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+            <Link
+              href="/start?start=1"
+              className="text-[11px] px-4 py-2 rounded-xl bg-[#111] text-white hover:bg-[#333] tracking-widest transition-all duration-200 hidden lg:inline-flex items-center"
+              style={LINK_FONT}
+            >
               RUN YOUR FIRST CASE
-            </button>
+            </Link>
 
             {/* Burger — mobile only */}
             <button
               onClick={() => setOpen(v => !v)}
-              className="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] rounded-lg hover:bg-black/[0.04] transition-colors"
+              className="lg:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] rounded-lg hover:bg-black/[0.04] transition-colors"
               aria-label={open ? "Close menu" : "Open menu"}
             >
               <span
@@ -84,28 +99,40 @@ export function ViableoNav() {
 
         {/* Mobile dropdown */}
         <div
-          className="md:hidden mt-2 overflow-hidden transition-all duration-300 ease-in-out"
-          style={{ maxHeight: open ? "320px" : "0px", opacity: open ? 1 : 0 }}
+          className="lg:hidden mt-2 overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ maxHeight: open ? "400px" : "0px", opacity: open ? 1 : 0 }}
         >
           <div
             className="rounded-2xl border border-black/[0.06] px-2 py-2 flex flex-col"
             style={NAV_STYLE}
           >
             {NAV_LINKS.map(l => (
-              <a
+              <Link
                 key={l.label}
                 href={l.href}
                 onClick={close}
                 className="px-4 py-3 text-sm text-black/60 hover:text-black hover:bg-black/[0.03] rounded-xl transition-colors tracking-wide"
-                style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+                style={LINK_FONT}
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
+            <Link
+              href="/auth/signin"
+              onClick={close}
+              className="px-4 py-3 text-sm text-black/50 hover:text-black hover:bg-black/[0.03] rounded-xl transition-colors tracking-wide"
+              style={LINK_FONT}
+            >
+              Sign in
+            </Link>
             <div className="mt-1 px-2 pb-1">
-              <button className="w-full text-[10px] px-4 py-2.5 rounded-xl bg-[#111] text-white hover:bg-[#333] tracking-widest transition-all duration-200" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+              <Link
+                href="/start?start=1"
+                className="block w-full text-center text-[11px] px-4 py-2.5 rounded-xl bg-[#111] text-white hover:bg-[#333] tracking-widest transition-all duration-200"
+                style={LINK_FONT}
+              >
                 RUN YOUR FIRST CASE
-              </button>
+              </Link>
             </div>
           </div>
         </div>

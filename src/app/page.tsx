@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useRef, useEffect, useState, useCallback } from "react"
+import Link from "next/link"
 import { IntroAnimation, INTRO_DURATION_MS, HERO_REVEAL_MS } from "@/components/viableo/intro-animation"
 import { ViableoNav } from "@/components/viableo/nav"
 import { RevealText } from "@/components/viableo/reveal-text"
@@ -21,26 +22,6 @@ function useInView(threshold = 0.15) {
     return () => obs.disconnect()
   }, [threshold])
   return { ref, inView }
-}
-
-// ─── Animated counter ────────────────────────────────────────────────────────
-function Counter({ end, prefix = "", suffix = "" }: { end: number; prefix?: string; suffix?: string }) {
-  const [count, setCount] = useState(0)
-  const { ref, inView } = useInView()
-  useEffect(() => {
-    if (!inView) return
-    let start = 0
-    const duration = 1800
-    const step = 16
-    const increment = end / (duration / step)
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= end) { setCount(end); clearInterval(timer) }
-      else setCount(Math.floor(start))
-    }, step)
-    return () => clearInterval(timer)
-  }, [inView, end])
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>
 }
 
 // ─── Bento card ──────────────────────────────────────────────────────────────
@@ -105,7 +86,6 @@ export default function HomePage() {
       <ViableoNav />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      {/* KEY FIX: pt-32 (128px) ensures headline clears the floating nav (nav is at top-4 ≈16px, ~52px tall, so nav bottom ≈68px. pt-32=128px gives 60px breathing room) */}
       <section className="relative min-h-screen overflow-hidden">
 
         {/* Video background — zooms in once intro is done */}
@@ -128,24 +108,35 @@ export default function HomePage() {
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "40%", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", maskImage: "linear-gradient(to top, black 0%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)" }} />
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "58%", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)", maskImage: "linear-gradient(to top, black 0%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)" }} />
 
-        {/* ── HERO CONTENT — positioned at TOP with pt-32 to clear the floating nav ── */}
+        {/* ── HERO CONTENT ── */}
         <div className="relative z-30 max-w-4xl mx-auto px-6 md:px-12 pt-32 md:pt-36 lg:pt-40 pb-24 md:pb-32">
-          {/* Title — large editorial headline, fully visible below nav */}
+          {/* Eyebrow */}
+          <div
+            style={{
+              opacity: heroReady ? 1 : 0,
+              filter: heroReady ? "blur(0px)" : "blur(12px)",
+              transform: heroReady ? "translateY(0px)" : "translateY(16px)",
+              transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 0ms, filter 0.8s cubic-bezier(0.16,1,0.3,1) 0ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0ms",
+            }}
+          >
+            <Tag>AUTOMATION ROI BY VIABLEO</Tag>
+          </div>
+
+          {/* Headline */}
           <h1
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-[#111] leading-[1.02] tracking-tight mb-8"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-[#111] leading-[1.02] tracking-tight mb-8 mt-6"
             style={{
               fontFamily: '"IBM Plex Sans", sans-serif',
               opacity: heroReady ? 1 : 0,
               filter: heroReady ? "blur(0px)" : "blur(24px)",
               transform: heroReady ? "translateY(0px)" : "translateY(32px)",
-              transition: "opacity 1s cubic-bezier(0.16,1,0.3,1) 0ms, filter 1s cubic-bezier(0.16,1,0.3,1) 0ms, transform 1s cubic-bezier(0.16,1,0.3,1) 0ms",
+              transition: "opacity 1s cubic-bezier(0.16,1,0.3,1) 60ms, filter 1s cubic-bezier(0.16,1,0.3,1) 60ms, transform 1s cubic-bezier(0.16,1,0.3,1) 60ms",
             }}
           >
-            Know what's worth building—
-            <br />before you quote it.
+            {"Know what's worth building."}
           </h1>
 
-          {/* Subtext */}
+          {/* Subtext — per master prompt spec */}
           <p
             className="text-base md:text-lg text-black/50 leading-relaxed max-w-xl mb-10"
             style={{
@@ -156,10 +147,10 @@ export default function HomePage() {
               transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 120ms, filter 0.8s cubic-bezier(0.16,1,0.3,1) 120ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 120ms",
             }}
           >
-            Viableo helps automation agencies calculate, present, and close automation ROI cases — so you never underprice a project again.
+            Viableo takes an automation scope and returns a verdict — build it or don't — the fee where that verdict flips, and a document your client can check line by line.
           </p>
 
-          {/* CTA buttons */}
+          {/* CTA buttons — WIRED per master prompt spec */}
           <div
             className="flex flex-wrap gap-4 mb-16"
             style={{
@@ -169,58 +160,62 @@ export default function HomePage() {
               transition: "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 200ms, filter 0.8s cubic-bezier(0.16,1,0.3,1) 200ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) 200ms",
             }}
           >
-            <a
-              href="#"
+            <Link
+              href="/start?start=1"
               className="inline-flex items-center px-7 py-3.5 bg-[#111] text-white text-sm rounded-xl hover:bg-[#333] transition-colors duration-200 tracking-wide"
             >
-              Run your first case
-            </a>
-            <a
-              href="#"
+              Run your first case — free
+            </Link>
+            <Link
+              href="/start?example=apex"
               className="inline-flex items-center px-7 py-3.5 border border-black/12 text-black/60 text-sm rounded-xl hover:border-black/25 hover:text-black hover:bg-black/[0.03] transition-all duration-200 tracking-wide"
             >
               See a completed case
-            </a>
+            </Link>
           </div>
+        </div>
+      </section>
 
-          {/* 3 metrics — staggered after CTAs */}
-          <div className="flex flex-wrap gap-10 sm:gap-14">
+      {/* ── PROBLEM SECTION ────────────────────────────────────────────────── */}
+      <section className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-2xl">
+            <PixelIcon type="workflow" size={40} />
+            <div className="mt-4"><Tag>THE PROBLEM</Tag></div>
+            <RevealText className="mt-5 text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05]">
+              {"You can't sell\nautomation without\nproving it pays back."}
+            </RevealText>
+          </div>
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { value: 131860, prefix: "$", label: "Avg. annual savings" },
-              { value: 1.6, prefix: "", label: "Months to payback", decimal: true },
-              { value: 149860, prefix: "$", label: "Avg. 5-year NPV" },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                style={{
-                  opacity: heroReady ? 1 : 0,
-                  filter: heroReady ? "blur(0px)" : "blur(16px)",
-                  transform: heroReady ? "translateY(0px)" : "translateY(20px)",
-                  transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${300 + i * 80}ms, filter 0.8s cubic-bezier(0.16,1,0.3,1) ${300 + i * 80}ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${300 + i * 80}ms`,
-                }}
-              >
-                {stat.decimal ? (
-                  <div className="text-3xl sm:text-4xl text-[#111] font-light tracking-tight" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>
-                    {stat.prefix}{stat.value}
-                  </div>
-                ) : (
-                  <div className="text-3xl sm:text-4xl text-[#111] font-light tracking-tight" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>
-                    <Counter end={stat.value} prefix={stat.prefix} />
-                  </div>
-                )}
-                <div className="text-xs text-black/40 tracking-widest uppercase mt-1.5" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>{stat.label}</div>
-              </div>
+              {
+                title: "Spreadsheets break down",
+                body: "When assumptions change mid-meeting, your ROI model collapses. Clients notice the uncertainty and lose confidence in your proposal.",
+              },
+              {
+                title: "CFOs reject gut feels",
+                body: "Finance leaders want documented assumptions, sensitivity analysis, and confidence intervals — not an optimistic scenario dressed up as a forecast.",
+              },
+              {
+                title: "Agencies underprice themselves",
+                body: "Without rigorous analysis, you discount projects that would actually deliver 5x ROI — or overpromise on ones that won't break even for 18 months.",
+              },
+            ].map((item, i) => (
+              <BentoCard key={i} className="p-8" delay={i * 100}>
+                <h3 className="text-lg font-light mb-3">{item.title}</h3>
+                <p className="text-sm text-black/45 leading-relaxed">{item.body}</p>
+              </BentoCard>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── PLATFORM OVERVIEW (bento) ──────────────────────────────────────── */}
-      <section id="methodology" className="py-32 px-6 md:px-12 lg:px-20">
+      <section id="methodology" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
             <PixelIcon type="platform" size={40} />
-            <div className="mt-4"><Tag>METHODOLOGY</Tag></div>
+            <div className="mt-4"><Tag>HOW IT WORKS</Tag></div>
             <RevealText className="mt-5 text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05]">
               {"Everything you need\nto build ironclad ROI cases."}
             </RevealText>
@@ -269,16 +264,16 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-xl border border-black/10 flex items-center justify-center mb-5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 10h8M8 14h5"/></svg>
               </div>
-              <h3 className="text-lg font-light mb-2">Industry Benchmarks</h3>
-              <p className="text-sm text-black/45 leading-relaxed">Built-in data from hundreds of automation projects. Compare against industry averages to validate your case.</p>
+              <h3 className="text-lg font-light mb-2">Documented Assumptions</h3>
+              <p className="text-sm text-black/45 leading-relaxed">Every input is tracked. Challenge any assumption and watch the verdict update instantly.</p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-4 p-8 min-h-[200px]" delay={200}>
               <div className="w-10 h-10 rounded-xl border border-black/10 flex items-center justify-center mb-5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <h3 className="text-lg font-light mb-2">Audit-Ready Outputs</h3>
-              <p className="text-sm text-black/45 leading-relaxed">Every assumption, data source, and calculation is documented. Survive client and CFO scrutiny with confidence.</p>
+              <h3 className="text-lg font-light mb-2">Client-Ready Documents</h3>
+              <p className="text-sm text-black/45 leading-relaxed">Generate PDF reports and proposals your clients can actually verify. Every number, every source, every assumption laid out.</p>
             </BentoCard>
           </div>
         </div>
@@ -303,8 +298,89 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ───────────────────────────────────────────────────── */}
+      {/* ── HOW IT WORKS (devex) ────────────────────────────────────────────── */}
       <DevExSection />
+
+      {/* ── PRODUCT CONTRACT / DIFFERENTIATION ─────────────────────────────── */}
+      <section className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+            <div>
+              <PixelIcon type="integrations" size={40} />
+              <div className="mt-4"><Tag>THE PRODUCT CONTRACT</Tag></div>
+              <RevealText className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">
+                {"What Viableo\ndelivers, exactly."}
+              </RevealText>
+              <p className="mt-8 text-base text-black/45 leading-relaxed max-w-md">
+                Viableo is not a dashboard. It is a decision engine. You describe the automation, you estimate the economics, and Viableo tells you — with documented evidence — whether the project is worth building.
+              </p>
+            </div>
+            <div className="space-y-6">
+              {[
+                { label: "A verdict", desc: "BUILD, CONSIDER, or DON'T BUILD — based on your actual numbers, not optimism bias." },
+                { label: "The flip point", desc: "The exact fee where a DON'T BUILD becomes a BUILD. Know your ceiling before you quote." },
+                { label: "A shareable document", desc: "PDF report or proposal with every assumption, calculation, and data source visible." },
+                { label: "Challenge mode", desc: "Stress-test any assumption. If the case still holds under pressure, you've got something to sell." },
+              ].map((item, i) => (
+                <BentoCard key={i} className="p-6" delay={i * 80}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-1.5 h-1.5 rounded-full bg-black/25 mt-2 shrink-0" />
+                    <div>
+                      <h4 className="text-sm font-medium mb-1">{item.label}</h4>
+                      <p className="text-sm text-black/45 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                </BentoCard>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── OPPOSITES / DIFFERENTIATION ─────────────────────────────────────── */}
+      <section className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <PixelIcon type="pricing" size={40} />
+            <div className="mt-4 inline-block"><Tag>WHY NOT JUST USE A SPREADSHEET</Tag></div>
+            <RevealText className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">
+              {"Spreadsheets give you\na number. Viableo gives you\na defensible answer."}
+            </RevealText>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-4xl mx-auto">
+            <BentoCard className="p-8" delay={0}>
+              <div className="text-[11px] tracking-widest text-black/30 uppercase mb-4">Spreadsheets</div>
+              {[
+                "Single scenario, hope it's right",
+                "No confidence scoring",
+                "Assumptions buried in cells",
+                "Breaks when client changes a number",
+                "Looks like you made it up",
+              ].map((text, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 text-sm text-black/40">
+                  <div className="w-1 h-1 rounded-full bg-black/15 shrink-0" />
+                  {text}
+                </div>
+              ))}
+            </BentoCard>
+            <BentoCard className="p-8 border-black/[0.15]" delay={100}>
+              <div className="text-[11px] tracking-widest text-black/50 uppercase mb-4">Viableo</div>
+              {[
+                "Multi-scenario with sensitivity analysis",
+                "Confidence intervals on every projection",
+                "Every assumption documented and challengeable",
+                "Live updates — change any input instantly",
+                "PDF your client's CFO will actually read",
+              ].map((text, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 text-sm text-black/70">
+                  <div className="w-1 h-1 rounded-full bg-[#111] shrink-0" />
+                  {text}
+                </div>
+              ))}
+            </BentoCard>
+          </div>
+        </div>
+      </section>
 
       {/* ── LIVE CALCULATIONS ──────────────────────────────────────────────── */}
       <section id="resources" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
@@ -314,7 +390,7 @@ export default function HomePage() {
               <PixelIcon type="workflow" size={40} />
               <div className="mt-4"><Tag>LIVE RIGHT NOW</Tag></div>
               <RevealText className="mt-5 text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05]">
-                {"Agencies closing deals\n24 / 7, with Viableo."}
+                {"Agencies closing deals\nwith Viableo, right now."}
               </RevealText>
               <p className="mt-6 text-base text-black/40 leading-relaxed max-w-sm">
                 At any moment, agencies around the world are building and sharing ROI cases with their clients.
@@ -389,13 +465,16 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <button className={`w-full py-3 rounded-xl text-sm tracking-widest transition-all duration-200 ${
-                  plan.highlight
-                    ? "bg-[#111] text-white hover:bg-[#333]"
-                    : "border border-black/10 text-black/60 hover:border-black/25 hover:text-black hover:bg-black/[0.04]"
-                }`}>
+                <Link
+                  href={plan.name === "Enterprise" ? "/start?start=1" : "/start?start=1"}
+                  className={`block w-full text-center py-3 rounded-xl text-sm tracking-widest transition-all duration-200 ${
+                    plan.highlight
+                      ? "bg-[#111] text-white hover:bg-[#333]"
+                      : "border border-black/10 text-black/60 hover:border-black/25 hover:text-black hover:bg-black/[0.04]"
+                  }`}
+                >
                   {plan.name === "Enterprise" ? "CONTACT SALES" : "GET STARTED"}
-                </button>
+                </Link>
               </BentoCard>
             ))}
           </div>
@@ -433,60 +512,48 @@ export default function HomePage() {
           <p className="text-sm text-black/45 leading-relaxed mb-10">
             Join hundreds of automation agencies using Viableo to close more deals, faster, with data-driven confidence.
           </p>
-          {!submitted ? (
-            <form
-              onSubmit={e => { e.preventDefault(); if (email) setSubmitted(true) }}
-              className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto"
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/start?start=1"
+              className="inline-flex items-center justify-center px-7 py-3.5 bg-[#111] text-white text-sm rounded-xl hover:bg-[#333] transition-colors duration-200 tracking-wide"
             >
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="flex-1 bg-white border border-black/10 rounded-xl px-4 py-3 text-sm text-[#111] placeholder:text-black/25 focus:outline-none focus:border-black/25 transition-colors"
-              />
-              <button
-                type="submit"
-                className="px-8 py-3 bg-[#111] text-white text-sm rounded-xl hover:bg-[#333] transition-colors tracking-widest font-medium"
-              >
-                JOIN
-              </button>
-            </form>
-          ) : (
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-emerald-600/20 bg-emerald-50 text-emerald-700 text-sm">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              {"You're on the list. We'll be in touch."}
-            </div>
-          )}
+              Run your first case — free
+            </Link>
+            <Link
+              href="/start?example=apex"
+              className="inline-flex items-center justify-center px-7 py-3.5 border border-black/12 text-black/60 text-sm rounded-xl hover:border-black/25 hover:text-black hover:bg-black/[0.03] transition-all duration-200 tracking-wide"
+            >
+              See a completed case
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
       <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <span className="text-xs tracking-[0.2em] text-black/50 font-light" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>VIABLEO</span>
+          <Link href="/" className="font-mono text-xs tracking-[0.25em] text-black/50 hover:text-black/70 transition-colors">
+            VIABLEO
+          </Link>
 
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
             {[
-              { label: "Methodology", href: "#methodology" },
-              { label: "Solutions", href: "#solutions" },
-              { label: "How It Works", href: "#devex" },
-              { label: "Live", href: "#resources" },
-              { label: "Pricing", href: "#pricing" },
+              { label: "Platform", href: "/methodology" },
+              { label: "Solutions", href: "/solutions/automation-agencies" },
+              { label: "Pricing", href: "/pricing" },
+              { label: "Resources", href: "/resources/automation-roi" },
+              { label: "How It Works", href: "/methodology#workflow" },
             ].map(l => (
-              <a key={l.label} href={l.href} className="text-xs text-black/35 hover:text-black/70 transition-colors tracking-widest">{l.label}</a>
+              <Link key={l.label} href={l.href} className="text-xs text-black/35 hover:text-black/70 transition-colors tracking-widest">{l.label}</Link>
             ))}
           </div>
 
           <div className="flex items-center gap-6">
             {[
-              { label: "Privacy", href: "#" },
-              { label: "Terms", href: "#" },
-              { label: "Docs", href: "#" },
-              { label: "GitHub", href: "#" },
+              { label: "Privacy", href: "/privacy" },
+              { label: "Terms", href: "/terms" },
             ].map(l => (
-              <a key={l.label} href={l.href} className="text-xs text-black/25 hover:text-black/55 transition-colors tracking-widest">{l.label}</a>
+              <Link key={l.label} href={l.href} className="text-xs text-black/25 hover:text-black/55 transition-colors tracking-widest">{l.label}</Link>
             ))}
           </div>
         </div>
