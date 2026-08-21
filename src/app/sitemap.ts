@@ -23,6 +23,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/resources/automation-payback', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/resources/automation-cost', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/resources/automation-business-case', priority: 0.6, changeFrequency: 'monthly' },
+    { path: '/docs', priority: 0.6, changeFrequency: 'monthly' },
+    { path: '/privacy', priority: 0.4, changeFrequency: 'yearly' },
+    { path: '/terms', priority: 0.4, changeFrequency: 'yearly' },
   ];
 
   return routes.map((r) => ({
