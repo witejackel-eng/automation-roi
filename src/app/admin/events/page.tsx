@@ -11,6 +11,7 @@ import {
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
 import { EventsHeatmap } from '@/components/admin/events-heatmap'
+import { TopEventTypes } from '@/components/admin/top-event-types'
 import { EventFilters } from './_components/event-filters'
 import { timeAgo, shortId } from '@/lib/format'
 
@@ -65,10 +66,8 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
     getEventHeatmap(7),
   ])
 
-  // Right-rail: top 10 event types by count, with a coral bar proportional to
-  // the max count in that slice (so the loudest event always renders full-width).
-  const summaryTop = eventTypeSummary.slice(0, 10)
-  const summaryMax = summaryTop.reduce((m, s) => Math.max(m, s._count), 0)
+  // Right-rail: top event types by count, rendered via the TopEventTypes component
+  // (category-colored bars + numbered ranking).
 
   return (
     <PageContainer>
@@ -203,46 +202,9 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
           />
         </div>
 
-        {/* Event type summary card */}
+        {/* Top event types — category-colored horizontal bar chart */}
         <div className="lg:col-span-1">
-          <div className="vcp-card p-5">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">
-              Event type summary
-            </h3>
-            {summaryTop.length === 0 ? (
-              <p className="text-[13px] text-[var(--vcp-ink-muted)]">
-                No events recorded yet.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {summaryTop.map((s) => {
-                  const pct = summaryMax > 0 ? Math.max(2, (s._count / summaryMax) * 100) : 0
-                  return (
-                    <div key={s.eventType} className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="vcp-mono text-[12px] text-[var(--vcp-ink)]">
-                          {s.eventType}
-                        </span>
-                        <span className="vcp-mono vcp-tnum text-[12px] text-[var(--vcp-ink-muted)]">
-                          {s._count}
-                        </span>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-[var(--vcp-surface-sunken)] overflow-hidden">
-                        <div
-                          className="h-1.5 rounded-full bg-[var(--vcp-coral)]"
-                          style={{ width: `${pct}%` }}
-                          aria-hidden
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-            <p className="text-[11px] text-[var(--vcp-ink-faint)] mt-4">
-              Top 10 by volume. Counts are all-time.
-            </p>
-          </div>
+          <TopEventTypes entries={eventTypeSummary} maxItems={10} />
         </div>
       </div>
     </PageContainer>

@@ -253,19 +253,34 @@ function UsageCard({ usage }: { usage: Usage }) {
     <div className="vcp-card p-5">
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">Usage</h3>
       <div className="grid grid-cols-3 gap-3">
-        <UsageStat label="Projects" value={usage.projectCount} />
-        <UsageStat label="Reports" value={usage.reportCount} />
-        <UsageStat label="Shares" value={usage.shareCount} />
+        <UsageStat label="Projects" value={usage.projectCount} variant={usage.projectCount > 0 ? 'info' : 'neutral'} />
+        <UsageStat label="Reports" value={usage.reportCount} variant={usage.reportCount > 0 ? 'success' : 'neutral'} />
+        <UsageStat label="Shares" value={usage.shareCount} variant={usage.shareCount > 0 ? 'coral' : 'neutral'} />
       </div>
     </div>
   )
 }
 
-function UsageStat({ label, value }: { label: string; value: number }) {
+function UsageStat({ label, value, variant = 'neutral' }: { label: string; value: number; variant?: 'neutral' | 'info' | 'success' | 'coral' }) {
+  const colorMap: Record<string, string> = {
+    neutral: 'var(--vcp-ink-strong)',
+    info: 'var(--vcp-info)',
+    success: 'var(--vcp-success)',
+    coral: 'var(--vcp-coral)',
+  }
+  const accentMap: Record<string, string> = {
+    neutral: 'transparent',
+    info: 'var(--vcp-info)',
+    success: 'var(--vcp-success)',
+    coral: 'var(--vcp-coral)',
+  }
   return (
-    <div className="rounded-[var(--vcp-radius-sm)] bg-[var(--vcp-surface-sunken)] px-3 py-2.5 flex flex-col gap-1">
+    <div
+      className="rounded-[var(--vcp-radius-sm)] bg-[var(--vcp-surface-sunken)] px-3 py-2.5 flex flex-col gap-1 border-l-2"
+      style={{ borderLeftColor: accentMap[variant] }}
+    >
       <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">{label}</span>
-      <span className="text-[22px] leading-none font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{value}</span>
+      <span className="text-[22px] leading-none font-semibold vcp-tnum" style={{ color: colorMap[variant] }}>{value}</span>
     </div>
   )
 }

@@ -5,10 +5,12 @@ import {
   checkEnvConfig,
   getRecentCriticalEvents,
   getOverviewMetrics,
+  getDbLatencyHistory,
 } from '@/lib/admin/operational-queries'
 import {
   SectionHeader, PageContainer, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
+import { Sparkline } from '@/components/admin/sparkline'
 import { cn } from '@/lib/utils'
 import { timeAgo } from '@/lib/format'
 import {
@@ -80,11 +82,12 @@ export default async function SystemHealthPage() {
   await logSystemEvent({ eventType: 'ADMIN_PAGE_VIEWED', userId: admin.userId, metadata: { page: 'system' } })
 
   // Real server-side checks only. No synthetic uptime / latency numbers.
-  const [dbCheck, envConfig, metrics, recentCritical] = await Promise.all([
+  const [dbCheck, envConfig, metrics, recentCritical, dbLatencyHistory] = await Promise.all([
     checkDbConnectivity(),
     checkEnvConfig(),
     getOverviewMetrics(),
     getRecentCriticalEvents(8),
+    getDbLatencyHistory(8),
   ])
 
   const envMap = new Map(envConfig.map((e) => [e.key, e.present]))
@@ -209,6 +212,7 @@ export default async function SystemHealthPage() {
         {services.map((s) => {
           const Icon = s.icon
           const variant = statusVariant(s.status)
+          const isDbCard = s.name === 'Database'
           return (
             <div key={s.name} className="vcp-card p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
@@ -224,6 +228,14 @@ export default async function SystemHealthPage() {
                 <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">{s.detail}</span>
                 <StatusPill variant={variant}>{statusLabel(s.status)}</StatusPill>
               </div>
+              {isDbCard && dbCheck.ok ? (
+                <div className="mt-3 pt-3 border-t border-[var(--vcp-border)] flex items-center gap-3">
+                  <Sparkline data={dbLatencyHistory} color="var(--vcp-success)" height={24} />
+                  <span className="text-[11px] text-[var(--vcp-ink-faint)]">
+                    Latency · 8 probes · avg {Math.round(dbLatencyHistory.reduce((a, b) => a + b, 0) / dbLatencyHistory.length)}ms
+                  </span>
+                </div>
+              ) : null}
             </div>
           )
         })}

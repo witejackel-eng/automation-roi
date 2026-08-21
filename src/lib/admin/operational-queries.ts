@@ -799,6 +799,22 @@ export async function checkDbConnectivity(): Promise<{ ok: boolean; latencyMs: n
   }
 }
 
+// Take N quick DB latency measurements for a sparkline.
+// Each is a SELECT 1 round-trip. Returns ms per probe.
+export async function getDbLatencyHistory(probes = 8): Promise<number[]> {
+  const results: number[] = []
+  for (let i = 0; i < probes; i++) {
+    const start = Date.now()
+    try {
+      await db.$queryRaw`SELECT 1`
+      results.push(Date.now() - start)
+    } catch {
+      results.push(0) // error → 0 so the sparkline still renders
+    }
+  }
+  return results
+}
+
 export function checkEnvConfig() {
   // Booleans only — never values.
   const envKeys = [
