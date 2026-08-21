@@ -183,6 +183,7 @@ export function getImprovementSuggestion(
       const eightyGap = 80 - currentScore;
       const topGains = potentialGains.reduce(
         (sum, g) => sum + g.potentialGain,
+        0,
     );
       if (topGains < eightyGap) {
         return `Even upgrading all fields would not reach 80. Current confidence of ${currentScore} is sufficient for BUILD.`;

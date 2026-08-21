@@ -63,23 +63,21 @@ export async function GET(
 
     // Section-level scroll engagement.
     const sectionEngagement: Record<string, { scrollCount: number; avgDepth: number }> = {};
+    const sectionDepths: Record<string, number[]> = {};
     for (const e of events) {
       if (e.eventType === 'section_scroll' && e.section) {
         const entry = sectionEngagement[e.section] ?? { scrollCount: 0, avgDepth: 0 };
         entry.scrollCount += 1;
-        // Track depths for averaging.
-        const depths = (sectionEngagement[e.section]?._depths as number[] | undefined) ?? [];
-        depths.push(e.value ?? 0);
-        (sectionEngagement[e.section] as typeof entry & { _depths: number[] })._depths = depths;
+        sectionEngagement[e.section] = entry;
+        (sectionDepths[e.section] ??= []).push(e.value ?? 0);
       }
     }
     // Compute final averages.
     for (const key of Object.keys(sectionEngagement)) {
-      const raw = sectionEngagement[key] as { scrollCount: number; avgDepth: number; _depths: number[] };
-      raw.avgDepth = raw._depths.length > 0
-        ? Math.round((raw._depths.reduce((a, b) => a + b, 0) / raw._depths.length) * 100)
+      const depths = sectionDepths[key] ?? [];
+      sectionEngagement[key].avgDepth = depths.length > 0
+        ? Math.round((depths.reduce((a, b) => a + b, 0) / depths.length) * 100)
         : 0;
-      delete (raw as Record<string, unknown>)._depths;
     }
 
     // Verdict distribution (from the project recommendation).
