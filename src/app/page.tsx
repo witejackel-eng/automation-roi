@@ -60,6 +60,7 @@ export default function HomePage() {
   const [submitted, setSubmitted] = useState(false)
   const [heroReady, setHeroReady] = useState(false)
   const [videoReady, setVideoReady] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
   const handleIntroDone = useCallback(() => {
     setHeroReady(true)
   }, [])
@@ -68,6 +69,9 @@ export default function HomePage() {
     const t = setTimeout(() => setVideoReady(true), HERO_REVEAL_MS)
     return () => clearTimeout(t)
   }, [])
+
+  const handleVideoError = useCallback(() => setVideoFailed(true), [])
+  const handleVideoCanPlay = useCallback(() => setVideoFailed(false), [])
 
   const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = e.currentTarget
@@ -88,19 +92,119 @@ export default function HomePage() {
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen overflow-hidden">
 
-        {/* Video background — zooms in once intro is done */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0"
-          src="/videos/hero.mp4"
+        {/* Animated gradient fallback — always visible, video overlays on top */}
+        <div
+          className="absolute inset-0 z-0"
           style={{
-            transform: videoReady ? "scale(1.05)" : "scale(0.85)",
-            transition: "transform 2s cubic-bezier(0.16, 1, 0.3, 1)",
+            background: `
+              radial-gradient(ellipse 120% 80% at 20% 60%, rgba(180, 170, 155, 0.3) 0%, transparent 60%),
+              radial-gradient(ellipse 80% 100% at 80% 30%, rgba(160, 150, 140, 0.25) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 60% at 50% 80%, rgba(140, 130, 120, 0.2) 0%, transparent 50%),
+              linear-gradient(175deg, #e8e6e1 0%, #F5F4F0 30%, #edebdf 60%, #f0eee6 100%)
+            `,
+            transform: videoReady && !videoFailed ? "scale(1.05)" : "scale(1)",
+            transition: "transform 2.5s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
+
+        {/* Subtle noise texture overlay */}
+        <div
+          className="absolute inset-0 z-[1] opacity-[0.03]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            backgroundSize: "128px 128px",
+          }}
+        />
+
+        {/* Subtle dot grid pattern */}
+        <div
+          className="absolute inset-0 z-[1] opacity-[0.07] hero-grid-bg"
+          style={{
+            backgroundImage: `radial-gradient(circle, rgba(0,0,0,0.15) 1px, transparent 1px)`,
+            backgroundSize: "32px 32px",
+          }}
+        />
+
+        {/* Floating ambient orbs */}
+        <div className="absolute inset-0 z-[2] overflow-hidden pointer-events-none">
+          <div
+            className="hero-orb-1 absolute rounded-full"
+            style={{
+              width: "500px", height: "500px",
+              top: "10%", left: "-5%",
+              background: "radial-gradient(circle, rgba(200, 185, 160, 0.18) 0%, transparent 70%)",
+              filter: "blur(60px)",
+            }}
+          />
+          <div
+            className="hero-orb-2 absolute rounded-full"
+            style={{
+              width: "400px", height: "400px",
+              top: "40%", right: "-8%",
+              background: "radial-gradient(circle, rgba(180, 170, 150, 0.15) 0%, transparent 70%)",
+              filter: "blur(50px)",
+            }}
+          />
+          <div
+            className="hero-orb-3 absolute rounded-full"
+            style={{
+              width: "300px", height: "300px",
+              bottom: "15%", left: "30%",
+              background: "radial-gradient(circle, rgba(170, 160, 140, 0.12) 0%, transparent 70%)",
+              filter: "blur(40px)",
+            }}
+          />
+        </div>
+
+        {/* Decorative shimmer lines */}
+        <div className="absolute inset-0 z-[3] overflow-hidden pointer-events-none">
+          <div
+            className="hero-shimmer-line absolute"
+            style={{
+              width: "200px", height: "1px",
+              top: "30%", left: "10%",
+              background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)",
+              animationDelay: "0s",
+            }}
+          />
+          <div
+            className="hero-shimmer-line absolute"
+            style={{
+              width: "300px", height: "1px",
+              top: "55%", right: "5%",
+              background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent)",
+              animationDelay: "2s",
+            }}
+          />
+          <div
+            className="hero-shimmer-line absolute"
+            style={{
+              width: "150px", height: "1px",
+              top: "70%", left: "25%",
+              background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent)",
+              animationDelay: "3.5s",
+            }}
+          />
+        </div>
+
+        {/* Video background — zooms in once intro is done, with graceful fallback */}
+        {!videoFailed && (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover z-[4]"
+            src="/videos/hero.mp4"
+            poster="/images/hero-poster.jpg"
+            onError={handleVideoError}
+            onCanPlay={handleVideoCanPlay}
+            style={{
+              transform: videoReady ? "scale(1.05)" : "scale(0.85)",
+              transition: "transform 2s cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          />
+        )}
 
         {/* Progressive blur + light gradient rising from bottom */}
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "70%", background: "linear-gradient(to top, #F5F4F0 0%, #F5F4F0 18%, rgba(245,244,240,0.85) 35%, rgba(245,244,240,0.5) 55%, rgba(245,244,240,0.15) 75%, transparent 100%)" }} />
