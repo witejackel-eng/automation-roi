@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireSuperAdmin } from '@/lib/auth'
 import { logSystemEvent } from '@/lib/observability/system-event'
 import { getCustomerForAdmin } from '@/lib/admin/operational-queries'
+import { cn } from '@/lib/utils'
 import {
   SectionHeader, PageContainer, ErrorState,
   StatusPill, type StatusVariant,
@@ -49,7 +50,7 @@ export default async function CustomerDetailPage({ params }: { params: Params })
     )
   }
 
-  const { identity, organization, subscription, entitlement, usage, recentEvents, recentAudit } = data
+  const { identity, organization, subscription, entitlement, usage, recentEvents, recentAudit, recentPayments } = data
 
   return (
     <PageContainer>
@@ -96,6 +97,9 @@ export default async function CustomerDetailPage({ params }: { params: Params })
             tier={entitlement.tier}
             recentEvents={recentEvents}
           />
+          {recentPayments && recentPayments.length > 0 ? (
+            <RecentPaymentsCard payments={recentPayments} />
+          ) : null}
           <AdminActionsCard recentAudit={recentAudit} />
           <PrivacyNoteCard />
         </div>
@@ -339,6 +343,63 @@ function PrivacyNoteCard() {
       <p className="text-[12px] text-[var(--vcp-ink-muted)] leading-relaxed">
         Customer business-case content is hidden by default. Access is recorded.
       </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Recent Payments — mini payment history in the side column
+// ---------------------------------------------------------------------------
+
+type PaymentRow = {
+  id: string
+  amount: number | { toNumber(): number }
+  currency: string
+  status: string
+  createdAt: Date
+  whopPaymentId: string
+}
+
+function RecentPaymentsCard({ payments }: { payments: PaymentRow[] }) {
+  const toNum = (v: number | { toNumber(): number }): number =>
+    typeof v === 'number' ? v : v.toNumber()
+  const statusVariant = (status: string): StatusVariant => {
+    if (status === 'succeeded') return 'success'
+    if (status === 'failed') return 'error'
+    if (status === 'pending') return 'warning'
+    return 'neutral'
+  }
+  return (
+    <div className="vcp-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Recent payments</h3>
+        <span className="text-[11px] text-[var(--vcp-ink-faint)]">{payments.length}</span>
+      </div>
+      <ul className="flex flex-col gap-2.5">
+        {payments.map((p) => (
+          <li key={p.id} className="flex items-center justify-between gap-2 py-2 border-b border-[var(--vcp-border)] last:border-0 last:pb-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span
+                className={cn('vcp-dot', `vcp-dot-${statusVariant(p.status)}`)}
+                style={{ boxShadow: 'none', width: 6, height: 6 }}
+                aria-hidden
+              />
+              <div className="flex flex-col min-w-0">
+                <span className="text-[12.5px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">
+                  ${toNum(p.amount).toFixed(2)} {p.currency}
+                </span>
+                <span className="text-[10px] text-[var(--vcp-ink-faint)] vcp-mono truncate">{p.whopPaymentId.slice(0, 14)}…</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-0.5">
+              <StatusPill variant={statusVariant(p.status)} size="sm">
+                {p.status}
+              </StatusPill>
+              <span className="text-[10px] text-[var(--vcp-ink-faint)]">{timeAgo(p.createdAt)}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

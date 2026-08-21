@@ -12,6 +12,7 @@ import {
 } from '@/components/admin/ui'
 import { EventsHeatmap } from '@/components/admin/events-heatmap'
 import { TopEventTypes } from '@/components/admin/top-event-types'
+import { MiniDonut } from '@/components/admin/mini-donut'
 import { EventFilters } from './_components/event-filters'
 import { timeAgo, shortId } from '@/lib/format'
 
@@ -98,6 +99,57 @@ export default async function EventsPage({ searchParams }: { searchParams: Searc
           sub="Ambient activity"
         />
       </div>
+
+      {/* Severity breakdown donut */}
+      {totals.total > 0 ? (
+        <div className="vcp-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[13px] font-semibold text-[var(--vcp-ink-strong)]">Severity breakdown</h3>
+            <span className="text-[11px] text-[var(--vcp-ink-faint)]">{totals.total} total events</span>
+          </div>
+          <div className="flex items-center gap-6 flex-wrap">
+            <MiniDonut
+              segments={[
+                { label: 'Info', value: infos.total, color: 'var(--vcp-ink-faint)' },
+                { label: 'Warnings', value: warnings.total, color: 'var(--vcp-warning)' },
+                { label: 'Errors', value: errors.total, color: 'var(--vcp-error)' },
+              ]}
+              size={120}
+              thickness={14}
+              centerValue={totals.total}
+              centerLabel="events"
+            />
+            <div className="flex flex-col gap-2.5 min-w-[160px]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--vcp-ink-faint)' }} />
+                  <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">Info</span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{infos.total}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--vcp-warning)' }} />
+                  <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">Warnings</span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{warnings.total}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--vcp-error)' }} />
+                  <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">Errors</span>
+                </div>
+                <span className="text-[13px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{errors.total}</span>
+              </div>
+            </div>
+            {errors.total > 0 ? (
+              <div className="ml-auto vcp-pill vcp-pill-error">
+                {((errors.total / totals.total) * 100).toFixed(1)}% error rate
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <EventFilters
         eventType={eventTypeRaw}
