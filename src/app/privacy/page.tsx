@@ -1,29 +1,19 @@
 import type { Metadata } from 'next';
 import { MarketingShell } from '@/components/marketing/marketing-shell';
-import {
-  PageHero,
-  Section,
-  SectionHeading,
-  ClosingCTA,
-  BreadcrumbJsonLd,
-  InlineLink,
-} from '@/components/marketing/marketing-primitives';
+import { PageHero, BreadcrumbJsonLd, InlineLink } from '@/components/marketing/marketing-primitives';
 
 export const metadata: Metadata = {
-  title: 'Privacy — Viableo',
+  title: 'Privacy Policy — Viableo',
   description: 'How Viableo handles data.',
   alternates: { canonical: '/privacy' },
   openGraph: {
     type: 'website',
-    title: 'Privacy | Viableo',
+    title: 'Privacy Policy | Viableo',
     description: 'How Viableo handles data.',
     url: '/privacy',
   },
   robots: { index: true, follow: true },
 };
-
-// TODO_HUMAN_PRIVACY_EMAIL: replace with a monitored address before production launch.
-const PRIVACY_EMAIL = 'privacy@TODO_HUMAN_DOMAIN';
 
 export default function PrivacyPage() {
   return (
@@ -31,133 +21,216 @@ export default function PrivacyPage() {
       <BreadcrumbJsonLd
         crumbs={[
           { name: 'Home', path: '/' },
-          { name: 'Privacy', path: '/privacy' },
+          { name: 'Privacy Policy', path: '/privacy' },
         ]}
       />
-      <main id="main-content" className="w-full">
-        <PageHero eyebrow="Privacy" title="How Viableo handles data.">
-          <p>
-            Viableo needs no client-identifying data to return a verdict.
-            Hours, rates, volumes, and a fee are enough. This page describes
-            what we do collect, what we do not, how long we keep it, and how to
-            have it changed or removed.
+      <PageHero eyebrow="Privacy Policy" title="Privacy Policy" />
+
+      <section className="py-12 md:py-20">
+        <article className="mx-auto max-w-[760px] px-6 md:px-12">
+          <p className="text-[15px] leading-[1.7] text-[#111]/50">
+            Last updated: August 2025
           </p>
-        </PageHero>
 
-        <Section className="bg-canvas">
-          <div className="space-y-16 md:space-y-24">
-            <div>
-              <SectionHeading eyebrow="What we collect" title="The minimum, on purpose.">
-                <p>
-                  We collect only what is required to operate the service. When
-                  you create an account through GitHub OAuth, we receive the
-                  email address attached to that account and the public
-                  profile fields GitHub passes through (typically name and
-                  avatar URL). If you set an organization name, we store that
-                  string as you typed it.
-                </p>
-                <p>
-                  When you run an analysis, we store the inputs you typed —
-                  hours per week, hourly cost, leads per month, average
-                  customer value, gross margin, implementation fee, monthly
-                  AI/API cost, monthly software cost, other annual cost, and
-                  the notes you added to the case. None of these are
-                  client-identifying. They are operational inputs.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading
-                eyebrow="What we do not collect"
-                title="No client PII. No card details."
-              >
-                <p>
-                  Viableo does not require any client-identifying information
-                  to return a verdict. The decision instrument operates on
-                  operational inputs alone. You can run, save, and share an
-                  analysis without ever entering a client name — the share
-                  link uses an opaque random identifier, not the client name or
-                  project id.
-                </p>
-                <p>
-                  We do not collect payment card details. Billing is handled
-                  by Whop, our payment provider. Card data flows between your
-                  browser and Whop directly; it never touches our servers and
-                  is not stored in our database.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading
-                eyebrow="How long we keep it"
-                title="For the life of the account."
-              >
-                <p>
-                  We keep your account data, projects, and saved analyses for
-                  the life of your account, so you can return to a case weeks
-                  or months later and pick up where you left off. Shared
-                  client reports remain accessible until the share link is
-                  revoked, expires, or you delete the underlying project.
-                </p>
-                <p>
-                  On request, we will export or delete your account data. See
-                  the contact section below. We will act on a deletion request
-                  within thirty days and confirm by email when it is
-                  complete.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading
-                eyebrow="Your rights"
-                title="Export or delete, on request."
-              >
-                <p>
-                  You can request a copy of the data we hold about you, or ask
-                  for it to be deleted. Email the address below from the
-                  address attached to your account and tell us what you need.
-                  We do not require a reason. We do not charge for it.
-                </p>
-                <p>
-                  If you have signed in through GitHub, you can also revoke
-                  our access at any time from the GitHub application settings
-                  page; we will simply stop receiving fresh profile data on
-                  your next sign-in.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading eyebrow="Contact" title="Email us.">
-                <p>
-                  Questions, export requests, or deletion requests go to{' '}
-                  <a
-                    href={`mailto:${PRIVACY_EMAIL}`}
-                    className="link-underline text-ink underline-offset-4 hover:text-brand"
-                  >
-                    {PRIVACY_EMAIL}
-                  </a>{' '}
-                  — a placeholder address until a monitored mailbox is set up.
-                  For the legal terms that apply to your use of Viableo, see{' '}
-                  <InlineLink href="/terms">the Terms page</InlineLink>.
-                </p>
-              </SectionHeading>
-            </div>
-          </div>
-
-          <p className="mt-12 text-[13px] leading-[1.6] text-ink-faint">
-            Last updated: Phase 3. Figures are estimates, not financial advice.
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            1. What We Collect
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo collects the minimum data required to operate the service.
+            When you create an account, we store your email address, name, and
+            authentication identifiers provided by your sign-in provider. If you
+            belong to an organization, we store the organization name and your
+            role within it.
           </p>
-        </Section>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            When you run a business-case analysis, we store the operational inputs
+            you provide — hours saved, hourly cost, lead volumes, conversion
+            rates, margins, fees, and any notes you add. These inputs are
+            financial and operational figures. They are not client-identifying.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We also collect standard web telemetry: page views, device type,
+            browser, and referral source. This data is aggregated and used only
+            to improve the product. We do not track you across other websites.
+          </p>
 
-        <ClosingCTA
-          headline="Run the numbers before you build."
-          body="Viableo is a decision instrument. Hours, rates, volumes, a fee — and a verdict."
-        />
-      </main>
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            2. How We Use It
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Account data is used to authenticate you, maintain your session, and
+            associate your analyses with your account. Organization data is used
+            to manage team access and permissions. Business-case inputs are used
+            to generate your analyses, reports, and shared client links.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            Aggregated telemetry helps us understand how the product is used so
+            we can improve it. We do not sell, rent, or share your personal data
+            with third parties for their own marketing purposes.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            3. Authentication
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo supports sign-in through third-party authentication providers.
+            When you sign in, the provider sends us your email address and basic
+            profile information. We do not receive your password. You can revoke
+            our access at any time through your provider&apos;s application settings.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We issue session tokens to keep you signed in. These tokens expire
+            after a period of inactivity. We do not store passwords on our servers.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            4. Business-Case Data
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            The inputs you enter for a business case — hours, rates, volumes,
+            margins, costs, and notes — are stored and associated with your
+            account. These are your data. Viableo does not use your case data
+            to train models or improve its analytical engine for other users.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            The outputs generated by Viableo — verdicts, scenario tables,
+            confidence scores, and narrative summaries — are derived from your
+            inputs and are also stored alongside the case. You can delete any
+            case at any time, which removes both inputs and outputs.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            5. Payments
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo does not collect or store payment card details. Billing is
+            handled by our payment processor. Card data flows directly between
+            your browser and the payment processor; it never passes through our
+            servers and is not stored in our database.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We store a record of your subscription tier, billing status, and
+            transaction identifiers provided by the payment processor. This
+            information is used to manage your subscription and provide support.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            6. Client Share Links
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            When you share a business-case report with a client, we generate an
+            opaque, random identifier for the share link. The link does not
+            contain your name, your client&apos;s name, or any identifying information
+            in the URL itself.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We log when a share link is viewed, including the time and approximate
+            location. This is shown to you as engagement analytics. We do not
+            add tracking cookies or scripts to shared reports.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            7. AI Processing
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo uses third-party AI services to generate narrative summaries
+            and risk assessments within your business-case reports. When these
+            features are used, your case inputs are sent to the AI provider for
+            processing. The AI provider&apos;s own privacy policy governs their
+            handling of that data.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We do not use your data to fine-tune or train AI models. AI-generated
+            content is stored as part of your case and treated with the same
+            retention and access controls as the rest of your data.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            8. Storage
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Your data is stored in managed databases and object storage. All data
+            at rest is encrypted. We maintain access controls that limit which
+            team members can access your data to those with a legitimate
+            operational need.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We do not store data in jurisdictions that would conflict with the
+            protections described in this policy. Backups are encrypted and
+            retained according to the same schedules as primary data.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            9. Retention
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            We retain your account data, business cases, and associated outputs
+            for the life of your account. This allows you to return to previous
+            analyses and compare results over time. Shared client reports remain
+            accessible until you revoke the share link, it expires, or you delete
+            the underlying case.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            If you delete your account, we will remove your personal data and all
+            associated cases within thirty days. Aggregated, anonymized telemetry
+            may be retained indefinitely as it cannot be linked back to you.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            10. Security
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            We use industry-standard security measures including encryption in
+            transit and at rest, access controls, and regular security reviews.
+            While no system is perfectly secure, we take reasonable steps to
+            protect your data from unauthorized access, disclosure, or loss.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            In the event of a data breach that affects your personal information,
+            we will notify affected users as promptly as feasible and provide
+            information about the nature and scope of the incident.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            11. Your Rights and Choices
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            You may request a copy of the personal data we hold about you at any
+            time. You may also request that we delete your account and all
+            associated data. To make either request, email us from the address
+            linked to your account. We do not require a reason and we do not
+            charge for these requests.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You can revoke third-party authentication access through your
+            provider&apos;s settings. You can manage your organization membership and
+            team permissions from within the application. If you have any
+            questions about these rights, contact us at the address below.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            12. Contact
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Questions, data-export requests, or deletion requests should be sent
+            to{' '}
+            <a href="mailto:privacy@viableo.com" className="text-[#111] underline underline-offset-2 decoration-[#111]/20 hover:decoration-[#111]/60 hover:text-[#111]/70">
+              privacy@viableo.com
+            </a>.
+            We aim to respond within five business days. For the legal terms that
+            apply to your use of Viableo, see the{' '}
+            <InlineLink href="/terms">Terms of Service</InlineLink>.
+          </p>
+        </article>
+      </section>
+
+      <section className="border-t border-[#111]/[0.06] py-10">
+        <div className="mx-auto max-w-[760px] px-6 md:px-12">
+          <p className="text-[13px] leading-[1.6] text-[#111]/30">
+            © 2026 Viableo. All rights reserved.
+          </p>
+        </div>
+      </section>
     </MarketingShell>
   );
 }

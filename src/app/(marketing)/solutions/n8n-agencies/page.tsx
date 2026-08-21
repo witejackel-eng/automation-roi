@@ -73,7 +73,7 @@ export default function N8nAgenciesPage() {
             revenue math is the same whether you ship in n8n or anywhere else —
             you just enter your numbers and read the verdict.
           </p>
-          <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
+          <p className="mt-4 text-[13px] leading-[1.55] text-[#111]/30">
             Viableo is an independent tool. It does not connect to n8n, and is not
             affiliated with or endorsed by n8n.
           </p>
@@ -83,7 +83,7 @@ export default function N8nAgenciesPage() {
           </div>
         </PageHero>
 
-        <Section className="bg-surface">
+        <Section>
           <SectionHeading
             eyebrow="Three reasons"
             title="The math, before the workflow."
@@ -98,14 +98,14 @@ export default function N8nAgenciesPage() {
           <ul className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
             {REASONS.map((r) => (
               <li key={r.n}>
-                <article className="flex h-full flex-col rounded-md border border-border bg-canvas p-6">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-[13px] font-semibold text-ink">
+                <article className="flex h-full flex-col rounded-md border border-[#111]/[0.06] bg-white p-6">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5F4F0] text-[13px] font-semibold text-[#111]">
                     {r.n}
                   </span>
-                  <h3 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-[-0.02em] text-ink">
+                  <h3 className="mt-4 text-[22px] font-bold leading-[1.1] tracking-[-0.02em] text-[#111]">
                     {r.title}
                   </h3>
-                  <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted">
+                  <p className="mt-3 text-[14px] leading-[1.6] text-[#111]/50">
                     {r.body}
                   </p>
                 </article>
@@ -113,43 +113,43 @@ export default function N8nAgenciesPage() {
             ))}
           </ul>
 
-          <div className="mt-10 rounded-md border border-border bg-canvas p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+          <div className="mt-10 rounded-md border border-[#111]/[0.06] bg-white p-6 md:p-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/50">
               Worked example
             </p>
-            <p className="mt-3 text-[15px] leading-[1.6] text-ink-muted">
+            <p className="mt-3 text-[15px] leading-[1.6] text-[#111]/50">
               Apex Home Services golden case. An automation removing{' '}
-              <span className="font-mono tnum text-ink">20%</span> of a{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">20%</span> of a{' '}
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX.annualLaborCost)}
               </span>{' '}
               annual labor cost and lifting conversion by{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {(APEX.conversionImprovementPct * 100).toFixed(1)}pp
               </span>
               . The math returns{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatRoi(APEX.roiPct)}
               </span>{' '}
               ROI, paid back in{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatPayback(APEX.paybackMonths)}
               </span>
               , for a net annual benefit of{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX.netAnnualBenefit)}
               </span>
               . The same model works on a single n8n workflow or a multi-workflow
               engagement.
             </p>
-            <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
+            <p className="mt-4 text-[13px] leading-[1.55] text-[#111]/30">
               Figures are estimates, not financial advice. Full method on the{' '}
               <InlineLink href="/methodology">methodology page</InlineLink>.
             </p>
           </div>
         </Section>
 
-        <DotRule className="bg-canvas" />
+        <DotRule />
 
         <SiblingLinks
           label="Related"

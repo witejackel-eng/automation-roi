@@ -6,36 +6,34 @@ import { useState } from "react"
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
 const NAV_LINKS = [
-  { label: "Platform",     href: "/methodology" },
-  { label: "How it works", href: "/methodology#workflow" },
-  { label: "Solutions",    href: "/solutions/automation-agencies" },
-  { label: "Pricing",      href: "/pricing" },
-  { label: "Resources",    href: "/resources/automation-roi" },
+  { label: "Methodology", href: "/methodology" },
+  { label: "Solutions", href: "/solutions/automation-agencies" },
+  { label: "How It Works", href: "/resources/automation-roi" },
+  { label: "See It Work", href: "/start?start=1&example=apex" },
+  { label: "Pricing", href: "/pricing" },
 ]
 
 const FOOTER_CENTER_LINKS = [
-  { label: "Platform",     href: "/methodology" },
-  { label: "How it works", href: "/methodology#workflow" },
-  { label: "Solutions",    href: "/solutions/automation-agencies" },
-  { label: "Resources",    href: "/resources/automation-roi" },
-  { label: "Pricing",      href: "/pricing" },
+  { label: "Methodology", href: "/methodology" },
+  { label: "Solutions", href: "/solutions/automation-agencies" },
+  { label: "How It Works", href: "/resources/automation-roi" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Documentation", href: "/docs" },
 ]
 
 const FOOTER_LEGAL_LINKS = [
   { label: "Privacy", href: "/privacy" },
-  { label: "Terms",   href: "/terms" },
+  { label: "Terms", href: "/terms" },
 ]
 
-// ─── Shared pill style (matches agentic homepage MobileNav) ──────────────────
+// ─── Shared pill style ──────────────────────────────────────────────────────────
 
 const PILL_STYLE = {
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  background: "rgba(245,244,240,0.30)",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.06)",
+  background: "rgba(245,244,240,0.80)",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06)",
 } as const
-
-const LINK_FONT = { fontFamily: "system-ui, -apple-system, sans-serif" } as const
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -54,26 +52,28 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
           <nav
             className="flex items-center justify-between px-5 py-3 rounded-2xl border border-black/[0.06]"
             style={PILL_STYLE}
+            role="navigation"
+            aria-label="Main navigation"
           >
             {/* Brand */}
-            <Link href="/" className="font-mono text-xs tracking-[0.25em] text-black/70">
+            <Link href="/" className="font-mono text-xs tracking-[0.25em] text-[#111] font-semibold">
               VIABLEO
             </Link>
 
             {/* Desktop links */}
-            <div className="hidden lg:flex items-center gap-6" style={LINK_FONT}>
+            <div className="hidden lg:flex items-center gap-5">
               {NAV_LINKS.map((l) => (
                 <Link
                   key={l.label}
                   href={l.href}
-                  className="text-[11px] text-black/60 hover:text-black transition-colors duration-200 tracking-wide"
+                  className="text-[11px] text-[#111]/55 hover:text-[#111] transition-colors duration-200 tracking-wide"
                 >
                   {l.label}
                 </Link>
               ))}
               <Link
                 href="/auth/signin"
-                className="text-[11px] text-black/50 hover:text-black transition-colors duration-200 tracking-wide"
+                className="text-[11px] text-[#111]/40 hover:text-[#111] transition-colors duration-200 tracking-wide"
               >
                 Sign in
               </Link>
@@ -83,10 +83,9 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
               {/* CTA — desktop */}
               <Link
                 href="/start?start=1"
-                className="text-[11px] px-4 py-2 rounded-xl border border-black/10 text-black/60 hover:text-black hover:border-black/20 hover:bg-black/[0.03] transition-all duration-200 tracking-wide hidden lg:block"
-                style={LINK_FONT}
+                className="text-[11px] px-4 py-2 rounded-full bg-[#111] text-white hover:bg-[#333] transition-colors duration-200 tracking-wide hidden lg:inline-flex items-center min-h-[36px]"
               >
-                RUN YOUR FIRST CASE
+                Run your first case — free
               </Link>
 
               {/* Hamburger — mobile only */}
@@ -94,16 +93,17 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
                 onClick={() => setMobileOpen((v) => !v)}
                 className="lg:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px] rounded-lg hover:bg-black/[0.04] transition-colors"
                 aria-label={mobileOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileOpen}
               >
                 <span
-                  className="block h-px bg-black/60 transition-all duration-300 origin-center"
+                  className="block h-px bg-[#111]/60 transition-all duration-300 origin-center"
                   style={{
                     width: "18px",
                     transform: mobileOpen ? "translateY(6px) rotate(45deg)" : "none",
                   }}
                 />
                 <span
-                  className="block h-px bg-black/60 transition-all duration-300"
+                  className="block h-px bg-[#111]/60 transition-all duration-300"
                   style={{
                     width: "18px",
                     opacity: mobileOpen ? 0 : 1,
@@ -111,7 +111,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
                   }}
                 />
                 <span
-                  className="block h-px bg-black/60 transition-all duration-300 origin-center"
+                  className="block h-px bg-[#111]/60 transition-all duration-300 origin-center"
                   style={{
                     width: "18px",
                     transform: mobileOpen ? "translateY(-6px) rotate(-45deg)" : "none",
@@ -124,7 +124,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
           {/* Mobile dropdown */}
           <div
             className="lg:hidden mt-2 overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ maxHeight: mobileOpen ? "400px" : "0px", opacity: mobileOpen ? 1 : 0 }}
+            style={{ maxHeight: mobileOpen ? "500px" : "0px", opacity: mobileOpen ? 1 : 0 }}
           >
             <div
               className="rounded-2xl border border-black/[0.06] px-2 py-2 flex flex-col"
@@ -135,8 +135,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
                   key={l.label}
                   href={l.href}
                   onClick={closeMobile}
-                  className="px-4 py-3 text-sm text-black/60 hover:text-black hover:bg-black/[0.03] rounded-xl transition-colors tracking-wide"
-                  style={LINK_FONT}
+                  className="px-4 py-3 text-sm text-[#111]/60 hover:text-[#111] hover:bg-black/[0.03] rounded-xl transition-colors tracking-wide"
                 >
                   {l.label}
                 </Link>
@@ -144,18 +143,16 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
               <Link
                 href="/auth/signin"
                 onClick={closeMobile}
-                className="px-4 py-3 text-sm text-black/50 hover:text-black hover:bg-black/[0.03] rounded-xl transition-colors tracking-wide"
-                style={LINK_FONT}
+                className="px-4 py-3 text-sm text-[#111]/40 hover:text-[#111] hover:bg-black/[0.03] rounded-xl transition-colors tracking-wide"
               >
                 Sign in
               </Link>
-              <div className="mt-1 px-2 pb-1">
+              <div className="mt-2 px-2 pb-1">
                 <Link
                   href="/start?start=1"
-                  className="block w-full text-center text-[11px] px-4 py-2.5 rounded-xl border border-black/10 text-black/60 hover:text-black hover:border-black/20 hover:bg-black/[0.03] transition-all duration-200 tracking-wide"
-                  style={LINK_FONT}
+                  className="block w-full text-center text-[11px] px-4 py-2.5 rounded-full bg-[#111] text-white hover:bg-[#333] transition-colors duration-200 tracking-wide min-h-[44px] leading-[44px]"
                 >
-                  RUN YOUR FIRST CASE
+                  Run your first case — free
                 </Link>
               </div>
             </div>
@@ -164,48 +161,55 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* ── Page content ────────────────────────────────────────────────────── */}
-      <main className="flex flex-1 flex-col w-full">
+      <main id="main-content" className="flex flex-1 flex-col w-full">
         {children}
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          {/* Left — brand */}
-          <Link href="/" className="font-mono text-xs tracking-[0.25em] text-black/50">
-            VIABLEO
-          </Link>
-
-          {/* Center — nav links */}
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-            {FOOTER_CENTER_LINKS.map((l) => (
-              <Link
-                key={l.label}
-                href={l.href}
-                className="text-xs text-black/35 hover:text-black/70 transition-colors tracking-widest"
-              >
-                {l.label}
+      <footer className="py-12 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-[1200px] mx-auto flex flex-col gap-10">
+          {/* Top row: brand + tagline */}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            <div>
+              <Link href="/" className="font-mono text-xs tracking-[0.25em] text-[#111]/70">
+                VIABLEO
               </Link>
-            ))}
+              <p className="mt-2 text-sm text-[#111]/40">
+                Know what&apos;s worth building.
+              </p>
+            </div>
+
+            {/* Center — nav links */}
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+              {FOOTER_CENTER_LINKS.map((l) => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  className="text-xs text-[#111]/35 hover:text-[#111]/70 transition-colors tracking-widest"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Right — legal links */}
+            <div className="flex items-center gap-6">
+              {FOOTER_LEGAL_LINKS.map((l) => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  className="text-xs text-[#111]/25 hover:text-[#111]/55 transition-colors tracking-widest"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
-          {/* Right — legal links */}
-          <div className="flex items-center gap-6">
-            {FOOTER_LEGAL_LINKS.map((l) => (
-              <Link
-                key={l.label}
-                href={l.href}
-                className="text-xs text-black/25 hover:text-black/55 transition-colors tracking-widest"
-              >
-                {l.label}
-              </Link>
-            ))}
+          {/* Disclaimer */}
+          <div className="pt-6 border-t border-black/[0.04]">
+            <span className="text-xs text-[#111]/20">© 2026 Viableo. All rights reserved.</span>
           </div>
-        </div>
-
-        {/* Disclaimer */}
-        <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-black/[0.04]">
-          <span className="text-xs text-black/20">© 2026 Viableo. All rights reserved.</span>
         </div>
       </footer>
     </div>

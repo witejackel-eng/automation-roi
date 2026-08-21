@@ -99,7 +99,7 @@ export default function ResourceAutomationBusinessCasePage() {
         </PageHero>
 
         {/* ── What it is ────────────────────────────────────────── */}
-        <Section className="bg-surface">
+        <Section>
           <SectionHeading
             eyebrow="What it is"
             title="A document the client can sign."
@@ -112,14 +112,14 @@ export default function ResourceAutomationBusinessCasePage() {
             </p>
             <p className="mt-4">
               The Viableo output is called the{' '}
-              <span className="font-medium text-ink">{REPORT_NAME}</span>. It is
+              <span className="font-medium text-[#111]">{REPORT_NAME}</span>. It is
               a PDF. Six sections. The same structure every time.
             </p>
           </SectionHeading>
         </Section>
 
         {/* ── The six sections ──────────────────────────────────── */}
-        <Section className="bg-canvas">
+        <Section>
           <SectionHeading
             eyebrow="The six sections"
             title="Cover. Summary. Math. Range. Verdict. Inputs."
@@ -134,16 +134,16 @@ export default function ResourceAutomationBusinessCasePage() {
           <ol className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
             {SECTIONS.map((s) => (
               <li key={s.n}>
-                <article className="flex h-full flex-col rounded-md border border-border bg-surface p-6">
+                <article className="flex h-full flex-col rounded-md border border-[#111]/[0.06] bg-white p-6">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-canvas text-[13px] font-semibold text-ink">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5F4F0] text-[13px] font-semibold text-[#111]">
                       {s.n}
                     </span>
-                    <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
+                    <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-[#111]">
                       {s.label}
                     </h3>
                   </div>
-                  <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted">
+                  <p className="mt-3 text-[14px] leading-[1.6] text-[#111]/50">
                     {s.body}
                   </p>
                 </article>
@@ -153,7 +153,7 @@ export default function ResourceAutomationBusinessCasePage() {
         </Section>
 
         {/* ── What the recommendation looks like ───────────────── */}
-        <Section className="bg-surface">
+        <Section>
           <SectionHeading
             eyebrow="The recommendation"
             title="Four words. One verdict."
@@ -172,14 +172,14 @@ export default function ResourceAutomationBusinessCasePage() {
             ].map((d) => (
               <li
                 key={d.label}
-                className="flex min-h-[44px] items-start gap-3 rounded-md border border-border bg-canvas p-4"
+                className="flex min-h-[44px] items-start gap-3 rounded-md border border-[#111]/[0.06] bg-white p-4"
               >
                 <Dot size="sm" className="mt-1.5" />
                 <div>
-                  <p className="text-[14px] font-semibold uppercase tracking-[0.04em] text-ink">
+                  <p className="text-[14px] font-semibold uppercase tracking-[0.04em] text-[#111]">
                     {d.label}
                   </p>
-                  <p className="mt-1 text-[13px] leading-[1.5] text-ink-muted">
+                  <p className="mt-1 text-[13px] leading-[1.5] text-[#111]/50">
                     {d.when}
                   </p>
                 </div>
@@ -187,37 +187,37 @@ export default function ResourceAutomationBusinessCasePage() {
             ))}
           </ul>
 
-          <div className="mt-8 rounded-md border border-border bg-canvas p-6 md:p-8">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-muted">
+          <div className="mt-8 rounded-md border border-[#111]/[0.06] bg-white p-6 md:p-8">
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#111]/50">
               Apex golden case · what the recommendation says
             </p>
-            <p className="mt-3 text-[15px] leading-[1.6] text-ink-muted">
+            <p className="mt-3 text-[15px] leading-[1.6] text-[#111]/50">
               The Apex math returns{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatRoi(APEX.roiPct)}
               </span>{' '}
               ROI, paid back in{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatPayback(APEX.paybackMonths)}
               </span>
               , for a net annual benefit of{' '}
-              <span className="font-mono tnum text-ink">
+              <span className="font-mono tnum text-[#111]">
                 {formatCurrency(APEX.netAnnualBenefit)}
               </span>
               . The recommendation page on that report reads{' '}
-              <span className="font-semibold uppercase tracking-[0.04em] text-ink">
+              <span className="font-semibold uppercase tracking-[0.04em] text-[#111]">
                 {DECISION_LABELS.build}
               </span>
               .
             </p>
-            <p className="mt-4 text-[13px] leading-[1.55] text-ink-faint">
+            <p className="mt-4 text-[13px] leading-[1.55] text-[#111]/30">
               Figures are estimates, not financial advice. The full decision tree
               is on the <InlineLink href="/methodology">methodology page</InlineLink>.
             </p>
           </div>
         </Section>
 
-        <DotRule className="bg-canvas" />
+        <DotRule />
 
         <SiblingLinks
           label="Keep reading"

@@ -49,12 +49,12 @@ export const ALT_TAGLINES = [
 export const PRONUNCIATION = 'VY-uh-blee-oh (rhymes with "viable" + "oh")';
 
 // ── Hero (Section F — Hero) ─────────────────────────────────
-export const HERO_EYEBROW = 'For agencies who sell automation';
-export const HERO_HEADLINE = 'Know what\u2019s worth building \u2014 before you quote it.';
+export const HERO_EYEBROW = 'Pre-build automation business cases';
+export const HERO_HEADLINE = 'Know what\u2019s worth building.';
 export const HERO_SUBHEAD =
-  'Get a BUILD / CONSIDER / DON\u2019T BUILD verdict, the point where the case breaks, and a client document that holds up when they push on price.';
-export const HERO_CTA_PRIMARY = 'Run a free case in 5 minutes';
-export const HERO_CTA_SECONDARY = 'See a completed example';
+  'Turn a rough automation scope into a stress-tested verdict \u2014 and the business case that defends it.';
+export const HERO_CTA_PRIMARY = 'Run your first case \u2014 free';
+export const HERO_CTA_SECONDARY = 'See a completed case';
 // Stat labels for the hero (E1 visual).
 export const HERO_STAT_LABELS = {
   net: 'Expected first-year net',
@@ -73,7 +73,7 @@ export const ACTION_NEW_ANALYSIS = 'New analysis \u2192';
 export const ACTION_SAVE_ANALYSIS = 'Save analysis';
 
 // ── Problem (Section F — Problem, E2) ────────────────────────
-export const PROBLEM_HEADLINE = 'Building it is the easy part.';
+export const PROBLEM_HEADLINE = 'A good automation idea isn\u2019t a business case.';
 export const PROBLEM_SUBHEAD =
   'Deciding whether it\u2019s worth building \u2014 and defending that decision to a client who is benchmarking your quote against two other bids \u2014 is where automation projects go wrong.';
 export const PROBLEM_PARAS = [
@@ -204,9 +204,9 @@ export const COMPARISON_ROWS = [
 ] as const;
 
 // ── Pricing (Section F + K, E11) ──────────────
-export const PRICING_HEADLINE = 'Simple plans. Full rigor on every tier.';
-export const PRICING_SUBHEAD = 'Free includes the real decision engine. Paid unlocks clean client artifacts and workflow.';
-export const PRICING_FOOTNOTE = 'Monthly and annual subscriptions. Cancel any time.';
+export const PRICING_HEADLINE = "Pricing.";
+export const PRICING_SUBHEAD = "Free includes the analytical decision process. Paid unlocks the full professional workflow.";
+export const PRICING_FOOTNOTE = "Monthly subscription. Cancel any time.";
 export const DATA_HANDLING_LINE =
   'Viableo needs no client-identifying data to return a verdict. Hours, rates, volumes, and a fee are enough.';
 export const PRICING_TIERS = [
@@ -216,47 +216,37 @@ export const PRICING_TIERS = [
     price: '$0',
     cadence: 'forever',
     popular: false,
-    identity: 'Try it once.',
-    blurb: 'One case per month. Full analytical rigor — confidence scoring, stress test, scenarios. Watermarked document.',
+    identity: 'See the math.',
+    blurb: 'Experience the full analytical decision process: business-case analysis, scenarios, confidence, stress testing, and a BUILD / CONSIDER / DON\u2019T BUILD verdict.',
     casesPerMonth: 1,
   },
   {
     key: 'pro',
     name: 'Pro',
-    price: '$29',
+    price: '$49',
     cadence: 'per month',
-    popular: true,
-    identity: 'Full documents.',
-    blurb: 'Five cases per month. Unwatermarked PDFs, saved projects, share links.',
+    popular: false,
+    identity: 'Build the case.',
+    blurb: 'For agencies that need to turn analyses into client-ready business cases. Saved cases, client-ready reports, proposals, share links, and agency workflow.',
     casesPerMonth: 5,
   },
   {
-    key: 'agency',
-    name: 'Agency',
-    price: '$79',
-    cadence: 'per month',
+    key: 'custom',
+    name: 'Custom',
+    price: 'Custom',
+    cadence: '',
     popular: false,
-    identity: 'Unlimited cases.',
-    blurb: 'Unlimited cases. Your branding on every document. Client history.',
-    casesPerMonth: Infinity,
-  },
-  {
-    key: 'agency_pro',
-    name: 'Agency Pro',
-    price: '$790',
-    cadence: 'per year',
-    popular: false,
-    identity: 'Make it yours.',
-    blurb: 'Unlimited cases, branding, client history, team seats, and API access.',
+    identity: 'Make it fit your practice.',
+    blurb: 'For teams that need custom workflows, advanced collaboration, integrations, or volume.',
     casesPerMonth: Infinity,
   },
 ] as const;
 
 // ── Close (Section F, E12) ──────────────────────────────────
-export const FINAL_CTA_HEADLINE = 'Quote the build after the case survives the stress test.';
+export const FINAL_CTA_HEADLINE = 'Build what pays back.';
 export const FINAL_CTA_BODY =
   'Run one case. If the answer is don\u2019t build, you have saved yourself a project.';
-export const FINAL_CTA_PRIMARY = 'Run your first case free';
+export const FINAL_CTA_PRIMARY = 'Run your first case — free';
 export const FINAL_CTA_PRIMARY_HREF = '/start?start=1';
 export const FINAL_CTA_SECONDARY = ''; // E12: one CTA only. Kept for back-compat, intentionally empty.
 export const FINAL_CTA_SECONDARY_HREF = '';

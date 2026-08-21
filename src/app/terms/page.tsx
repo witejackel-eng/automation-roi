@@ -1,29 +1,19 @@
 import type { Metadata } from 'next';
 import { MarketingShell } from '@/components/marketing/marketing-shell';
-import {
-  PageHero,
-  Section,
-  SectionHeading,
-  ClosingCTA,
-  BreadcrumbJsonLd,
-  InlineLink,
-} from '@/components/marketing/marketing-primitives';
+import { PageHero, BreadcrumbJsonLd, InlineLink } from '@/components/marketing/marketing-primitives';
 
 export const metadata: Metadata = {
-  title: 'Terms — Viableo',
+  title: 'Terms of Service — Viableo',
   description: 'The terms under which Viableo is licensed.',
   alternates: { canonical: '/terms' },
   openGraph: {
     type: 'website',
-    title: 'Terms | Viableo',
+    title: 'Terms of Service | Viableo',
     description: 'The terms under which Viableo is licensed.',
     url: '/terms',
   },
   robots: { index: true, follow: true },
 };
-
-// TODO_HUMAN_TERMS_EMAIL: replace with a monitored address before production launch.
-const TERMS_EMAIL = 'terms@TODO_HUMAN_DOMAIN';
 
 export default function TermsPage() {
   return (
@@ -31,211 +21,273 @@ export default function TermsPage() {
       <BreadcrumbJsonLd
         crumbs={[
           { name: 'Home', path: '/' },
-          { name: 'Terms', path: '/terms' },
+          { name: 'Terms of Service', path: '/terms' },
         ]}
       />
-      <main id="main-content" className="w-full">
-        <PageHero eyebrow="Terms" title="The terms under which Viableo is licensed.">
-          <p>
-            Viableo is a decision instrument for automation agencies — it
-            converts operational inputs into a BUILD, CONSIDER, or
-            DON&apos;T BUILD verdict and a client-ready business case. This
-            page sets out the terms on which you may use it. By using Viableo
-            you agree to them.
+      <PageHero eyebrow="Terms of Service" title="Terms of Service" />
+
+      <section className="py-12 md:py-20">
+        <article className="mx-auto max-w-[760px] px-6 md:px-12">
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            1. Using Viableo
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo is a software-as-a-service decision instrument for automation
+            professionals. You enter operational inputs for a prospective
+            automation project — hours saved, hourly cost, lead volume,
+            conversion lift, average customer value, gross margin,
+            implementation fee, recurring costs, and other annual costs. Viableo
+            runs the math against multiple scenarios, scores the confidence of
+            your inputs, and returns a verdict with a client-ready report.
           </p>
-        </PageHero>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            By accessing or using Viableo, you agree to be bound by these Terms
+            of Service. If you do not agree, do not use the service. These terms
+            apply to all users, including free-tier users.
+          </p>
 
-        <Section className="bg-canvas">
-          <div className="space-y-16 md:space-y-24">
-            <div>
-              <SectionHeading eyebrow="The service" title="What Viableo is.">
-                <p>
-                  Viableo is software-as-a-service for automation agencies.
-                  You enter the operational inputs for a prospective
-                  automation project — hours saved, hourly cost, lead volume,
-                  conversion lift, average customer value, gross margin,
-                  implementation fee, monthly AI/API cost, monthly software
-                  cost, and other annual cost. Viableo runs the math against
-                  three scenarios, scores the confidence of your inputs,
-                  stress-tests the breaking point, and returns a verdict with
-                  a client-ready report.
-                </p>
-                <p>
-                  Viableo is a decision instrument. Its outputs are estimates
-                  produced from the inputs you supplied. They are not
-                  financial advice, and they are not guarantees of future
-                  performance.
-                </p>
-              </SectionHeading>
-            </div>
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            2. Accounts
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            You must create an account to use Viableo. You are responsible for
+            maintaining the security of your account credentials and for all
+            activity that occurs under your account. If you believe your account
+            has been compromised, you must notify us immediately.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You must provide accurate information when creating your account. You
+            may not impersonate another person or entity, or create accounts under
+            false pretenses. We reserve the right to suspend accounts that
+            violate these requirements.
+          </p>
 
-            <div>
-              <SectionHeading
-                eyebrow="Licenses"
-                title="Monthly and annual subscriptions."
-              >
-                <p>
-                  Viableo is licensed as a subscription. There are four tiers.
-                  The value metric is a case — one full idea to decision to
-                  business-case run.
-                </p>
-                <div className="mt-8 overflow-hidden rounded-md border border-border">
-                  <table className="w-full text-left text-[14px]">
-                    <thead className="bg-surface text-[12px] uppercase tracking-[0.06em] text-ink-muted">
-                      <tr>
-                        <th className="px-4 py-3 font-medium">Tier</th>
-                        <th className="px-4 py-3 font-medium">Price</th>
-                        <th className="px-4 py-3 font-medium">Scope</th>
-                      </tr>
-                    </thead>
-                    <tbody className="font-mono tnum text-ink">
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">Free</td>
-                        <td className="px-4 py-3">$0 / forever</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
-                          One case per month. Full analytical rigor. Watermarked
-                          report.
-                        </td>
-                      </tr>
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">
-                          Pro
-                        </td>
-                        <td className="px-4 py-3">$29 per month</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
-                          Five cases per month. Unwatermarked PDFs, share links.
-                        </td>
-                      </tr>
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">Agency</td>
-                        <td className="px-4 py-3">$79 per month</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
-                          Unlimited cases. Your branding on every document.
-                        </td>
-                      </tr>
-                      <tr className="border-t border-border">
-                        <td className="px-4 py-3 font-sans text-ink">
-                          Agency Pro
-                        </td>
-                        <td className="px-4 py-3">$790 per year</td>
-                        <td className="px-4 py-3 font-sans text-ink-muted">
-                          Everything in Agency, plus team seats and API access.
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p className="mt-6 text-[13px] leading-[1.6] text-ink-faint">
-                  Monthly and annual subscriptions. Cancel any time.
-                </p>
-              </SectionHeading>
-            </div>
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            3. Organizations and Teams
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            You may create or join an organization to collaborate with team
+            members. The organization owner is responsible for managing members
+            and permissions. All members of an organization are bound by these
+            terms individually.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            Business cases created within an organization are owned by the
+            organization. If your membership is revoked, your personal cases
+            remain yours. Organization-level cases and data may be retained by
+            the organization after your departure.
+          </p>
 
-            <div>
-              <SectionHeading eyebrow="Acceptable use" title="What you may not do.">
-                <p>
-                  You may not resell individual cases — a case is licensed to
-                  you for the analysis you are running, not as inventory to
-                  re-trade. You may not scrape, crawl, or otherwise extract
-                  Viableo&apos;s computed results, recommendation logic, or
-                  benchmark data through automated means. You may not
-                  re-label, alter, or selectively trim Viableo outputs in a
-                  way that misrepresents the underlying numbers to your
-                  client.
-                </p>
-                <p>
-                  The verdict, the scenario results, and the confidence score
-                  are produced from the inputs you supplied. Show them as
-                  they came out. If a number does not flatter the case, that
-                  is information, not a typo to fix.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading eyebrow="Refunds" title="Contact within fourteen days.">
-                <p>
-                  Pro subscriptions are refundable on request within fourteen days
-                  of purchase, provided the cases have not been consumed. If
-                  you have used one or more of the cases in a pack and are not
-                  satisfied, write to us — we will look at it and, where the
-                  failure was on our side, refund the unused portion. Free
-                  and unlimited (Agency, Agency Pro) tiers are not refundable
-                  because they are zero-recurring and access has already been
-                  granted.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading
-                eyebrow="Liability"
-                title="Estimates for decision support."
-              >
-                <p>
-                  Viableo outputs are estimates produced from the inputs you
-                  supplied. They are intended for decision support — to help
-                  you decide whether to build, to narrow the first phase, or
-                  to walk away — and they are not financial advice, not
-                  investment advice, and not a guarantee of future revenue,
-                  cost savings, or payback.
-                </p>
-                <p>
-                  You remain responsible for the decisions you make on the
-                  basis of a Viableo report, including the decision to share
-                  the report with a client. To the maximum extent permitted by
-                  law, Viableo is provided as-is, without warranty of any
-                  kind, and our liability for any claim arising from your use
-                  of the service is limited to the amount you paid us in the
-                  preceding twelve months.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading
-                eyebrow="Changes to these terms"
-                title="We will say so, in advance."
-              >
-                <p>
-                  If we change these terms, we will update this page and bump
-                  the date below. For material changes — pricing, acceptable
-                  use, liability — we will also notify active account holders
-                  by email at least seven days before the change takes effect.
-                  Continued use after the effective date is agreement to the
-                  updated terms.
-                </p>
-              </SectionHeading>
-            </div>
-
-            <div>
-              <SectionHeading eyebrow="Contact" title="Email us.">
-                <p>
-                  Questions about these terms go to{' '}
-                  <a
-                    href={`mailto:${TERMS_EMAIL}`}
-                    className="link-underline text-ink underline-offset-4 hover:text-brand"
-                  >
-                    {TERMS_EMAIL}
-                  </a>{' '}
-                  — a placeholder address until a monitored mailbox is set
-                  up. For how we handle your data, see{' '}
-                  <InlineLink href="/privacy">the Privacy page</InlineLink>.
-                </p>
-              </SectionHeading>
-            </div>
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            4. Subscriptions
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo offers the following subscription tiers. Paid subscriptions
+            are recurring monthly charges that renew automatically until you
+            cancel. You may cancel at any time; cancellation takes effect at the
+            end of your current billing period.
+          </p>
+          <div className="mt-6 overflow-hidden rounded-lg border border-[#111]/[0.06] bg-white">
+            <table className="w-full text-left">
+              <thead className="bg-[#111]/[0.03]">
+                <tr>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-widest text-[#111]/40">
+                    Tier
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-widest text-[#111]/40">
+                    Billing
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-medium uppercase tracking-widest text-[#111]/40">
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-[14px] text-[#111]">
+                <tr className="border-t border-[#111]/[0.04]">
+                  <td className="px-4 py-3">Free</td>
+                  <td className="px-4 py-3">Forever</td>
+                  <td className="px-4 py-3">$0</td>
+                </tr>
+                <tr className="border-t border-[#111]/[0.04]">
+                  <td className="px-4 py-3">Pro</td>
+                  <td className="px-4 py-3">Monthly</td>
+                  <td className="px-4 py-3">$49/month</td>
+                </tr>
+                <tr className="border-t border-[#111]/[0.04]">
+                  <td className="px-4 py-3">Custom</td>
+                  <td className="px-4 py-3">Custom</td>
+                  <td className="px-4 py-3">Contact us</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <p className="mt-12 text-[13px] leading-[1.6] text-ink-faint">
-            Last updated: Phase 3. Figures are estimates, not financial advice.
+          <p className="mt-6 text-[15px] leading-[1.7] text-[#111]/50">
+            The Pro tier at $49/month is a recurring monthly charge billed
+            automatically each month until you cancel. The Free tier is available
+            indefinitely with no billing required. Custom plans are arranged
+            separately — contact us for details.
           </p>
-        </Section>
 
-        <ClosingCTA
-          headline="Build what pays back."
-          body="Run the numbers before you commit the build."
-        />
-      </main>
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            5. Business-Case Outputs
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo&apos;s outputs — verdicts, scenario tables, confidence scores,
+            sensitivity analyses, and narrative summaries — are estimates produced
+            from the inputs you supplied. They are intended for decision support
+            and are not financial advice, investment advice, or guarantees of
+            future performance.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You are responsible for the accuracy of the inputs you provide.
+            Viableo does not verify your assumptions. The quality of the output
+            depends entirely on the quality of the input.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            6. Client Sharing
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            You may share business-case reports with your clients using the share
+            link feature. The share link grants read-only access to the report.
+            You may revoke a share link at any time. Shared reports may display
+            your branding if you are on a plan that includes that feature.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You are responsible for how you present shared reports to your
+            clients. You may not alter the underlying numbers in a way that
+            misrepresents the analysis. If a number does not support the case,
+            that is information, not an error to correct.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            7. Acceptable Use
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            You may not resell individual cases or access to the service. You may
+            not scrape, crawl, or extract Viableo&apos;s computed results, logic, or
+            benchmark data through automated means. You may not use the service
+            for any unlawful purpose or in any way that could damage, disable, or
+            impair the service.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You may not attempt to gain unauthorized access to our systems or
+            other users&apos; accounts. You may not use the service to generate
+            misleading financial projections for fraudulent purposes.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            8. Intellectual Property
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo and its original content, features, and functionality are
+            owned by Viableo and are protected by copyright, trademark, and other
+            intellectual property laws. Your business-case inputs and the
+            resulting outputs remain your data.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You are granted a limited, non-exclusive, non-transferable license to
+            use Viableo for its intended purpose. This license terminates when
+            your subscription ends or your account is closed.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            9. Disclaimers
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Viableo is provided as-is. We make no warranties, express or implied,
+            regarding the service, including but not limited to warranties of
+            merchantability, fitness for a particular purpose, or non-infringement.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            We do not warrant that the service will be uninterrupted, timely,
+            secure, or error-free. The analytical outputs are estimates and should
+            not be treated as financial advice, accounting advice, or legal advice.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            10. Liability
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            To the maximum extent permitted by applicable law, Viableo shall not
+            be liable for any indirect, incidental, special, consequential, or
+            punitive damages arising from your use of the service. Our total
+            liability for any claim shall not exceed the amount you paid us in
+            the twelve months preceding the claim.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            You remain solely responsible for decisions made on the basis of
+            Viableo reports, including decisions to share those reports with
+            clients and the commercial outcomes of any project you undertake.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            11. Termination
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            You may stop using the service at any time. You may cancel your
+            subscription at any time; cancellation takes effect at the end of
+            your current billing period. We reserve the right to suspend or
+            terminate your account if you violate these terms, with reasonable
+            notice where possible.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            Upon termination, your right to use the service ends. Provisions
+            that by their nature should survive — including intellectual property,
+            liability limitations, and disclaimers — will continue to apply.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            12. Changes
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            We may update these terms from time to time. When we do, we will
+            revise the date at the top of this page. For material changes — such
+            as pricing, acceptable use, or liability — we will notify active
+            account holders by email at least seven days before the change takes
+            effect.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            Continued use of the service after the effective date of a change
+            constitutes acceptance of the updated terms. If you do not agree
+            with a change, you should cancel your subscription before the change
+            takes effect.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            13. Governing Law
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            These terms are governed by and construed in accordance with the
+            laws of the jurisdiction in which Viableo operates, without regard
+            to its conflict-of-law provisions. Any disputes arising under these
+            terms shall be resolved in the courts of that jurisdiction.
+          </p>
+          <p className="mt-3 text-[15px] leading-[1.7] text-[#111]/50">
+            If any provision of these terms is found to be unenforceable, the
+            remaining provisions will continue in full force and effect.
+          </p>
+
+          <h2 className="mt-8 pt-8 border-t border-[#111]/[0.06] text-[18px] font-medium text-[#111]">
+            14. Contact
+          </h2>
+          <p className="mt-4 text-[15px] leading-[1.7] text-[#111]/50">
+            Questions about these terms should be sent to{' '}
+            <a href="mailto:terms@viableo.com" className="text-[#111] underline underline-offset-2 decoration-[#111]/20 hover:decoration-[#111]/60 hover:text-[#111]/70">
+              terms@viableo.com
+            </a>. For how we handle your data, see the{' '}
+            <InlineLink href="/privacy">Privacy Policy</InlineLink>.
+          </p>
+        </article>
+      </section>
+
+      <section className="border-t border-[#111]/[0.06] py-10">
+        <div className="mx-auto max-w-[760px] px-6 md:px-12">
+          <p className="text-[13px] leading-[1.6] text-[#111]/30">
+            © 2026 Viableo. All rights reserved.
+          </p>
+        </div>
+      </section>
     </MarketingShell>
   );
 }

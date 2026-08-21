@@ -5,55 +5,35 @@ import { COMPANY_NAME, PRODUCT_NAME, PRICING_TIERS } from '@/lib/brand';
 
 export const metadata: Metadata = {
   title: 'Pricing',
-  description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+  description: 'Free, Pro, and Custom plans. Start free — experience the full analytical decision process.',
   alternates: { canonical: '/pricing' },
   openGraph: {
     type: 'website',
     title: 'Pricing | Viableo',
-    description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+    description: 'Free, Pro, and Custom plans. Start free — experience the full analytical decision process.',
     url: '/pricing',
   },
-  twitter: {
-    card: 'summary',
-    title: 'Pricing | Viableo',
-    description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
-  },
+  twitter: { card: 'summary', title: 'Pricing | Viableo', description: 'Free, Pro, and Custom plans.' },
 };
 
 export default function PricingPage() {
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: '/' },
-      { '@type': 'ListItem', position: 2, name: 'Pricing', item: '/pricing' },
-    ],
-  };
-
   const offersJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: `${COMPANY_NAME} — ${PRODUCT_NAME}`,
-    description: `Free, Pro, Agency, and Agency Pro plans. Start free and upgrade when you need client-ready documents.`,
+    description: 'Free, Pro, and Custom plans.',
     brand: { '@type': 'Brand', name: COMPANY_NAME },
     offers: PRICING_TIERS.map((t) => ({
       '@type': 'Offer',
       name: t.name,
-      price: t.price.replace(/[^0-9.]/g, ''),
+      price: t.key === 'custom' ? '' : t.price.replace(/[^0-9.]/g, ''),
       priceCurrency: 'USD',
     })),
   };
 
   return (
     <MarketingShell>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(offersJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offersJsonLd) }} />
       <PricingView />
     </MarketingShell>
   );
