@@ -1,7 +1,7 @@
 /**
  * POST /api/projects/[id]/share — create a shareable client-report link.
  *
- * Entitlement: `share_links` (Agency Pro+). The share uses an opaque random
+ * Entitlement: `share_links` (Pro+). The share uses an opaque random
  * `shareId` (never the project id, never the client name) so the URL carries
  * no sensitive data (Master Spec §45, §58).
  *
@@ -35,8 +35,8 @@ export async function POST(
   if (!has(entitlement, 'share_links')) {
     return NextResponse.json(
       {
-        error: 'Share links require Agency Pro.',
-        requiredTier: 'agency_pro',
+        error: 'Share links require Pro.',
+        requiredTier: 'pro',
       },
       { status: 403 }
     );
@@ -99,7 +99,7 @@ export async function DELETE(
   const entitlement = await getEffectiveEntitlement(org.id);
   if (!has(entitlement, 'share_links')) {
     return NextResponse.json(
-      { error: 'Share links require Agency Pro.' },
+      { error: 'Share links require Pro.' },
       { status: 403 }
     );
   }

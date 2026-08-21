@@ -1,12 +1,17 @@
 /**
- * POST /api/projects — save a project (pro+).
- * GET  /api/projects — list projects for the demo organization (agency+).
+ * POST /api/projects — save a project.
+ *   Starter: allowed up to 10 cases/calendar month (enforced via checkCaseLimit).
+ *   Pro:     unlimited.
+ *   Superadmin: bypasses via getEffectiveEntitlement (returns Pro).
+ *
+ * GET  /api/projects — list projects for the current org.
+ *   Starter + Pro both have read access to their own org's projects.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, AuthError } from '@/lib/session';
 import { tenant } from "@/lib/tenant";
 import { getEffectiveEntitlement } from "@/lib/entitlement-session";
-import { has } from '@/lib/entitlement';
+import { checkCaseLimit } from '@/lib/entitlement';
 // db import removed — all access now via tenant() per Phase 6 F-6 fix.
 import { calculatorInputsSchema } from '@/lib/validation/schema';
 import { calculateAllScenarios } from '@/lib/calculations/engine';
@@ -27,10 +32,19 @@ export async function POST(req: NextRequest) {
   try {
   const org = await requireOrg();
   const entitlement = await getEffectiveEntitlement(org.id);
-  if (!has(entitlement, 'save_project')) {
+
+  // Starter (free) can save up to 10 cases/month; Pro is unlimited.
+  // checkCaseLimit enforces the monthly counter for Starter.
+  const caseLimit = await checkCaseLimit(org.id);
+  if (!caseLimit.allowed) {
     return NextResponse.json(
-      { error: 'Saving projects requires Pro or higher.', requiredTier: 'pro' },
-      { status: 403 }
+      {
+        error: `You've reached the Starter limit of ${caseLimit.limit} cases this month. Upgrade to Pro for unlimited cases.`,
+        requiredTier: 'pro',
+        limit: caseLimit.limit,
+        remaining: caseLimit.remaining,
+      },
+      { status: 402 } // Payment Required — nudges upgrade.
     );
   }
 
@@ -79,13 +93,8 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
   const org = await requireOrg();
-  const entitlement = await getEffectiveEntitlement(org.id);
-  if (!has(entitlement, 'client_history')) {
-    return NextResponse.json(
-      { error: 'Project history requires Agency or higher.', requiredTier: 'agency' },
-      { status: 403 }
-    );
-  }
+  // Both Starter and Pro can list their own org's projects.
+  await getEffectiveEntitlement(org.id);
 
   // Phase 6 (F-6 fix): route through tenant(org.id) so organizationId is
   // baked into the WHERE clause by the wrapper, not by caller discipline.
