@@ -159,6 +159,13 @@ export default async function OverviewPage() {
         criticalEvents={critical}
         billingAlerts={billingAlerts}
         productActivity={productActivity}
+        planDistribution={{
+          segments: [
+            { label: 'Starter', value: mix.free, color: CHART_COLORS.muted },
+            { label: 'Pro', value: (mix.pro ?? 0) + (mix.agency ?? 0) + (mix.agency_pro ?? 0), color: CHART_COLORS.coral },
+          ],
+          total: (mix.free ?? 0) + (mix.pro ?? 0) + (mix.agency ?? 0) + (mix.agency_pro ?? 0),
+        }}
       />
     </PageContainer>
   )

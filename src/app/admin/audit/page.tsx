@@ -6,6 +6,7 @@ import {
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
 import { AuditFilters } from './_components/audit-filters'
+import { ActionTimeline } from '@/components/admin/action-timeline'
 import { timeAgo, shortId } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
@@ -92,6 +93,11 @@ export default async function AuditPage({ searchParams }: { searchParams: Search
       </div>
 
       <AuditFilters action={actionRaw} />
+
+      {/* Action timeline — visual summary of recent privileged actions */}
+      {wide.rows.length > 0 ? (
+        <ActionTimeline entries={wide.rows} maxItems={10} />
+      ) : null}
 
       {/* Audit table */}
       {list.rows.length === 0 ? (

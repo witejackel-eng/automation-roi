@@ -4,6 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { StatusDot, StatusPill } from './ui'
+import { MiniDonut } from './mini-donut'
 import { timeAgo } from '@/lib/format'
 import { ArrowUpRight } from 'lucide-react'
 import { getEventMeta } from './activity-timeline'
@@ -13,11 +14,13 @@ export function RightRail({
   criticalEvents,
   billingAlerts,
   productActivity,
+  planDistribution,
 }: {
   systemStatus?: { label: string; variant: 'success' | 'warning' | 'error' | 'neutral' }
   criticalEvents?: { id: string; eventType: string; severity: string; organizationId: string | null; createdAt: Date | string }[]
   billingAlerts?: { id: string; label: string; severity: 'error' | 'warning' | 'info'; href?: string }[]
   productActivity?: { label: string; value: string | number; href?: string }[]
+  planDistribution?: { segments: { label: string; value: number; color: string }[]; total: number }
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -98,6 +101,30 @@ export function RightRail({
               </li>
             ))}
           </ul>
+        </RailCard>
+      ) : null}
+
+      {/* Plan distribution mini-donut */}
+      {planDistribution && planDistribution.total > 0 ? (
+        <RailCard title="Plan distribution" action={<Link href="/admin/subscriptions" className="text-[11px] text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-coral)] vcp-focus rounded">All</Link>}>
+          <div className="flex items-center gap-3">
+            <MiniDonut
+              segments={planDistribution.segments}
+              size={96}
+              thickness={12}
+              centerValue={planDistribution.total}
+              centerLabel="orgs"
+            />
+            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+              {planDistribution.segments.map((seg) => (
+                <div key={seg.label} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: seg.color }} />
+                  <span className="text-[11px] text-[var(--vcp-ink-muted)] truncate">{seg.label}</span>
+                  <span className="text-[11px] font-semibold text-[var(--vcp-ink-strong)] vcp-tnum ml-auto">{seg.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </RailCard>
       ) : null}
     </div>

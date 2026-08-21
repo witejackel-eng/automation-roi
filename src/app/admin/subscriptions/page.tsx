@@ -7,6 +7,7 @@ import {
 import {
   KpiCard, SectionHeader, PageContainer, EmptyState, Pagination, StatusPill,
 } from '@/components/admin/ui'
+import { Sparkline } from '@/components/admin/sparkline'
 import type { StatusVariant } from '@/components/admin/ui'
 import { formatDate, shortId } from '@/lib/format'
 import { TIER_TO_CANONICAL, type Tier } from '@/lib/brand'
@@ -63,6 +64,17 @@ export default async function SubscriptionsPage({
     listSubscriptionsForAdmin({ page: 1, pageSize: 10000, search: search || undefined, status: status === 'all' ? undefined : status }),
   ])
 
+  // 7-day subscription creation sparkline (all statuses, from the filtered set)
+  const subTrend7d: number[] = Array(7).fill(0)
+  const now = new Date()
+  const dayMs = 24 * 60 * 60 * 1000
+  for (const s of allSubs.rows) {
+    const dayDiff = Math.floor((now.getTime() - s.createdAt.getTime()) / dayMs)
+    if (dayDiff >= 0 && dayDiff < 7) {
+      subTrend7d[6 - dayDiff]++
+    }
+  }
+
   return (
     <PageContainer>
       <SectionHeader
@@ -93,6 +105,7 @@ export default async function SubscriptionsPage({
           sub="Currently billing"
           variant="success"
           icon={<CheckCircle2 size={15} />}
+          sparkline={<Sparkline data={subTrend7d} color="var(--vcp-success)" />}
         />
         <KpiCard
           label="Past due"
