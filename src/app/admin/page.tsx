@@ -30,9 +30,8 @@ export default async function OverviewPage() {
   ])
 
   const donutData = [
-    { name: 'Free', value: mix.free, color: CHART_COLORS.muted },
-    { name: 'Pro', value: mix.pro, color: CHART_COLORS.coral },
-    { name: 'Custom (Agency)', value: (mix.agency ?? 0) + (mix.agency_pro ?? 0), color: CHART_COLORS.info },
+    { name: 'Starter', value: mix.free, color: CHART_COLORS.muted },
+    { name: 'Pro', value: (mix.pro ?? 0) + (mix.agency ?? 0) + (mix.agency_pro ?? 0), color: CHART_COLORS.coral },
   ].filter((d) => d.value > 0)
 
   const billingAlerts = [

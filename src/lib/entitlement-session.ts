@@ -6,7 +6,7 @@
  * feature without being blocked by the normal entitlement system.
  *
  * This helper checks the session's systemRole and returns the highest
- * tier (agency_pro) if the user is a SUPERADMIN — without affecting
+ * canonical tier (Pro) if the user is a SUPERADMIN — without affecting
  * normal users.
  */
 import { getServerSession } from 'next-auth';
@@ -17,15 +17,15 @@ import { getOrgEntitlement } from '@/lib/tenant';
 /**
  * Get the effective entitlement for the current session.
  *
- * If the user is a SUPERADMIN, returns agency_pro (all capabilities unlocked).
- * Otherwise, resolves the normal org entitlement.
+ * If the user is a SUPERADMIN, returns Pro (all capabilities unlocked under
+ * the canonical two-tier model). Otherwise, resolves the normal org entitlement.
  */
 export async function getEffectiveEntitlement(
   orgId: string
 ): Promise<Entitlement> {
   const session = await getServerSession(authOptions);
   if (session?.systemRole === 'SUPERADMIN') {
-    return entitlementFor('agency_pro');
+    return entitlementFor('pro');
   }
   return getOrgEntitlement(orgId);
 }

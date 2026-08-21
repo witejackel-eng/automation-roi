@@ -82,10 +82,8 @@ export function CustomerFilters({
         onChange={(v) => push({ plan: v })}
         options={[
           { value: 'all', label: 'All plans' },
-          { value: 'free', label: 'Free' },
+          { value: 'free', label: 'Starter' },
           { value: 'pro', label: 'Pro' },
-          { value: 'agency', label: 'Agency' },
-          { value: 'agency_pro', label: 'Agency Pro' },
         ]}
       />
       <FilterSelect

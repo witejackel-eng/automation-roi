@@ -205,50 +205,48 @@ export const COMPARISON_ROWS = [
 
 // ── Pricing (Section F + K, E11) ──────────────
 export const PRICING_HEADLINE = 'Simple plans. Full rigor on every tier.';
-export const PRICING_SUBHEAD = 'Free includes the real decision engine. Paid unlocks clean client artifacts and workflow.';
-export const PRICING_FOOTNOTE = 'Monthly and annual subscriptions. Cancel any time.';
+export const PRICING_SUBHEAD = 'Starter includes the real decision engine — 10 cases a month, watermarked. Pro unlocks unlimited cases, clean client artifacts, branding, and the full agency workflow.';
+export const PRICING_FOOTNOTE = 'Pro is a monthly subscription. Cancel any time. Legacy Agency / Agency Pro tiers are now included in Pro.';
 export const DATA_HANDLING_LINE =
   'Viableo needs no client-identifying data to return a verdict. Hours, rates, volumes, and a fee are enough.';
 export const PRICING_TIERS = [
   {
     key: 'free',
-    name: 'Free',
+    name: 'Starter',
     price: '$0',
     cadence: 'forever',
     popular: false,
-    identity: 'Try it once.',
-    blurb: 'One case per month. Full analytical rigor — confidence scoring, stress test, scenarios. Watermarked document.',
-    casesPerMonth: 1,
+    identity: 'Try the real thing.',
+    blurb: '10 cases per month. Full analytical rigor — three scenarios, confidence scoring, stress test, sensitivity, verdict. Watermarked client PDFs.',
+    casesPerMonth: 10,
+    features: [
+      '10 cases / month',
+      'Three scenarios (Conservative / Expected / Upside)',
+      'Confidence scoring 0–100',
+      '64-permutation stress test',
+      'BUILD / CONSIDER / DON\u2019T BUILD verdict',
+      'Watermarked client PDFs',
+    ],
   },
   {
     key: 'pro',
     name: 'Pro',
-    price: '$29',
+    price: '$49',
     cadence: 'per month',
     popular: true,
-    identity: 'Full documents.',
-    blurb: 'Five cases per month. Unwatermarked PDFs, saved projects, share links.',
-    casesPerMonth: 5,
-  },
-  {
-    key: 'agency',
-    name: 'Agency',
-    price: '$79',
-    cadence: 'per month',
-    popular: false,
-    identity: 'Unlimited cases.',
-    blurb: 'Unlimited cases. Your branding on every document. Client history.',
+    identity: 'Full agency workflow.',
+    blurb: 'Unlimited cases. Clean, unwatermarked client reports and proposals. Your branding. Share links with approval tracking. Client directory and case library.',
     casesPerMonth: Infinity,
-  },
-  {
-    key: 'agency_pro',
-    name: 'Agency Pro',
-    price: '$790',
-    cadence: 'per year',
-    popular: false,
-    identity: 'Make it yours.',
-    blurb: 'Unlimited cases, branding, client history, team seats, and API access.',
-    casesPerMonth: Infinity,
+    features: [
+      'Unlimited cases',
+      'Clean, unwatermarked PDFs',
+      'Agency branding (logo + color)',
+      'Share links + approval tracking',
+      'Client directory & case library',
+      'Case versioning & challenge workflow',
+      'Client history reuse',
+      'Team seats',
+    ],
   },
 ] as const;
 
@@ -468,19 +466,20 @@ export type { Tier, Capability }
 // Re-export so pages importing from '@/lib/brand' resolve correctly.
 export { TIER_LABEL } from '@/lib/entitlement'
 
-export type CanonicalPlan = 'FREE' | 'PRO' | 'CUSTOM'
+// Canonical two-tier plan display (used by admin + pricing surfaces).
+// Legacy agency/agency_pro map to PRO (they are now Pro).
+export type CanonicalPlan = 'STARTER' | 'PRO'
 
 export const TIER_TO_CANONICAL: Record<Tier, CanonicalPlan> = {
-  free: 'FREE',
+  free: 'STARTER',
   pro: 'PRO',
-  agency: 'CUSTOM',
-  agency_pro: 'CUSTOM',
+  agency: 'PRO',
+  agency_pro: 'PRO',
 }
 
 export const CANONICAL_PLAN_PRICE: Record<CanonicalPlan, string> = {
-  FREE: '$0',
+  STARTER: '$0',
   PRO: '$49/mo',
-  CUSTOM: 'Custom',
 }
 
 export const CAPABILITY_LABEL: Record<Capability, string> = {

@@ -45,10 +45,10 @@ type Toast = {
   message: string
 }
 
+// QA tier buttons — canonical two-tier model (Starter + Pro).
 const TIER_BUTTONS: { label: string; tier: Tier; variant: StatusVariant }[] = [
-  { label: 'Test Free', tier: 'free', variant: 'neutral' },
+  { label: 'Test Starter', tier: 'free', variant: 'neutral' },
   { label: 'Test Pro', tier: 'pro', variant: 'coral' },
-  { label: 'Test Custom', tier: 'agency_pro', variant: 'info' },
 ]
 
 const QA_ACTIONS: { slug: string; label: string }[] = [

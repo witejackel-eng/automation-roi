@@ -3,7 +3,7 @@
  * drives UI gating.
  *
  * SUPERADMIN ELEVATION: if the authenticated user's systemRole === 'SUPERADMIN',
- * the entitlement is forced to the highest tier (agency_pro) with all
+ * the entitlement is forced to the highest canonical tier (Pro) with all
  * capabilities unlocked — regardless of License/Subscription records.
  * This gives the founder full product access without touching the normal
  * entitlement system for regular users.
@@ -24,7 +24,7 @@ export async function GET() {
     // Superadmin elevation: check the session's systemRole.
     const session = await getServerSession(authOptions);
     if (session?.systemRole === 'SUPERADMIN') {
-      const elevated: Entitlement = entitlementFor('agency_pro');
+      const elevated: Entitlement = entitlementFor('pro');
       return NextResponse.json({
         organizationId: org.id,
         organizationName: org.name,

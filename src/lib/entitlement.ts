@@ -1,8 +1,13 @@
 /**
- * Entitlement engine (Section 18, Phase 6 revision).
+ * Entitlement engine — canonical two-tier commercial model.
  *
- * A single ranked lookup against the license tier — a capability requires
- * tier_rank >= required_rank. No per-feature flags.
+ *   Starter  = $0  — 10 cases/month, watermarked PDFs, full analytical engine.
+ *   Pro      = $49/month — unlimited cases, clean PDFs, every feature.
+ *
+ * Legacy 'agency' and 'agency_pro' tiers (retired 2026-08) are normalized to
+ * Pro at read time so existing subscriptions / licenses keep working without a
+ * destructive migration. The canonical Tier union therefore keeps them as
+ * legacy aliases; new checkouts only ever produce 'free' or 'pro'.
  *
  * Phase 6 — Subscription-first entitlement:
  *   Reads Subscription first (source of truth). Falls back to License (derived
@@ -12,49 +17,68 @@ import { tenant } from '@/lib/tenant';
 
 export type Tier = 'free' | 'pro' | 'agency' | 'agency_pro';
 
+/** Legacy tiers are normalized to Pro. New code only ever produces free/pro. */
+export function normalizeTier(tier: string | null | undefined): Tier {
+  if (tier === 'pro' || tier === 'agency' || tier === 'agency_pro') return 'pro';
+  return 'free';
+}
+
 export const TIER_RANK: Record<Tier, number> = {
   free: 0,
   pro: 1,
-  agency: 2,
-  agency_pro: 3,
+  // Legacy aliases — both normalize to Pro (rank 1).
+  agency: 1,
+  agency_pro: 1,
 };
 
 export const TIER_LABEL: Record<Tier, string> = {
-  free: 'Free',
+  free: 'Starter',
   pro: 'Pro',
-  agency: 'Agency',
-  agency_pro: 'Agency Pro',
+  // Legacy labels still readable in admin/history views.
+  agency: 'Pro',
+  agency_pro: 'Pro',
+};
+
+/** Canonical display name for the free tier (was 'Free', now 'Starter'). */
+export const TIER_CANONICAL_LABEL: Record<Tier, string> = {
+  free: 'Starter',
+  pro: 'Pro',
+  agency: 'Pro (legacy Agency)',
+  agency_pro: 'Pro (legacy Agency Pro)',
 };
 
 export type Capability =
-  | 'calculate'          // free — the core analysis engine
-  | 'stress_test'        // free — analytical rigor stays free
-  | 'scenario_analysis'  // free — three scenarios stay free
-  | 'confidence_scoring' // free — confidence model stays free
-  | 'save_project'       // pro+ — persist & reopen analyses
-  | 'client_report'      // pro+ — unwatermarked PDF
-  | 'proposal'           // pro+ — proposal document
-  | 'share_links'        // pro+ — share link creation
-  | 'share_approval'     // pro+ — share-link approval tracking
-  | 'agency_branding'    // agency+ — white-label PDFs
-  | 'client_history'     // agency+ — reuse prior client data
-  | 'multi_seat'         // agency_pro+ — team seats
-  | 'api_access';        // agency_pro+ — API/webhook
+  | 'calculate'          // Starter — the core analysis engine stays free
+  | 'stress_test'        // Starter — analytical rigor stays free
+  | 'scenario_analysis'  // Starter — three scenarios stay free
+  | 'confidence_scoring' // Starter — confidence model stays free
+  | 'save_project'       // Pro — persist & reopen analyses (Starter can run live but not persist beyond the 10-case window)
+  | 'client_report'     // Pro — unwatermarked PDF (Starter gets watermarked)
+  | 'proposal'           // Pro — proposal document (Starter gets watermarked)
+  | 'share_links'        // Pro — share link creation
+  | 'share_approval'     // Pro — share-link approval tracking
+  | 'agency_branding'    // Pro — white-label PDFs
+  | 'client_history'     // Pro — reuse prior client data
+  | 'multi_seat'         // Pro — team seats (legacy agency_pro; now Pro)
+  | 'api_access';        // Pro — API/webhook (legacy agency_pro; now Pro)
 
 export const CAPABILITY_REQUIRED_RANK: Record<Capability, number> = {
   calculate: 0,
   stress_test: 0,
   scenario_analysis: 0,
   confidence_scoring: 0,
+  // Everything that was 'pro+' stays rank 1. Legacy 'agency+' (2) and
+  // 'agency_pro+' (3) capabilities are now included in Pro, so they collapse
+  // to rank 1.
   save_project: 1,
   client_report: 1,
   proposal: 1,
   share_links: 1,
   share_approval: 1,
-  agency_branding: 2,
-  client_history: 2,
-  multi_seat: 3,
-  api_access: 3,
+  agency_branding: 1,
+  client_history: 1,
+  multi_seat: 1,
+  api_access: 1,
 };
 
 export interface Entitlement {
@@ -80,7 +104,9 @@ const ALL_CAPABILITIES: Capability[] = [
 ];
 
 export function entitlementFor(tier: Tier): Entitlement {
-  const rank = TIER_RANK[tier];
+  // Normalize legacy tiers so capabilities are computed against the canonical
+  // two-rank model (Starter=0, Pro=1).
+  const rank = TIER_RANK[normalizeTier(tier)];
   const capabilities = ALL_CAPABILITIES.reduce(
     (acc, cap) => {
       acc[cap] = rank >= CAPABILITY_REQUIRED_RANK[cap];
@@ -88,18 +114,19 @@ export function entitlementFor(tier: Tier): Entitlement {
     },
     {} as Record<Capability, boolean>
   );
-  return { tier, tierRank: rank, capabilities };
+  return { tier: normalizeTier(tier), tierRank: rank, capabilities };
 }
 
 export function has(entitlement: Entitlement, capability: Capability): boolean {
   return entitlement.capabilities[capability];
 }
 
-// ── Case limits per tier (Task 3b) ──────────────────────────────
-
+// ── Case limits per tier (canonical two-tier model) ───────────
+// Starter = 10 cases per calendar month (watermarked PDFs).
+// Pro = unlimited. Legacy tiers normalize to Pro.
 export const CASES_PER_MONTH: Record<Tier, number> = {
-  free: 1,
-  pro: 5,
+  free: 10,
+  pro: Infinity,
   agency: Infinity,
   agency_pro: Infinity,
 };
@@ -147,30 +174,16 @@ export async function getActiveEntitlement(
       sub.currentPeriodEnd,
     );
     if (entitling) {
-      const candidate = sub.tier as Tier;
-      if (TIER_RANK[candidate] !== undefined) {
-        tier = candidate;
-      } else {
-        // Unrecognized tier from subscription — emit error, fall back to free
-        const { logSystemEvent } = await import('@/lib/observability/system-event');
-        await logSystemEvent({
-          eventType: 'WEBHOOK_ERROR',
-          organizationId,
-          severity: 'error',
-          metadata: { reason: 'unrecognized_tier_from_subscription', tier: sub.tier },
-        }).catch(() => {});
-      }
+      // Normalize legacy tiers to the canonical two-tier model.
+      tier = normalizeTier(sub.tier);
     }
     // If subscription exists but is not entitling → stay 'free'
   } else {
-    // No subscription — fall back to License.tier
+    // No subscription — fall back to License.tier (normalized).
     const license = await tenant(organizationId).licenses.findFirst({
       orderBy: { createdAt: 'desc' },
     });
-    const candidate = (license?.tier as Tier) ?? 'free';
-    if (TIER_RANK[candidate] !== undefined) {
-      tier = candidate;
-    }
+    tier = normalizeTier(license?.tier);
   }
 
   return entitlementFor(tier);

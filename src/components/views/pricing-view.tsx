@@ -31,31 +31,22 @@ interface Plan {
 // the canonical brand config stays the source of truth.
 const FEATURES: Record<string, string[]> = {
   free: [
-    'Calculator + all three scenarios',
-    'BUILD / CONSIDER / DON\u2019T BUILD recommendation',
-    'Live business-case panel',
-    'Confidence score on the recommendation',
-    'Watermarked document',
+    '10 cases per month',
+    'Three scenarios (Conservative / Expected / Upside)',
+    'Confidence score 0\u2013100',
+    '64-permutation stress test',
+    'BUILD / CONSIDER / DON\u2019T BUILD verdict',
+    'Watermarked client PDFs',
   ],
   pro: [
-    'Everything in Free, unwatermarked',
-    'Five cases per month',
-    'Saved projects',
-    'Client report PDF',
-    'Why-this-recommendation breakdown',
-  ],
-  agency: [
-    'Everything in Pro',
     'Unlimited cases',
-    'Agency branding on PDFs',
-    'Client history dashboard',
-  ],
-  agency_pro: [
-    'Everything in Agency',
-    'White-label PDFs',
+    'Clean, unwatermarked client reports & proposals',
+    'Agency branding (logo + color)',
+    'Share links + approval tracking',
+    'Client directory & case library',
+    'Case versioning & challenge workflow',
+    'Client history reuse',
     'Team seats',
-    'Client-facing share links',
-    'Per-client history — re-open any case',
   ],
 };
 
@@ -104,7 +95,7 @@ export function PricingView() {
       {/* ── Pricing cards ─────────────────────────── */}
       <section className="bg-canvas">
         <div className="mx-auto w-full max-w-[1200px] px-4 py-20 md:px-6 md:py-28">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8 max-w-[900px] mx-auto">
             {PLANS.map((plan) => {
               const isFree = plan.key === 'free';
               const ctaClass = cn(
