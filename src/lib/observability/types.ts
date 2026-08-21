@@ -45,7 +45,9 @@ export type SystemEventType =
   | 'SUBSCRIPTION_CANCELLED' | 'SUBSCRIPTION_REFUNDED'
   | 'DATABASE_ERROR' | 'STORAGE_ERROR' | 'WEBHOOK_ERROR'
   | 'WEBHOOK_STALE_EVENT_IGNORED'
-  | 'OUTPUT_INTEGRITY_VIOLATION';
+  | 'OUTPUT_INTEGRITY_VIOLATION'
+  // ADMIN (appended for the Founder Control Plane — audit-observable admin activity)
+  | 'ADMIN_PAGE_VIEWED' | 'ADMIN_SEARCH';
 
 /**
  * Severity level — mirrors the SystemEvent.severity column Agent 2 will add.

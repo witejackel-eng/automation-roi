@@ -994,3 +994,177 @@
 .hero-pulse-ring {
   animation: hero-pulse-ring 6s ease-in-out infinite;
 }
+/* ===========================================================================
+   VIABLEO FOUNDER CONTROL PLANE — light editorial command-center theme
+   Warm ivory/white surfaces · dark ink · coral accent · semantic states
+   Scope: .vcp-* classes. Does not touch the marketing/customer theme.
+   ========================================================================== */
+
+:root {
+  --vcp-canvas: #FAF8F4;           /* warm ivory page surface */
+  --vcp-surface: #FFFFFF;          /* card surface */
+  --vcp-surface-raised: #FFFFFF;   /* raised card (shadow) */
+  --vcp-surface-sunken: #F3EFE8;   /* sunken / table header */
+  --vcp-ink: #1A1714;             /* near-black warm ink */
+  --vcp-ink-strong: #0A0908;      /* strongest ink (nav active) */
+  --vcp-ink-muted: #6B645B;       /* secondary text */
+  --vcp-ink-faint: #A39C92;       /* tertiary / placeholder */
+  --vcp-border: #E8E2D8;          /* hairline border */
+  --vcp-border-strong: #D4CCBE;   /* stronger border */
+
+  /* Viableo coral accent (brand) */
+  --vcp-coral: #FF164B;
+  --vcp-coral-hover: #E00E3E;
+  --vcp-coral-subtle: rgba(255, 22, 75, 0.08);
+  --vcp-coral-tint: #FFF1F3;
+
+  /* Semantic state colors (restrained) */
+  --vcp-success: #15803D;
+  --vcp-success-bg: #DCFCE7;
+  --vcp-success-ink: #14532D;
+  --vcp-warning: #B45309;
+  --vcp-warning-bg: #FEF3C7;
+  --vcp-warning-ink: #78350F;
+  --vcp-error: #DC2626;
+  --vcp-error-bg: #FEE2E2;
+  --vcp-error-ink: #7F1D1D;
+  --vcp-info: #1D4ED8;
+  --vcp-info-bg: #DBEAFE;
+  --vcp-info-ink: #1E3A8A;
+  --vcp-neutral-bg: #F3EFE8;
+  --vcp-neutral-ink: #57534E;
+
+  /* Nav */
+  --vcp-nav-bg: #14110E;          /* dark primary navigation */
+  --vcp-nav-ink: #D7D2C8;
+  --vcp-nav-ink-muted: #8A8278;
+  --vcp-nav-active-bg: #FFFFFF;
+  --vcp-nav-active-ink: #14110E;
+  --vcp-nav-active-accent: var(--vcp-coral);
+
+  --vcp-radius: 8px;
+  --vcp-radius-sm: 5px;
+  --vcp-radius-pill: 999px;
+
+  --vcp-shadow-card: 0 1px 2px rgba(26, 23, 20, 0.04), 0 1px 1px rgba(26, 23, 20, 0.03);
+  --vcp-shadow-raised: 0 2px 8px rgba(26, 23, 20, 0.06), 0 1px 2px rgba(26, 23, 20, 0.04);
+  --vcp-shadow-pop: 0 8px 28px rgba(26, 23, 20, 0.12), 0 2px 6px rgba(26, 23, 20, 0.06);
+
+  --vcp-font-sans: var(--font-plex-sans), var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --vcp-font-mono: var(--font-plex-mono), var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.vcp-root {
+  background: var(--vcp-canvas);
+  color: var(--vcp-ink);
+  font-family: var(--vcp-font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.vcp-root h1, .vcp-root h2, .vcp-root h3, .vcp-root h4 {
+  letter-spacing: -0.01em;
+  color: var(--vcp-ink-strong);
+}
+
+.vcp-mono { font-family: var(--vcp-font-mono); font-variant-numeric: tabular-nums; }
+.vcp-tnum { font-variant-numeric: tabular-nums; }
+
+/* Scrollbar — subtle, operational */
+.vcp-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.vcp-scroll::-webkit-scrollbar-track { background: transparent; }
+.vcp-scroll::-webkit-scrollbar-thumb { background: var(--vcp-border-strong); border-radius: 4px; }
+.vcp-scroll::-webkit-scrollbar-thumb:hover { background: var(--vcp-ink-faint); }
+
+/* Cards */
+.vcp-card {
+  background: var(--vcp-surface);
+  border: 1px solid var(--vcp-border);
+  border-radius: var(--vcp-radius);
+  box-shadow: var(--vcp-shadow-card);
+}
+.vcp-card-flat {
+  background: var(--vcp-surface);
+  border: 1px solid var(--vcp-border);
+  border-radius: var(--vcp-radius);
+}
+
+/* Status dots */
+.vcp-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; flex: none; }
+.vcp-dot-success { background: var(--vcp-success); box-shadow: 0 0 0 3px var(--vcp-success-bg); }
+.vcp-dot-warning { background: var(--vcp-warning); box-shadow: 0 0 0 3px var(--vcp-warning-bg); }
+.vcp-dot-error { background: var(--vcp-error); box-shadow: 0 0 0 3px var(--vcp-error-bg); }
+.vcp-dot-info { background: var(--vcp-info); box-shadow: 0 0 0 3px var(--vcp-info-bg); }
+.vcp-dot-neutral { background: var(--vcp-ink-faint); box-shadow: 0 0 0 3px var(--vcp-neutral-bg); }
+
+/* Pills / badges */
+.vcp-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px; border-radius: var(--vcp-radius-pill);
+  font-size: 11px; font-weight: 600; line-height: 1.4;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.vcp-pill-success { background: var(--vcp-success-bg); color: var(--vcp-success-ink); }
+.vcp-pill-warning { background: var(--vcp-warning-bg); color: var(--vcp-warning-ink); }
+.vcp-pill-error { background: var(--vcp-error-bg); color: var(--vcp-error-ink); }
+.vcp-pill-info { background: var(--vcp-info-bg); color: var(--vcp-info-ink); }
+.vcp-pill-neutral { background: var(--vcp-neutral-bg); color: var(--vcp-neutral-ink); }
+.vcp-pill-coral { background: var(--vcp-coral-tint); color: var(--vcp-coral-hover); }
+.vcp-pill-outline { background: transparent; border-color: var(--vcp-border-strong); color: var(--vcp-ink-muted); }
+
+/* Table */
+.vcp-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+.vcp-table thead th {
+  text-align: left; font-weight: 600; color: var(--vcp-ink-muted);
+  font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 10px 14px; border-bottom: 1px solid var(--vcp-border);
+  background: var(--vcp-surface-sunken); position: sticky; top: 0; z-index: 1;
+}
+.vcp-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--vcp-border); color: var(--vcp-ink); vertical-align: middle; }
+.vcp-table tbody tr { transition: background-color 120ms ease; }
+.vcp-table tbody tr:hover { background: var(--vcp-coral-subtle); }
+.vcp-table tbody tr:last-child td { border-bottom: none; }
+
+/* Focus ring — visible, accessible */
+.vcp-focus:focus-visible {
+  outline: 2px solid var(--vcp-coral);
+  outline-offset: 2px;
+  border-radius: var(--vcp-radius-sm);
+}
+
+/* Active nav link */
+.vcp-nav-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: var(--vcp-radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--vcp-nav-ink-muted);
+  transition: background-color 140ms ease, color 140ms ease;
+  text-decoration: none;
+}
+.vcp-nav-link:hover { color: var(--vcp-nav-ink); background: rgba(255,255,255,0.06); }
+.vcp-nav-link[data-active="true"] {
+  color: var(--vcp-nav-active-ink);
+  background: var(--vcp-nav-active-bg);
+  font-weight: 600;
+  position: relative;
+}
+.vcp-nav-link[data-active="true"]::before {
+  content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 18px; border-radius: 2px; background: var(--vcp-nav-active-accent);
+}
+
+/* Skeleton shimmer */
+.vcp-shimmer {
+  background: linear-gradient(90deg, var(--vcp-surface-sunken) 25%, var(--vcp-border) 37%, var(--vcp-surface-sunken) 63%);
+  background-size: 400% 100%; animation: vcp-shimmer 1.4s ease infinite;
+}
+@keyframes vcp-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .vcp-shimmer { animation: none; }
+  .vcp-table tbody tr { transition: none; }
+}
+

@@ -1,65 +1,177 @@
-/**
- * /admin/entitlements — Superadmin Entitlements view (Agent 2).
- *
- * First action: requireSuperAdmin(). Privacy boundary enforced by
- * src/lib/admin/operational-queries.ts — every select clause names
- * only operational fields, never Project.inputs/results, never AI
- * prompt/response content, never Share/ShareApproval content beyond
- * engagement counts.
- */
-import { requireSuperAdmin, AuthError } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import { listEntitlementsForAdmin } from '@/lib/admin/operational-queries';
-import { AdminShell } from '@/app/admin/_components/admin-shell';
+import Link from 'next/link'
+import { requireSuperAdmin } from '@/lib/auth'
+import { logSystemEvent } from '@/lib/observability/system-event'
+import { listEntitlementsForAdmin } from '@/lib/admin/operational-queries'
+import {
+  KpiCard, SectionHeader, PageContainer,
+  EmptyState, Pagination, StatusPill, type StatusVariant,
+} from '@/components/admin/ui'
+import { EntitlementFilters } from './_components/entitlement-filters'
+import { timeAgo } from '@/lib/format'
+import { TIER_TO_CANONICAL, CAPABILITY_LABEL, type Tier, type Capability } from '@/lib/brand'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-export default async function AdminEntitlementsPage() {
-  try {
-    await requireSuperAdmin();
-  } catch (e) {
-    if (e instanceof AuthError) {
-      // Defense-in-depth: the middleware should already have redirected
-      // unauthenticated requests away from /admin/**. If we land here,
-      // either the middleware was bypassed or the user is authenticated
-      // but not a Superadmin — redirect to sign-in with an error flag.
-      redirect(`/auth/signin?error=admin_required`);
-    }
-    throw e;
+const PAGE_SIZE = 25
+
+function subscriptionStatusVariant(status: string | null): StatusVariant {
+  if (!status) return 'neutral'
+  switch (status) {
+    case 'active':
+    case 'completed':
+      return 'success'
+    case 'trialing':
+      return 'info'
+    case 'past_due':
+    case 'canceling':
+      return 'warning'
+    case 'canceled':
+    case 'expired':
+      return 'error'
+    default:
+      return 'neutral'
   }
-  const ents = await listEntitlementsForAdmin();
+}
+
+function subscriptionStatusLabel(status: string | null): string {
+  if (!status) return 'None'
+  return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ')
+}
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default async function EntitlementsPage({ searchParams }: { searchParams: SearchParams }) {
+  const admin = await requireSuperAdmin()
+  await logSystemEvent({ eventType: 'ADMIN_PAGE_VIEWED', userId: admin.userId, metadata: { page: 'entitlements' } })
+
+  const sp = await searchParams
+  const search = typeof sp.search === 'string' ? sp.search : ''
+  const page = Math.max(1, Number(sp.page ?? 1) || 1)
+
+  // Current page (filtered, paginated) + a wide unfiltered fetch for the KPI
+  // counters. The wide fetch uses the maximum page size the privacy-boundary
+  // layer allows (100); for deployments exceeding that, counters are
+  // approximated and the table still reflects the resolved page.
+  const [list, wide] = await Promise.all([
+    listEntitlementsForAdmin({ page, pageSize: PAGE_SIZE, search }),
+    listEntitlementsForAdmin({ pageSize: 100 }),
+  ])
+
+  const activeCount = wide.rows.filter((r) => r.active).length
+  const subscriptionSourceCount = wide.rows.filter((r) => r.source === 'subscription').length
+  const approximated = wide.total > wide.rows.length
+
   return (
-    <AdminShell title="Entitlements">
-    {ents.length === 0 ? (
-      <p className="text-sm text-muted-foreground">No organizations yet.</p>
-    ) : (
-      <div className="rounded border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="p-2 text-left">Organization</th>
-              <th className="p-2 text-left">Cached tier (License)</th>
-              <th className="p-2 text-left">Sub tier (source)</th>
-              <th className="p-2 text-left">Sub status</th>
-              <th className="p-2 text-left">Plan key</th>
-              <th className="p-2 text-left">Period end</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ents.map((e) => (
-              <tr key={e.organizationId} className="border-t">
-                <td className="p-2 font-medium">{e.organizationName}</td>
-                <td className="p-2 font-mono">{e.cachedTier}</td>
-                <td className="p-2 font-mono">{e.subscriptionTier ?? '-'}</td>
-                <td className="p-2 font-mono">{e.subscriptionStatus ?? '-'}</td>
-                <td className="p-2 font-mono text-xs">{e.planKey ?? '-'}</td>
-                <td className="p-2 text-xs">{e.currentPeriodEnd?.toISOString() ?? '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <PageContainer>
+      <SectionHeader
+        title="Entitlements"
+        subtitle="Effective product access by organization"
+      />
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard label="Organizations total" value={wide.total} sub={approximated ? `First ${wide.rows.length} shown` : 'All organizations'} />
+        <KpiCard label="With active entitlements" value={approximated ? `${activeCount}+` : activeCount} variant="success" />
+        <KpiCard label="Source = subscription" value={approximated ? `${subscriptionSourceCount}+` : subscriptionSourceCount} variant="info" />
       </div>
-    )}
-    </AdminShell>
-  );
+
+      {/* Privacy / scope note */}
+      <div className="vcp-card-flat p-4 flex items-start gap-3">
+        <span className="vcp-dot vcp-dot-info mt-1.5" aria-hidden />
+        <p className="text-[12.5px] text-[var(--vcp-ink-muted)] leading-relaxed">
+          Entitlements reflect the resolved plan from subscriptions/licenses. Any manual
+          override requires a privileged action with a reason and is audit-logged.
+        </p>
+      </div>
+
+      <EntitlementFilters />
+
+      {/* Entitlements table */}
+      {list.rows.length === 0 ? (
+        <EmptyState
+          title="No entitlement records found."
+          message="Entitlements are derived from subscriptions and licenses. They appear once organizations exist."
+        />
+      ) : (
+        <div className="vcp-card overflow-hidden">
+          <div className="overflow-x-auto vcp-scroll">
+            <table className="vcp-table">
+              <thead>
+                <tr>
+                  <th>Organization</th>
+                  <th>Plan</th>
+                  <th>Subscription state</th>
+                  <th>Source</th>
+                  <th>Active</th>
+                  <th>Capabilities</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.rows.map((row) => {
+                  const canonical = TIER_TO_CANONICAL[row.plan as Tier] ?? 'FREE'
+                  const sourceVariant: StatusVariant = row.source === 'subscription' ? 'info' : 'neutral'
+                  const caps = row.capabilities as Capability[]
+                  const visibleCaps = caps.slice(0, 3)
+                  const remaining = Math.max(0, caps.length - visibleCaps.length)
+                  return (
+                    <tr key={row.id}>
+                      <td>
+                        <Link
+                          href={`/admin/organizations/${row.organizationId}`}
+                          className="text-[13px] font-medium text-[var(--vcp-ink-strong)] hover:text-[var(--vcp-coral)] vcp-focus rounded"
+                        >
+                          {row.organizationName}
+                        </Link>
+                      </td>
+                      <td>
+                        <span className="vcp-pill vcp-pill-outline">{canonical}</span>
+                      </td>
+                      <td>
+                        <StatusPill variant={subscriptionStatusVariant(row.subscriptionStatus)}>
+                          {subscriptionStatusLabel(row.subscriptionStatus)}
+                        </StatusPill>
+                      </td>
+                      <td>
+                        <span className={`vcp-pill vcp-pill-${sourceVariant} vcp-mono`}>
+                          {row.source}
+                        </span>
+                      </td>
+                      <td>
+                        <StatusPill variant={row.active ? 'success' : 'error'}>
+                          {row.active ? 'Yes' : 'No'}
+                        </StatusPill>
+                      </td>
+                      <td>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="vcp-mono vcp-tnum text-[12px] font-semibold text-[var(--vcp-ink-strong)] mr-1">
+                            {row.capabilityCount}
+                          </span>
+                          {visibleCaps.map((c) => (
+                            <span key={c} className="vcp-pill vcp-pill-outline">
+                              {CAPABILITY_LABEL[c]}
+                            </span>
+                          ))}
+                          {remaining > 0 ? (
+                            <span className="vcp-pill vcp-pill-outline">+{remaining} more</span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="text-[12.5px] text-[var(--vcp-ink-muted)]">{timeAgo(row.updatedAt)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <Pagination
+        page={list.page}
+        totalPages={list.totalPages}
+        searchParams={{ search }}
+      />
+    </PageContainer>
+  )
 }

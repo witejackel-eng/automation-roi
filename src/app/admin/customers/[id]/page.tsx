@@ -1,0 +1,395 @@
+import Link from 'next/link'
+import { requireSuperAdmin } from '@/lib/auth'
+import { logSystemEvent } from '@/lib/observability/system-event'
+import { getCustomerForAdmin } from '@/lib/admin/operational-queries'
+import {
+  SectionHeader, PageContainer, ErrorState,
+  StatusPill, type StatusVariant,
+} from '@/components/admin/ui'
+import {
+  formatDate, formatDateTime, timeAgo, shortId, initials,
+} from '@/lib/format'
+import { TIER_TO_CANONICAL, CAPABILITY_LABEL } from '@/lib/brand'
+import type { Tier, Capability } from '@/lib/brand'
+import { ChevronLeft } from 'lucide-react'
+
+export const dynamic = 'force-dynamic'
+
+type Params = Promise<{ id: string }>
+
+export default async function CustomerDetailPage({ params }: { params: Params }) {
+  const admin = await requireSuperAdmin()
+  const { id } = await params
+  await logSystemEvent({
+    eventType: 'ADMIN_PAGE_VIEWED',
+    userId: admin.userId,
+    metadata: { page: 'customer_detail', target: id },
+  })
+
+  const data = await getCustomerForAdmin(id)
+
+  if (!data) {
+    return (
+      <PageContainer>
+        <SectionHeader title="Customer not found" subtitle="The account you are looking for does not exist." />
+        <ErrorState
+          title="Customer not found."
+          message="This account may have been deleted, or the link is incorrect."
+          onRetry={undefined}
+        />
+        <div className="mt-4">
+          <Link href="/admin/customers" className="vcp-pill vcp-pill-outline vcp-focus hover:bg-[var(--vcp-surface-sunken)]">
+            ‹ Back to customers
+          </Link>
+        </div>
+      </PageContainer>
+    )
+  }
+
+  const { identity, organization, subscription, entitlement, usage, recentEvents, recentAudit } = data
+
+  return (
+    <PageContainer>
+      <SectionHeader
+        title={identity.name || 'Unnamed customer'}
+        subtitle={identity.email || 'No email on file'}
+        actions={
+          <Link
+            href="/admin/customers"
+            className="vcp-pill vcp-pill-outline vcp-focus hover:bg-[var(--vcp-surface-sunken)] inline-flex items-center gap-1"
+          >
+            <ChevronLeft size={12} /> Customers
+          </Link>
+        }
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Main column (spans 2) */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          <IdentityCard identity={identity} />
+          <OrganizationCard organization={organization} />
+          <SubscriptionCard subscription={subscription} />
+          <EntitlementsCard entitlement={entitlement} />
+          <UsageCard usage={usage} />
+          <RecentActivityCard recentEvents={recentEvents} />
+        </div>
+
+        {/* Side column */}
+        <div className="flex flex-col gap-4">
+          <AdminActionsCard recentAudit={recentAudit} />
+          <PrivacyNoteCard />
+        </div>
+      </div>
+    </PageContainer>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Cards
+// ---------------------------------------------------------------------------
+
+type Identity = {
+  id: string
+  name: string | null
+  email: string | null
+  image: string | null
+  systemRole: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+function IdentityCard({ identity }: { identity: Identity }) {
+  const roleVariant: StatusVariant = identity.systemRole === 'SUPERADMIN' ? 'coral' : 'neutral'
+  return (
+    <div className="vcp-card p-5">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">Identity</h3>
+      <div className="flex items-start gap-3">
+        <span
+          className="w-11 h-11 rounded-full bg-[var(--vcp-coral)] text-white text-[14px] font-semibold flex items-center justify-center flex-none"
+          aria-hidden
+        >
+          {initials(identity.name) === '—' ? '?' : initials(identity.name)}
+        </span>
+        <div className="min-w-0 flex flex-col gap-1.5 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[15px] font-semibold text-[var(--vcp-ink-strong)]">{identity.name || 'Unnamed'}</span>
+            <StatusPill variant={roleVariant}>{identity.systemRole}</StatusPill>
+          </div>
+          <div className="text-[13px] text-[var(--vcp-ink)] vcp-mono">{identity.email || '—'}</div>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 mt-2">
+            <Field label="User ID" value={<span className="vcp-mono">{shortId(identity.id, 12)}</span>} />
+            <Field label="Joined" value={formatDate(identity.createdAt)} />
+            <Field label="Updated" value={formatDateTime(identity.updatedAt)} />
+          </dl>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type Organization = {
+  id: string
+  name: string
+  website: string | null
+  contactEmail: string | null
+  createdAt: Date
+  membershipRole: string | null
+} | null
+
+function OrganizationCard({ organization }: { organization: Organization }) {
+  return (
+    <div className="vcp-card p-5">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">Organization</h3>
+      {organization ? (
+        <div className="flex flex-col gap-2">
+          <Link
+            href={`/admin/organizations/${organization.id}`}
+            className="text-[15px] font-semibold text-[var(--vcp-ink-strong)] hover:text-[var(--vcp-coral)] vcp-focus rounded inline-flex items-center gap-1.5"
+          >
+            {organization.name}
+          </Link>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+            <Field label="Website" value={organization.website ? <span className="vcp-mono text-[12px]">{organization.website}</span> : '—'} />
+            <Field label="Contact email" value={organization.contactEmail ? <span className="vcp-mono text-[12px]">{organization.contactEmail}</span> : '—'} />
+            <Field label="Membership role" value={
+              organization.membershipRole === 'owner'
+                ? <StatusPill variant="success">Owner</StatusPill>
+                : <StatusPill variant="neutral">{organization.membershipRole ?? 'Member'}</StatusPill>
+            } />
+            <Field label="Joined org" value={formatDate(organization.createdAt)} />
+          </dl>
+        </div>
+      ) : (
+        <p className="text-[13px] text-[var(--vcp-ink-muted)]">No organization</p>
+      )}
+    </div>
+  )
+}
+
+type Subscription = {
+  id: string
+  status: string
+  tier: Tier
+  planKey: string
+  currentPeriodStart: Date | null
+  currentPeriodEnd: Date | null
+  cancelAtPeriodEnd: boolean
+  canceledAt: Date | null
+  createdAt: Date
+  whopMembershipId: string | null
+} | null
+
+function SubscriptionCard({ subscription }: { subscription: Subscription }) {
+  return (
+    <div className="vcp-card p-5">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">Subscription</h3>
+      {subscription ? (
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusPill variant={subStatusVariant(subscription.status)}>{prettyStatus(subscription.status)}</StatusPill>
+            <StatusPill variant="info">{TIER_TO_CANONICAL[subscription.tier]}</StatusPill>
+            {subscription.cancelAtPeriodEnd ? <StatusPill variant="warning">Canceling</StatusPill> : null}
+          </div>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+            <Field label="Plan key" value={<span className="vcp-mono text-[12px]">{subscription.planKey || '—'}</span>} />
+            <Field label="Whop membership" value={<span className="vcp-mono text-[12px]">{shortId(subscription.whopMembershipId, 14)}</span>} />
+            <Field label="Period start" value={formatDate(subscription.currentPeriodStart)} />
+            <Field label="Period end" value={formatDate(subscription.currentPeriodEnd)} />
+            <Field label="Cancel at period end" value={subscription.cancelAtPeriodEnd ? 'Yes' : 'No'} />
+            <Field label="Canceled at" value={subscription.canceledAt ? formatDateTime(subscription.canceledAt) : '—'} />
+            <Field label="Subscription ID" value={<span className="vcp-mono">{shortId(subscription.id, 12)}</span>} />
+            <Field label="Created" value={formatDate(subscription.createdAt)} />
+          </dl>
+        </div>
+      ) : (
+        <p className="text-[13px] text-[var(--vcp-ink-muted)]">No active subscription</p>
+      )}
+    </div>
+  )
+}
+
+type Entitlement = {
+  tier: Tier
+  capabilities: Capability[]
+  source: string
+  active: boolean
+}
+
+function EntitlementsCard({ entitlement }: { entitlement: Entitlement }) {
+  const sourceLabel = entitlement.source === 'subscription'
+    ? 'Subscription'
+    : entitlement.source === 'license'
+      ? 'License'
+      : 'Default (free)'
+  return (
+    <div className="vcp-card p-5">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">Entitlements</h3>
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        <StatusPill variant="info">{TIER_TO_CANONICAL[entitlement.tier]}</StatusPill>
+        <StatusPill variant={entitlement.active ? 'success' : 'error'}>
+          {entitlement.active ? 'Active' : 'Inactive'}
+        </StatusPill>
+        <span className="text-[12px] text-[var(--vcp-ink-muted)]">Source: {sourceLabel}</span>
+      </div>
+      <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--vcp-ink-faint)] mb-2">Capabilities</div>
+      {entitlement.capabilities.length === 0 ? (
+        <p className="text-[13px] text-[var(--vcp-ink-muted)]">No capabilities granted.</p>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {entitlement.capabilities.map((cap) => (
+            <span key={cap} className="vcp-pill vcp-pill-outline">
+              {CAPABILITY_LABEL[cap] ?? cap}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type Usage = { projectCount: number; reportCount: number; shareCount: number }
+
+function UsageCard({ usage }: { usage: Usage }) {
+  return (
+    <div className="vcp-card p-5">
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)] mb-3">Usage</h3>
+      <div className="grid grid-cols-3 gap-3">
+        <UsageStat label="Projects" value={usage.projectCount} />
+        <UsageStat label="Reports" value={usage.reportCount} />
+        <UsageStat label="Shares" value={usage.shareCount} />
+      </div>
+    </div>
+  )
+}
+
+function UsageStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-[var(--vcp-radius-sm)] bg-[var(--vcp-surface-sunken)] px-3 py-2.5 flex flex-col gap-1">
+      <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">{label}</span>
+      <span className="text-[22px] leading-none font-semibold text-[var(--vcp-ink-strong)] vcp-tnum">{value}</span>
+    </div>
+  )
+}
+
+type SystemEventRow = {
+  id: string
+  eventType: string
+  severity: string
+  createdAt: Date
+  requestId: string | null
+}
+
+function RecentActivityCard({ recentEvents }: { recentEvents: SystemEventRow[] }) {
+  return (
+    <div className="vcp-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--vcp-border)]">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Recent activity</h3>
+      </div>
+      <div className="overflow-x-auto vcp-scroll">
+        <table className="vcp-table">
+          <thead>
+            <tr><th>Event</th><th>Severity</th><th>When</th><th>Request ID</th></tr>
+          </thead>
+          <tbody>
+            {recentEvents.length === 0 ? (
+              <tr><td colSpan={4} className="text-center text-[var(--vcp-ink-muted)] py-8">No operational events recorded.</td></tr>
+            ) : recentEvents.slice(0, 10).map((e) => (
+              <tr key={e.id}>
+                <td className="vcp-mono font-medium text-[var(--vcp-ink)]">{e.eventType}</td>
+                <td><SeverityPill severity={e.severity} /></td>
+                <td className="text-[var(--vcp-ink-muted)]">{timeAgo(e.createdAt)}</td>
+                <td className="vcp-mono text-[12px] text-[var(--vcp-ink-faint)]">{e.requestId ? shortId(e.requestId, 10) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+type AuditRow = {
+  id: string
+  action: string
+  actorRole: string
+  reason: string | null
+  createdAt: Date
+}
+
+function AdminActionsCard({ recentAudit }: { recentAudit: AuditRow[] }) {
+  return (
+    <div className="vcp-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--vcp-border)]">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Admin actions</h3>
+      </div>
+      <div className="overflow-x-auto vcp-scroll">
+        <table className="vcp-table">
+          <thead>
+            <tr><th>Action</th><th>Actor</th><th>Reason</th><th>When</th></tr>
+          </thead>
+          <tbody>
+            {recentAudit.length === 0 ? (
+              <tr><td colSpan={4} className="text-center text-[var(--vcp-ink-muted)] py-8">No administrative actions recorded.</td></tr>
+            ) : recentAudit.map((a) => (
+              <tr key={a.id}>
+                <td className="vcp-mono font-medium text-[var(--vcp-ink)]">{a.action}</td>
+                <td><span className="text-[12px] text-[var(--vcp-ink-muted)] vcp-mono">{a.actorRole}</span></td>
+                <td className="text-[var(--vcp-ink-muted)]">{a.reason || '—'}</td>
+                <td className="text-[var(--vcp-ink-muted)]">{timeAgo(a.createdAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function PrivacyNoteCard() {
+  return (
+    <div className="vcp-card-flat p-3">
+      <p className="text-[12px] text-[var(--vcp-ink-muted)] leading-relaxed">
+        Customer business-case content is hidden by default. Access is recorded.
+      </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Small primitives / helpers
+// ---------------------------------------------------------------------------
+
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5 min-w-0">
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--vcp-ink-faint)]">{label}</dt>
+      <dd className="text-[13px] text-[var(--vcp-ink)]">{value}</dd>
+    </div>
+  )
+}
+
+function SeverityPill({ severity }: { severity: string }) {
+  const v: StatusVariant = severity === 'error' ? 'error' : severity === 'warn' ? 'warning' : 'neutral'
+  const label = severity === 'error' ? 'Error' : severity === 'warn' ? 'Warning' : 'Info'
+  return <StatusPill variant={v}>{label}</StatusPill>
+}
+
+function subStatusVariant(status: string): StatusVariant {
+  if (status === 'active') return 'success'
+  if (status === 'past_due') return 'warning'
+  if (status === 'canceled') return 'error'
+  if (status === 'trialing') return 'info'
+  return 'neutral'
+}
+
+function prettyStatus(status: string): string {
+  const map: Record<string, string> = {
+    active: 'Active',
+    past_due: 'Past due',
+    canceled: 'Canceled',
+    trialing: 'Trialing',
+    expired: 'Expired',
+    paused: 'Paused',
+  }
+  return map[status] ?? status.charAt(0).toUpperCase() + status.slice(1)
+}

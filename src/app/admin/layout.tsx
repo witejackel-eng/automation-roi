@@ -1,18 +1,18 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'
+import { AdminShell } from './_components/admin-shell'
 
-/**
- * /admin — protected superadmin control center. NEVER indexable.
- * Server-side requireSuperAdmin() remains authoritative for authorization;
- * this metadata only prevents crawling/indexing.
- */
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
+  title: 'Viableo · Founder Control Plane',
+  description: 'Founder / Superadmin operational console for Viableo.',
   robots: { index: false, follow: false },
-};
+}
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="vcp-root">
+      <AdminShell>{children}</AdminShell>
+    </div>
+  )
 }

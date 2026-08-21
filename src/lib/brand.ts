@@ -456,3 +456,45 @@ export const NAV_LABELS = {
   solutions: 'Solutions',
   resources: 'Resources',
 } as const;
+
+// ===========================================================================
+// Founder Control Plane — canonical commercial model + capability labels
+// Appended for the admin display layer. Per the founder dashboard spec:
+// do NOT reintroduce legacy $29/$39/$79/$790 pricing in the admin surface.
+// CUSTOM covers agency + agency_pro (custom pricing, verified manually).
+// ===========================================================================
+import type { Tier, Capability } from '@/lib/entitlement'
+export type { Tier, Capability }
+// Re-export so pages importing from '@/lib/brand' resolve correctly.
+export { TIER_LABEL } from '@/lib/entitlement'
+
+export type CanonicalPlan = 'FREE' | 'PRO' | 'CUSTOM'
+
+export const TIER_TO_CANONICAL: Record<Tier, CanonicalPlan> = {
+  free: 'FREE',
+  pro: 'PRO',
+  agency: 'CUSTOM',
+  agency_pro: 'CUSTOM',
+}
+
+export const CANONICAL_PLAN_PRICE: Record<CanonicalPlan, string> = {
+  FREE: '$0',
+  PRO: '$49/mo',
+  CUSTOM: 'Custom',
+}
+
+export const CAPABILITY_LABEL: Record<Capability, string> = {
+  calculate: 'Calculate ROI',
+  stress_test: 'Stress test',
+  scenario_analysis: 'Scenario analysis',
+  confidence_scoring: 'Confidence scoring',
+  save_project: 'Save projects',
+  client_report: 'Client report',
+  proposal: 'Proposal PDF',
+  share_links: 'Share links',
+  share_approval: 'Share approval',
+  agency_branding: 'Agency branding',
+  client_history: 'Client history',
+  multi_seat: 'Multi-seat',
+  api_access: 'API access',
+}

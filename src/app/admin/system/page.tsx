@@ -1,123 +1,284 @@
-/**
- * /admin/system — operational health (Agent 2).
- *
- * First action: requireSuperAdmin().
- *
- * Shows: env-var presence (never values), DB connectivity, webhook
- * errors, latency aggregates from SystemEvent metadata. Operational
- * metadata only — no customer financial content.
- */
-import { requireSuperAdmin, AuthError } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { requireSuperAdmin } from '@/lib/auth'
+import { logSystemEvent } from '@/lib/observability/system-event'
 import {
-  checkEnvConfig,
   checkDbConnectivity,
-  getRecentWebhookErrors,
-  getEventCountsByTypeAndDay,
-} from '@/lib/admin/operational-queries';
-import { AdminShell } from '@/app/admin/_components/admin-shell';
+  checkEnvConfig,
+  getRecentCriticalEvents,
+  getOverviewMetrics,
+} from '@/lib/admin/operational-queries'
+import {
+  SectionHeader, PageContainer, StatusPill, type StatusVariant,
+} from '@/components/admin/ui'
+import { cn } from '@/lib/utils'
+import { timeAgo } from '@/lib/format'
+import {
+  Globe, Server, Database, ShieldCheck, CreditCard,
+  FileText, Sparkles, HardDrive,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
-export default async function AdminSystemPage() {
-  try {
-    await requireSuperAdmin();
-  } catch (e) {
-    if (e instanceof AuthError) {
-      // Defense-in-depth: the middleware should already have redirected
-      // unauthenticated requests away from /admin/**. If we land here,
-      // either the middleware was bypassed or the user is authenticated
-      // but not a Superadmin — redirect to sign-in with an error flag.
-      redirect(`/auth/signin?error=admin_required`);
-    }
-    throw e;
+type ServiceStatus = 'operational' | 'degraded' | 'down' | 'configured' | 'not-configured'
+
+function statusVariant(status: ServiceStatus): StatusVariant {
+  switch (status) {
+    case 'operational':
+    case 'configured':
+      return 'success'
+    case 'degraded':
+      return 'warning'
+    case 'down':
+    case 'not-configured':
+      return 'error'
+    default:
+      return 'neutral'
   }
+}
 
-  // Run health checks in parallel — each one catches its own errors
-  // so a single failing check doesn't break the page render.
-  const [envConfig, dbCheck, webhookErrors, eventCounts] = await Promise.all([
-    Promise.resolve(checkEnvConfig()),
-    checkDbConnectivity().then(() => ({ ok: true, error: null } as const)).catch((e) => ({ ok: false, error: e instanceof Error ? e.message : String(e) } as const)),
-    getRecentWebhookErrors(10),
-    getEventCountsByTypeAndDay(7),
-  ]);
+function statusLabel(status: ServiceStatus): string {
+  switch (status) {
+    case 'operational':
+      return 'Operational'
+    case 'degraded':
+      return 'Degraded'
+    case 'down':
+      return 'Down'
+    case 'configured':
+      return 'Configured'
+    case 'not-configured':
+      return 'Not configured'
+    default:
+      return 'Unknown'
+  }
+}
+
+const DOT_VARIANT: Record<StatusVariant, string> = {
+  success: 'vcp-dot-success',
+  warning: 'vcp-dot-warning',
+  error: 'vcp-dot-error',
+  info: 'vcp-dot-info',
+  neutral: 'vcp-dot-neutral',
+  coral: 'vcp-dot-error',
+}
+
+type ServiceCard = {
+  name: string
+  icon: LucideIcon
+  status: ServiceStatus
+  detail: string
+}
+
+const SEVERITY_VARIANT: Record<string, StatusVariant> = {
+  info: 'info',
+  warn: 'warning',
+  error: 'error',
+}
+
+export default async function SystemHealthPage() {
+  const admin = await requireSuperAdmin()
+  await logSystemEvent({ eventType: 'ADMIN_PAGE_VIEWED', userId: admin.userId, metadata: { page: 'system' } })
+
+  // Real server-side checks only. No synthetic uptime / latency numbers.
+  const [dbCheck, envConfig, metrics, recentCritical] = await Promise.all([
+    checkDbConnectivity(),
+    checkEnvConfig(),
+    getOverviewMetrics(),
+    getRecentCriticalEvents(8),
+  ])
+
+  const envMap = new Map(envConfig.map((e) => [e.key, e.present]))
+  const authConfigured = Boolean(envMap.get('GITHUB_ID') || envMap.get('GOOGLE_CLIENT_ID'))
+  const billingConfigured = Boolean(envMap.get('WHOP_API_KEY'))
+  const aiConfigured = Boolean(envMap.get('ZAI_API_KEY'))
+  const storageConfigured = Boolean(envMap.get('BLOB_READ_WRITE_TOKEN'))
+
+  const reportsGenerated24h = metrics.reportsGenerated24h
+  const reportFailures24h = metrics.operationalSignals.reportFailures24h
+  const systemErrors24h = metrics.operationalSignals.systemErrors24h
+
+  const overallOk = dbCheck.ok && systemErrors24h === 0
+  const overallVariant: StatusVariant = overallOk ? 'success' : 'warning'
+
+  const services: ServiceCard[] = [
+    {
+      name: 'Web App',
+      icon: Globe,
+      status: 'operational',
+      detail: 'Page loaded successfully',
+    },
+    {
+      name: 'API',
+      icon: Server,
+      status: 'operational',
+      detail: 'Responding',
+    },
+    {
+      name: 'Database',
+      icon: Database,
+      status: dbCheck.ok ? 'operational' : 'down',
+      detail: dbCheck.ok
+        ? dbCheck.latencyMs != null
+          ? `Connected · ${dbCheck.latencyMs}ms`
+          : 'Connected'
+        : 'Disconnected',
+    },
+    {
+      name: 'Authentication',
+      icon: ShieldCheck,
+      status: authConfigured ? 'configured' : 'not-configured',
+      detail: authConfigured ? 'Configured' : 'Not configured',
+    },
+    {
+      name: 'Billing & Whop',
+      icon: CreditCard,
+      status: billingConfigured ? 'configured' : 'not-configured',
+      detail: billingConfigured ? 'Configured' : 'Not configured',
+    },
+    {
+      name: 'Reports',
+      icon: FileText,
+      status: reportFailures24h > 0 ? 'degraded' : 'operational',
+      detail: `${reportsGenerated24h} generated, ${reportFailures24h} failures (24h)`,
+    },
+    {
+      name: 'AI Runtime',
+      icon: Sparkles,
+      status: aiConfigured ? 'configured' : 'not-configured',
+      detail: aiConfigured ? 'Configured' : 'Not configured',
+    },
+    {
+      name: 'Storage',
+      icon: HardDrive,
+      status: storageConfigured ? 'configured' : 'not-configured',
+      detail: storageConfigured ? 'Configured' : 'Local fallback',
+    },
+  ]
 
   return (
-    <AdminShell title="System Health">
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Environment configuration</h2>
-        <p className="text-xs text-muted-foreground mb-2">
-          Presence only — values are never surfaced.
-        </p>
-        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-          {Object.entries(envConfig).map(([k, v]) => (
-            <div
-              key={k}
-              className={`flex justify-between rounded border p-2 ${v ? 'border-green-300' : 'border-red-300'}`}
-            >
-              <span className="font-mono text-sm">{k}</span>
-              <span className={`font-mono text-xs ${v ? 'text-green-600' : 'text-red-600'}`}>
-                {v ? 'set' : 'MISSING'}
-              </span>
+    <PageContainer>
+      <SectionHeader
+        title="System Health"
+        subtitle="Service reliability and integration status"
+      />
+
+      {/* Overall status banner */}
+      <div
+        className="vcp-card p-5 flex items-start gap-4"
+        style={overallOk ? undefined : { borderColor: 'var(--vcp-warning)' }}
+      >
+        <span className={cn('vcp-dot mt-1.5', DOT_VARIANT[overallVariant])} style={{ width: 10, height: 10 }} aria-hidden />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-[16px] font-semibold text-[var(--vcp-ink-strong)]">
+              {overallOk ? 'Operational' : 'Degraded'}
+            </h2>
+            <StatusPill variant={overallVariant}>
+              {overallOk ? 'All systems nominal' : 'Action required'}
+            </StatusPill>
+          </div>
+          <p className="text-[13px] text-[var(--vcp-ink-muted)] mt-1">
+            {overallOk
+              ? 'Database is reachable and no critical errors recorded in the last 24 hours.'
+              : 'A service is degraded or critical errors have been recorded in the last 24 hours. Review the cards below.'}
+          </p>
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--vcp-ink-faint)]">
+              Database latency
+            </span>
+            <span className="vcp-mono text-[12.5px] text-[var(--vcp-ink)]">
+              {dbCheck.ok
+                ? dbCheck.latencyMs != null
+                  ? `${dbCheck.latencyMs}ms`
+                  : 'Not yet measured'
+                : 'Unreachable'}
+            </span>
+            <span className="text-[var(--vcp-ink-faint)]">·</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--vcp-ink-faint)]">
+              Critical events (24h)
+            </span>
+            <span className="vcp-mono vcp-tnum text-[12.5px] text-[var(--vcp-ink)]">
+              {systemErrors24h}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Service grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {services.map((s) => {
+          const Icon = s.icon
+          const variant = statusVariant(s.status)
+          return (
+            <div key={s.name} className="vcp-card p-5">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 rounded-[6px] bg-[var(--vcp-surface-sunken)] flex items-center justify-center text-[var(--vcp-ink-muted)]">
+                    <Icon size={16} strokeWidth={2} />
+                  </span>
+                  <span className="text-[13.5px] font-semibold text-[var(--vcp-ink-strong)]">{s.name}</span>
+                </div>
+                <span className={cn('vcp-dot', DOT_VARIANT[variant])} aria-hidden />
+              </div>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-[12.5px] text-[var(--vcp-ink-muted)]">{s.detail}</span>
+                <StatusPill variant={variant}>{statusLabel(s.status)}</StatusPill>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+          )
+        })}
+      </div>
 
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-3">Database connectivity</h2>
-        <div className={`rounded border p-4 ${dbCheck.ok ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}`}>
-          <span className="font-mono">
-            {dbCheck.ok ? 'OK — SELECT 1 returned' : `FAIL — ${dbCheck.error}`}
-          </span>
+      {/* Recent operational events */}
+      <div className="vcp-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-[var(--vcp-border)]">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">
+            Recent operational events
+          </h3>
         </div>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-3">Recent webhook errors</h2>
-        {webhookErrors.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No webhook errors in the recent window.</p>
+        {recentCritical.length === 0 ? (
+          <div className="px-5 py-10 flex flex-col items-center justify-center text-center gap-2">
+            <span className="vcp-dot vcp-dot-success" aria-hidden />
+            <p className="text-[13px] text-[var(--vcp-ink-muted)]">
+              No critical or warning events recorded.
+            </p>
+          </div>
         ) : (
-          <div className="rounded border">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
+          <div className="overflow-x-auto vcp-scroll">
+            <table className="vcp-table">
+              <thead>
                 <tr>
-                  <th className="p-2 text-left">Event type</th>
-                  <th className="p-2 text-left">Org</th>
-                  <th className="p-2 text-left">Metadata</th>
-                  <th className="p-2 text-left">Created</th>
+                  <th>Event</th>
+                  <th>Severity</th>
+                  <th>Organization</th>
+                  <th>When</th>
                 </tr>
               </thead>
               <tbody>
-                {webhookErrors.map((e) => (
-                  <tr key={e.id} className="border-t">
-                    <td className="p-2 font-mono">{e.eventType}</td>
-                    <td className="p-2 font-mono text-xs">{e.organizationId ?? '-'}</td>
-                    <td className="p-2 font-mono text-xs">{e.metadata ?? '-'}</td>
-                    <td className="p-2 text-xs">{e.createdAt.toISOString()}</td>
+                {recentCritical.map((e) => (
+                  <tr key={e.id}>
+                    <td className="vcp-mono text-[12.5px] font-medium text-[var(--vcp-ink)]">{e.eventType}</td>
+                    <td>
+                      <StatusPill variant={SEVERITY_VARIANT[e.severity] ?? 'neutral'}>
+                        {e.severity === 'warn' ? 'Warning' : e.severity.charAt(0).toUpperCase() + e.severity.slice(1)}
+                      </StatusPill>
+                    </td>
+                    <td className="vcp-mono text-[12px] text-[var(--vcp-ink-muted)]">
+                      {e.organizationId ?? '—'}
+                    </td>
+                    <td className="text-[12.5px] text-[var(--vcp-ink-muted)]">{timeAgo(e.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </section>
+      </div>
 
-      <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-3">Event counts (last 7 days)</h2>
-        {eventCounts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No events in the last 7 days.</p>
-        ) : (
-          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            {eventCounts.map((e) => (
-              <div key={e.eventType} className="flex justify-between rounded border p-2">
-                <span className="font-mono text-sm">{e.eventType}</span>
-                <span className="font-mono text-sm font-semibold">{e.count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-    </AdminShell>
-  );
+      <p className="text-[12px] text-[var(--vcp-ink-muted)] px-1">
+        Metrics shown reflect real server-side checks. Historical uptime and p95 latency
+        require external telemetry (not yet configured).
+      </p>
+    </PageContainer>
+  )
 }

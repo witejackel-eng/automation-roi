@@ -1,94 +1,471 @@
-/**
- * Operational query helpers for Superadmin routes (Agent 2).
- *
- * THE PRIVACY BOUNDARY — this is the most important module in the
- * Agent 2 mandate. Per Viableo Production Architecture §8.2 and
- * Agent 2 master prompt §6.2:
- *
- *   "Build src/lib/admin/operational-queries.ts as the ONLY module any
- *    /admin/** code is allowed to import from for customer/organization/
- *    subscription/payment data. Every exported function must use an
- *    explicit Prisma select naming only operational fields."
- *
- * WHAT THIS MODULE MAY RETURN:
- *   - IDs, createdAt, updatedAt, organizationId, tier, status, counts
- *     via _count, aggregates via groupBy/aggregate.
- *   - For payments: amount, currency, status, refund state — these
- *     are billing-visibility facts, not customer financial content.
- *
- * WHAT THIS MODULE MUST NEVER RETURN (the OWASP A01 broken-access-control
- * failure mode that query-shape boundaries structurally prevent):
- *   - Project.inputs / Project.results — proprietary customer financial
- *     assumptions and ROI calculations.
- *   - Report.pdfUrl content — proprietary client-facing deliverables.
- *   - Share/ShareApproval name/email/comment content beyond what's
- *     strictly needed for engagement counts.
- *   - AI prompt text or completion content.
- *
- * The privacy boundary is enforced at the MODULE level: a future
- * engineer adding a new admin page carelessly would have to
- * DELIBERATELY import a content-fetching function into an admin
- * context — a visible, reviewable action, rather than silently
- * forgetting to hide a column in a UI component.
- *
- * Audit-log is also exposed here as a read-only query target (it is
- * itself an operational record of privileged actions, not customer
- * financial content).
- */
-import { db } from '@/lib/db';
-import { Prisma } from '@prisma/client';
+// Privacy-boundary read layer for the Founder Control Plane.
+//
+// Every exported helper uses an explicit Prisma `select` that structurally
+// EXCLUDES customer proprietary business-case content (no inputs/results JSON,
+// no client revenue, no proposal text, no AI prompts/outputs). The dashboard
+// only ever sees operational metadata: identity, billing, entitlement, counts,
+// timestamps, and system events.
+//
+// On port to the repo, this file is appended to (not replaced).
+import { db } from '@/lib/db'
+import type { Tier, Capability } from '@/lib/brand'
+import { entitlementFor, isEntitlingStatus } from '@/lib/entitlement'
+import { formatCurrency } from '@/lib/format'
 
-// ── Organizations / Customers ─────────────────────────────────────
+const PAGE_SIZE = 25
 
-/**
- * List all organizations with operational metadata only.
- * No Project.inputs/results, no Share content, no AI prompts.
- */
-export async function listOrganizationsForAdmin() {
-  return db.organization.findMany({
+// Convert the entitlement engine's Record<Capability, boolean> to the array
+// shape the admin UI expects (enabled capabilities only).
+function capabilitiesToList(caps: Record<string, boolean>): import('@/lib/brand').Capability[] {
+  return (Object.entries(caps) as [string, boolean][])
+    .filter(([, v]) => v)
+    .map(([k]) => k as import('@/lib/brand').Capability)
+}
+
+export type ListParams = {
+  page?: number
+  pageSize?: number
+  search?: string
+}
+
+// ---------------------------------------------------------------------------
+// OVERVIEW
+// ---------------------------------------------------------------------------
+
+export async function getOverviewMetrics() {
+  const [
+    activeOrgs,
+    activeSubs,
+    payments30d,
+    failedPayments30d,
+    newCustomers7d,
+    cancellations30d,
+    reports24h,
+    reportFailures24h,
+    webhookErrors24h,
+    authFailures24h,
+    systemErrors24h,
+  ] = await Promise.all([
+    db.organization.count(),
+    db.subscription.count({ where: { status: 'active' } }),
+    db.payment.findMany({
+      where: { status: 'succeeded', createdAt: { gte: daysAgo(30) } },
+      select: { amount: true, currency: true },
+    }),
+    db.payment.count({ where: { status: 'failed', createdAt: { gte: daysAgo(30) } } }),
+    db.user.count({ where: { createdAt: { gte: daysAgo(7) } } }),
+    db.subscription.count({ where: { status: 'canceled', canceledAt: { gte: daysAgo(30) } } }),
+    db.report.count({ where: { createdAt: { gte: daysAgo(1) } } }),
+    db.systemEvent.count({ where: { eventType: 'REPORT_FAILED', createdAt: { gte: daysAgo(1) } } }),
+    db.systemEvent.count({ where: { eventType: 'WEBHOOK_ERROR', createdAt: { gte: daysAgo(1) } } }),
+    db.systemEvent.count({ where: { eventType: 'AUTH_FAILED', createdAt: { gte: daysAgo(1) } } }),
+    db.systemEvent.count({ where: { severity: 'error', createdAt: { gte: daysAgo(1) } } }),
+  ])
+
+  // MRR: sum of monthly-equivalent recurring revenue from active subscriptions.
+  // Pro = $49/mo, agency = $79/mo (historical), agency_pro = $790/yr → ~$65.8/mo.
+  // We derive from the canonical PRO price ($49) for active pro subs; CUSTOM tiers
+  // require manual verification so they are reported separately.
+  const activeSubDetails = await db.subscription.findMany({
+    where: { status: 'active' },
+    select: { tier: true, planKey: true },
+  })
+  let proMrr = 0
+  let customActive = 0
+  for (const s of activeSubDetails) {
+    if (s.tier === 'pro') proMrr += 49
+    else if (s.tier === 'agency' || s.tier === 'agency_pro') customActive += 1
+  }
+
+  return {
+    activeOrganizations: activeOrgs,
+    activeSubscriptions: activeSubs,
+    proMrr,
+    customActiveCount: customActive,
+    newCustomers7d,
+    cancellations30d,
+    failedPayments30d,
+    reportsGenerated24h: reports24h,
+    payments30dCount: payments30d.length,
+    operationalSignals: {
+      webhookFailures24h: webhookErrors24h,
+      reportFailures24h,
+      authFailures24h,
+      systemErrors24h,
+    },
+  }
+}
+
+export async function getCustomerGrowthTrend(days = 30) {
+  const users = await db.user.findMany({
+    where: { createdAt: { gte: daysAgo(days) } },
+    select: { createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  })
+  const buckets = bucketByDay(days)
+  for (const u of users) {
+    const key = dayKey(u.createdAt)
+    const b = buckets.find((x) => x.key === key)
+    if (b) b.value += 1
+  }
+  return buckets
+}
+
+export async function getRevenueTrend(days = 30) {
+  const payments = await db.payment.findMany({
+    where: { status: 'succeeded', createdAt: { gte: daysAgo(days) } },
+    select: { amount: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  })
+  const buckets = bucketByDay(days)
+  for (const p of payments) {
+    const key = dayKey(p.createdAt)
+    const b = buckets.find((x) => x.key === key)
+    if (b) b.value += Number(p.amount)
+  }
+  return buckets
+}
+
+export async function getSubscriptionMix() {
+  const subs = await db.subscription.findMany({ select: { tier: true, status: true } })
+  const mix: Record<string, number> = { free: 0, pro: 0, agency: 0, agency_pro: 0 }
+  // orgs without subs count as free
+  const orgCount = await db.organization.count()
+  const orgsWithSub = new Set(
+    (await db.subscription.findMany({ select: { organizationId: true } })).map((s) => s.organizationId),
+  )
+  mix.free = Math.max(0, orgCount - orgsWithSub.size)
+  for (const s of subs) {
+    if ((s.tier as Tier) in mix) mix[s.tier as Tier] += 1
+  }
+  return mix
+}
+
+export async function getProductActivity24h() {
+  const [projects, reports, shares, proposals] = await Promise.all([
+    db.project.count({ where: { createdAt: { gte: daysAgo(1) } } }),
+    db.report.count({ where: { createdAt: { gte: daysAgo(1) }, reportType: 'client_report' } }),
+    db.share.count({ where: { createdAt: { gte: daysAgo(1) } } }),
+    db.report.count({ where: { createdAt: { gte: daysAgo(1) }, reportType: 'proposal' } }),
+  ])
+  return { projects, reports, shares, proposals }
+}
+
+export async function getRecentCriticalEvents(limit = 8) {
+  return db.systemEvent.findMany({
+    where: { severity: { in: ['warn', 'error'] } },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      eventType: true,
+      severity: true,
+      organizationId: true,
+      createdAt: true,
+      requestId: true,
+    },
+  })
+}
+
+export async function getRecentSystemEvents(limit = 12) {
+  return db.systemEvent.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      eventType: true,
+      severity: true,
+      organizationId: true,
+      userId: true,
+      createdAt: true,
+      requestId: true,
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOMERS (Users)
+// ---------------------------------------------------------------------------
+
+export type CustomerRow = {
+  id: string
+  name: string | null
+  email: string | null
+  image: string | null
+  systemRole: string
+  createdAt: Date
+  organization: { id: string; name: string } | null
+  membershipRole: string | null
+  plan: string
+  subscriptionStatus: string | null
+  lastActivity: Date | null
+  projectCount: number
+  reportCount: number
+  needsAttention: boolean
+  attentionReasons: string[]
+}
+
+export async function listCustomersForAdmin(params: ListParams & {
+  plan?: string
+  subscriptionStatus?: string
+  attentionOnly?: boolean
+} = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(100, params.pageSize ?? PAGE_SIZE)
+  const where: Record<string, unknown> = {}
+
+  if (params.search) {
+    where.OR = [
+      { name: { contains: params.search } },
+      { email: { contains: params.search } },
+    ]
+  }
+
+  // We filter by org name / plan post-fetch for plan/subscription filters because
+  // those live on related models. For the preview dataset this is acceptable;
+  // production uses a join. Pagination is enforced on the user set.
+  const users = await db.user.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    take: 500,
     select: {
       id: true,
       name: true,
-      website: true,
+      email: true,
+      image: true,
+      systemRole: true,
       createdAt: true,
-      updatedAt: true,
-      _count: {
-        select: {
-          projects: true,
-          memberships: true,
-          shareEvents: true,
-        },
-      },
-      licenses: {
-        select: { id: true, tier: true, purchasedAt: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
+      memberships: {
         take: 1,
-      },
-      subscriptions: {
         select: {
-          id: true,
-          status: true,
-          tier: true,
-          planKey: true,
-          currentPeriodStart: true,
-          currentPeriodEnd: true,
-          cancelAtPeriodEnd: true,
-          canceledAt: true,
-          createdAt: true,
+          role: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              subscriptions: { take: 1, orderBy: { createdAt: 'desc' }, select: { status: true, tier: true, currentPeriodEnd: true, cancelAtPeriodEnd: true } },
+              licenses: { take: 1, orderBy: { createdAt: 'desc' }, select: { tier: true } },
+            },
+          },
         },
-        orderBy: { createdAt: 'desc' },
-        take: 1,
       },
     },
-    orderBy: { createdAt: 'desc' },
-  });
+  })
+
+  // Enrich with usage counts + last activity
+  const enriched = await Promise.all(
+    users.map(async (u) => {
+      const org = u.memberships[0]?.organization ?? null
+      const sub = org?.subscriptions[0] ?? null
+      const license = org?.licenses[0] ?? null
+      const plan = sub?.tier ?? license?.tier ?? 'free'
+
+      const [projectCount, reportCount, lastEvent] = await Promise.all([
+        org ? db.project.count({ where: { organizationId: org.id } }) : Promise.resolve(0),
+        org ? db.report.count({ where: { project: { organizationId: org.id } } }) : Promise.resolve(0),
+        db.systemEvent.findFirst({
+          where: { userId: u.id },
+          orderBy: { createdAt: 'desc' },
+          select: { createdAt: true },
+        }),
+      ])
+
+      const attentionReasons: string[] = []
+      if (sub && sub.status === 'past_due') attentionReasons.push('Past due')
+      if (sub && sub.status === 'canceled') attentionReasons.push('Canceled')
+      if (!org) attentionReasons.push('No organization')
+      if (sub?.status === 'active' && sub.tier === 'free') attentionReasons.push('Active but free')
+
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        image: u.image,
+        systemRole: u.systemRole,
+        createdAt: u.createdAt,
+        organization: org ? { id: org.id, name: org.name } : null,
+        membershipRole: u.memberships[0]?.role ?? null,
+        plan,
+        subscriptionStatus: sub?.status ?? null,
+        lastActivity: lastEvent?.createdAt ?? u.createdAt,
+        projectCount,
+        reportCount,
+        needsAttention: attentionReasons.length > 0,
+        attentionReasons,
+      } satisfies CustomerRow
+    }),
+  )
+
+  let filtered = enriched
+  if (params.plan && params.plan !== 'all') filtered = filtered.filter((c) => c.plan === params.plan)
+  if (params.subscriptionStatus && params.subscriptionStatus !== 'all')
+    filtered = filtered.filter((c) => (c.subscriptionStatus ?? 'none') === params.subscriptionStatus)
+  if (params.attentionOnly) filtered = filtered.filter((c) => c.needsAttention)
+
+  const total = filtered.length
+  const start = (page - 1) * pageSize
+  const rows = filtered.slice(start, start + pageSize)
+
+  return { rows, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
 }
 
-/**
- * Get a single organization's operational profile (no project content).
- */
+export async function getCustomerForAdmin(userId: string) {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      systemRole: true,
+      createdAt: true,
+      updatedAt: true,
+      memberships: {
+        select: {
+          role: true,
+          createdAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              website: true,
+              contactEmail: true,
+              createdAt: true,
+              subscriptions: { take: 1, orderBy: { createdAt: 'desc' }, select: { id: true, status: true, tier: true, planKey: true, currentPeriodStart: true, currentPeriodEnd: true, cancelAtPeriodEnd: true, canceledAt: true, createdAt: true, whopMembershipId: true } },
+              licenses: { take: 1, orderBy: { createdAt: 'desc' }, select: { tier: true, purchasedAt: true, whopOrderId: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!user) return null
+
+  const org = user.memberships[0]?.organization ?? null
+  const sub = org?.subscriptions[0] ?? null
+  const license = org?.licenses[0] ?? null
+  const tier = (sub?.tier ?? license?.tier ?? 'free') as Tier
+  const entitlement = entitlementFor(tier)
+  const entitling = sub ? isEntitlingStatus(sub.status, sub.cancelAtPeriodEnd, sub.currentPeriodEnd) : false
+
+  const [projectCount, reportCount, shareCount, recentEvents, recentAudit] = await Promise.all([
+    org ? db.project.count({ where: { organizationId: org.id } }) : Promise.resolve(0),
+    org ? db.report.count({ where: { project: { organizationId: org.id } } }) : Promise.resolve(0),
+    org ? db.share.count({ where: { project: { organizationId: org.id } } }) : Promise.resolve(0),
+    db.systemEvent.findMany({
+      where: { OR: [{ userId }, org ? { organizationId: org.id } : {}] },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: { id: true, eventType: true, severity: true, createdAt: true, requestId: true },
+    }),
+    db.auditLog.findMany({
+      where: { OR: [{ actorUserId: userId }, org ? { targetType: 'Organization', targetId: org.id } : {}] },
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+      select: { id: true, action: true, actorRole: true, reason: true, createdAt: true },
+    }),
+  ])
+
+  return {
+    identity: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      systemRole: user.systemRole,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    },
+    organization: org
+      ? {
+          id: org.id,
+          name: org.name,
+          website: org.website,
+          contactEmail: org.contactEmail,
+          createdAt: org.createdAt,
+          membershipRole: user.memberships[0]?.role ?? null,
+        }
+      : null,
+    subscription: sub
+      ? {
+          id: sub.id,
+          status: sub.status,
+          tier: sub.tier as Tier,
+          planKey: sub.planKey,
+          currentPeriodStart: sub.currentPeriodStart,
+          currentPeriodEnd: sub.currentPeriodEnd,
+          cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+          canceledAt: sub.canceledAt,
+          createdAt: sub.createdAt,
+          whopMembershipId: sub.whopMembershipId,
+        }
+      : null,
+    entitlement: {
+      tier,
+      capabilities: capabilitiesToList(entitlement.capabilities),
+      source: sub ? 'subscription' : license ? 'license' : 'default',
+      active: entitling,
+    },
+    usage: { projectCount, reportCount, shareCount },
+    recentEvents,
+    recentAudit,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ORGANIZATIONS
+// ---------------------------------------------------------------------------
+
+export async function listOrganizationsForAdmin(params: ListParams = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(100, params.pageSize ?? PAGE_SIZE)
+  const where: Record<string, unknown> = {}
+  if (params.search) where.name = { contains: params.search }
+
+  const [total, orgs] = await Promise.all([
+    db.organization.count({ where }),
+    db.organization.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        contactEmail: true,
+        createdAt: true,
+        _count: { select: { memberships: true, projects: true, shareEvents: true } },
+        memberships: { where: { role: 'owner' }, take: 1, select: { user: { select: { name: true, email: true } } } },
+        subscriptions: { take: 1, orderBy: { createdAt: 'desc' }, select: { status: true, tier: true, currentPeriodEnd: true } },
+        licenses: { take: 1, orderBy: { createdAt: 'desc' }, select: { tier: true } },
+      },
+    }),
+  ])
+
+  const rows = orgs.map((o) => {
+    const sub = o.subscriptions[0] ?? null
+    const license = o.licenses[0] ?? null
+    const plan = sub?.tier ?? license?.tier ?? 'free'
+    return {
+      id: o.id,
+      name: o.name,
+      contactEmail: o.contactEmail,
+      owner: o.memberships[0]?.user ?? null,
+      memberCount: o._count.memberships,
+      projectCount: o._count.projects,
+      plan,
+      subscriptionStatus: sub?.status ?? null,
+      currentPeriodEnd: sub?.currentPeriodEnd ?? null,
+      createdAt: o.createdAt,
+      shareEventCount: o._count.shareEvents,
+    }
+  })
+
+  return { rows, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
+}
+
 export async function getOrganizationForAdmin(organizationId: string) {
-  return db.organization.findUnique({
+  const org = await db.organization.findUnique({
     where: { id: organizationId },
     select: {
       id: true,
@@ -100,276 +477,415 @@ export async function getOrganizationForAdmin(organizationId: string) {
       brandColorHex: true,
       createdAt: true,
       updatedAt: true,
-      _count: {
-        select: {
-          projects: true,
-          memberships: true,
-          shareEvents: true,
-          payments: true,
-          subscriptions: true,
-        },
-      },
       memberships: {
-        select: {
-          id: true,
-          userId: true,
-          role: true,
-          createdAt: true,
-          user: { select: { id: true, email: true, name: true, systemRole: true } },
-        },
         orderBy: { createdAt: 'asc' },
+        select: { id: true, role: true, createdAt: true, user: { select: { id: true, name: true, email: true, systemRole: true } } },
       },
+      subscriptions: { orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, status: true, tier: true, planKey: true, currentPeriodStart: true, currentPeriodEnd: true, cancelAtPeriodEnd: true, canceledAt: true, createdAt: true, whopMembershipId: true } },
+      licenses: { orderBy: { createdAt: 'desc' }, take: 3, select: { id: true, tier: true, purchasedAt: true, whopOrderId: true } },
+      _count: { select: { projects: true, memberships: true, payments: true, shareEvents: true } },
     },
-  });
+  })
+  if (!org) return null
+
+  const sub = org.subscriptions[0] ?? null
+  const tier = (sub?.tier ?? org.licenses[0]?.tier ?? 'free') as Tier
+  const entitlement = entitlementFor(tier)
+
+  const [recentEvents, recentPayments] = await Promise.all([
+    db.systemEvent.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: { id: true, eventType: true, severity: true, createdAt: true, requestId: true },
+    }),
+    db.payment.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { id: true, amount: true, currency: true, status: true, createdAt: true, whopPaymentId: true },
+    }),
+  ])
+
+  return {
+    ...org,
+    tier,
+    entitlement: {
+      ...entitlement,
+      capabilities: capabilitiesToList(entitlement.capabilities),
+    },
+    recentEvents,
+    recentPayments,
+    counts: org._count,
+  }
 }
 
-// ── Subscriptions / Payments ──────────────────────────────────────
+// ---------------------------------------------------------------------------
+// SUBSCRIPTIONS
+// ---------------------------------------------------------------------------
 
-/**
- * List all subscriptions with org name + tier + status — read-only.
- */
-export async function listSubscriptionsForAdmin() {
-  return db.subscription.findMany({
-    select: {
-      id: true,
-      organizationId: true,
-      whopMembershipId: true,
-      planKey: true,
-      tier: true,
-      status: true,
-      currentPeriodStart: true,
-      currentPeriodEnd: true,
-      cancelAtPeriodEnd: true,
-      canceledAt: true,
-      createdAt: true,
-      updatedAt: true,
-      organization: { select: { id: true, name: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-}
+export async function listSubscriptionsForAdmin(params: ListParams & { status?: string } = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(100, params.pageSize ?? PAGE_SIZE)
+  const where: Record<string, unknown> = {}
+  if (params.status && params.status !== 'all') where.status = params.status
+  if (params.search) {
+    where.OR = [
+      { organization: { name: { contains: params.search } } },
+      { whopMembershipId: { contains: params.search } },
+      { planKey: { contains: params.search } },
+    ]
+  }
 
-/**
- * List all payments — amount/currency/status visible (billing visibility
- * is appropriate per the master prompt §6.2). NEVER joins to
- * Project.inputs/results (Payment has no FK to Project, by design).
- */
-export async function listPaymentsForAdmin() {
-  return db.payment.findMany({
-    select: {
-      id: true,
-      organizationId: true,
-      subscriptionId: true,
-      whopPaymentId: true,
-      whopEventId: true,
-      amount: true,
-      currency: true,
-      status: true,
-      whopProductId: true,
-      whopPlanId: true,
-      refundedAmount: true,
-      refundedAt: true,
-      createdAt: true,
-      organization: { select: { id: true, name: true } },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-}
-
-// ── Entitlements (operational read; mutations go via separate
-// audited override routes, never via this read module) ─────────────
-
-/**
- * List current tier per organization (the License cache + the
- * Subscription source of truth side-by-side). Read-only.
- */
-export async function listEntitlementsForAdmin() {
-  const orgs = await db.organization.findMany({
-    select: {
-      id: true,
-      name: true,
-      createdAt: true,
-      licenses: {
-        select: { id: true, tier: true, purchasedAt: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
-        take: 1,
+  const [total, subs] = await Promise.all([
+    db.subscription.count({ where }),
+    db.subscription.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        organizationId: true,
+        whopMembershipId: true,
+        planKey: true,
+        tier: true,
+        status: true,
+        currentPeriodStart: true,
+        currentPeriodEnd: true,
+        cancelAtPeriodEnd: true,
+        canceledAt: true,
+        createdAt: true,
+        organization: { select: { id: true, name: true } },
       },
-      subscriptions: {
-        select: {
-          id: true,
-          tier: true,
-          status: true,
-          planKey: true,
-          currentPeriodEnd: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 1,
+    }),
+  ])
+
+  return { rows: subs, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
+}
+
+// ---------------------------------------------------------------------------
+// PAYMENTS
+// ---------------------------------------------------------------------------
+
+export async function listPaymentsForAdmin(params: ListParams & { status?: string } = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(100, params.pageSize ?? PAGE_SIZE)
+  const where: Record<string, unknown> = {}
+  if (params.status && params.status !== 'all') where.status = params.status
+  if (params.search) {
+    where.OR = [
+      { organization: { name: { contains: params.search } } },
+      { whopPaymentId: { contains: params.search } },
+      { whopEventId: { contains: params.search } },
+    ]
+  }
+
+  const [total, payments] = await Promise.all([
+    db.payment.count({ where }),
+    db.payment.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        organizationId: true,
+        whopPaymentId: true,
+        whopEventId: true,
+        amount: true,
+        currency: true,
+        status: true,
+        whopProductId: true,
+        whopPlanId: true,
+        refundedAmount: true,
+        refundedAt: true,
+        createdAt: true,
+        organization: { select: { id: true, name: true } },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-  return orgs.map((o) => ({
-    organizationId: o.id,
-    organizationName: o.name,
-    cachedTier: o.licenses[0]?.tier ?? 'free',
-    subscriptionTier: o.subscriptions[0]?.tier ?? null,
-    subscriptionStatus: o.subscriptions[0]?.status ?? null,
-    planKey: o.subscriptions[0]?.planKey ?? null,
-    currentPeriodEnd: o.subscriptions[0]?.currentPeriodEnd ?? null,
-    licensePurchasedAt: o.licenses[0]?.purchasedAt ?? null,
-  }));
+    }),
+  ])
+
+  return { rows: payments, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
 }
 
-// ── PlanMapping (global pricing config — Superadmin can view/edit
-// via a separate audited route; this module is read-only) ─────────
+// ---------------------------------------------------------------------------
+// ENTITLEMENTS
+// ---------------------------------------------------------------------------
 
-export async function listPlanMappingsForAdmin() {
-  return db.planMapping.findMany({
-    select: {
-      id: true,
-      whopPlanId: true,
-      whopProductId: true,
-      tier: true,
-      billingPeriod: true,
-      active: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    orderBy: { createdAt: 'asc' },
-  });
+export async function listEntitlementsForAdmin(params: ListParams = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(100, params.pageSize ?? PAGE_SIZE)
+  const where: Record<string, unknown> = {}
+  if (params.search) where.name = { contains: params.search }
+
+  const [total, orgs] = await Promise.all([
+    db.organization.count({ where }),
+    db.organization.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        subscriptions: { take: 1, orderBy: { createdAt: 'desc' }, select: { tier: true, status: true, currentPeriodEnd: true, cancelAtPeriodEnd: true, createdAt: true } },
+        licenses: { take: 1, orderBy: { createdAt: 'desc' }, select: { tier: true, updatedAt: true, purchasedAt: true } },
+      },
+    }),
+  ])
+
+  const rows = orgs.map((o) => {
+    const sub = o.subscriptions[0] ?? null
+    const license = o.licenses[0] ?? null
+    const tier = (sub?.tier ?? license?.tier ?? 'free') as Tier
+    const ent = entitlementFor(tier)
+    const active = sub ? isEntitlingStatus(sub.status, sub.cancelAtPeriodEnd, sub.currentPeriodEnd) : false
+    return {
+      id: o.id,
+      organizationId: o.id,
+      organizationName: o.name,
+      plan: tier,
+      subscriptionStatus: sub?.status ?? null,
+      subscriptionTier: sub?.tier ?? null,
+      cachedTier: license?.tier ?? null,
+      capabilities: capabilitiesToList(ent.capabilities),
+      capabilityCount: capabilitiesToList(ent.capabilities).length,
+      source: sub ? 'subscription' : license ? 'license' : 'default',
+      active,
+      updatedAt: license?.updatedAt ?? sub?.createdAt ?? o.createdAt,
+    }
+  })
+
+  return { rows, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
 }
 
-// ── SystemEvent dashboard queries ──────────────────────────────────
+// ---------------------------------------------------------------------------
+// SYSTEM EVENTS
+// ---------------------------------------------------------------------------
 
-/**
- * Rolling event counts per eventType, grouped by day, for the last N days.
- * Used by the /admin/events dashboard. Operational metadata only —
- * no event payload content (metadata field is NOT selected).
- */
-export async function getEventCountsByTypeAndDay(daysBack: number = 30) {
-  const since = new Date();
-  since.setDate(since.getDate() - daysBack);
-  const rows = await db.systemEvent.groupBy({
+export async function listSystemEventsForAdmin(params: ListParams & {
+  eventType?: string
+  severity?: string
+  organizationId?: string
+} = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(200, params.pageSize ?? 50)
+  const where: Record<string, unknown> = {}
+  if (params.eventType && params.eventType !== 'all') where.eventType = params.eventType
+  if (params.severity && params.severity !== 'all') where.severity = params.severity
+  if (params.organizationId) where.organizationId = params.organizationId
+  if (params.search) where.eventType = { contains: params.search.toUpperCase() }
+
+  const [total, events] = await Promise.all([
+    db.systemEvent.count({ where }),
+    db.systemEvent.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        eventType: true,
+        organizationId: true,
+        userId: true,
+        severity: true,
+        requestId: true,
+        createdAt: true,
+      },
+    }),
+  ])
+
+  return { rows: events, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
+}
+
+export async function getEventCountsByTypeAndDay(daysBack = 30) {
+  const events = await db.systemEvent.findMany({
+    where: { createdAt: { gte: daysAgo(daysBack) } },
+    select: { eventType: true, severity: true, createdAt: true },
+  })
+  return events
+}
+
+export async function getEventTypeSummary() {
+  const grouped = await db.systemEvent.groupBy({
     by: ['eventType'],
-    where: { createdAt: { gte: since } },
-    _count: { _all: true },
-    orderBy: { eventType: 'asc' },
-  });
-  return rows.map((r) => ({
-    eventType: r.eventType,
-    count: (r._count as { _all: number })._all,
-  }));
+    _count: true,
+    orderBy: { _count: { eventType: 'desc' } },
+    take: 30,
+  })
+  return grouped
 }
 
-/**
- * Get the most recent N system events (metadata sanitized — only
- * the eventType / severity / timestamps are returned, NOT the
- * raw metadata blob which may contain operational IDs but never
- * financial content).
- */
-export async function getRecentSystemEvents(limit: number = 50) {
-  return db.systemEvent.findMany({
-    select: {
-      id: true,
-      eventType: true,
-      organizationId: true,
-      userId: true,
-      severity: true,
-      createdAt: true,
-      requestId: true,
-      // metadata is intentionally NOT selected — it may contain
-      // operational IDs (projectIds, shareIds) but the principle is
-      // to surface the LEAST content needed for the dashboard.
-    },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-  });
+// ---------------------------------------------------------------------------
+// AUDIT LOG
+// ---------------------------------------------------------------------------
+
+export async function listAuditLogForAdmin(params: ListParams & { action?: string; actionPrefix?: string } = {}) {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(200, params.pageSize ?? 50)
+  const where: Record<string, unknown> = {}
+  if (params.action && params.action !== 'all') where.action = params.action
+  if (params.actionPrefix) where.action = { startsWith: params.actionPrefix }
+  if (params.search) {
+    where.OR = [
+      { action: { contains: params.search } },
+      { reason: { contains: params.search } },
+    ]
+  }
+
+  const [total, logs] = await Promise.all([
+    db.auditLog.count({ where }),
+    db.auditLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        actorUserId: true,
+        actorRole: true,
+        action: true,
+        targetType: true,
+        targetId: true,
+        reason: true,
+        createdAt: true,
+      },
+    }),
+  ])
+
+  return { rows: logs, total, page, pageSize, totalPages: Math.max(1, Math.ceil(total / pageSize)) }
 }
 
-/**
- * Recent webhook errors (the most actionable subset of system events
- * for a founder checking "is anything broken right now?").
- */
-export async function getRecentWebhookErrors(limit: number = 20) {
+// ---------------------------------------------------------------------------
+// SYSTEM HEALTH
+// ---------------------------------------------------------------------------
+
+export async function checkDbConnectivity(): Promise<{ ok: boolean; latencyMs: number | null }> {
+  const start = Date.now()
+  try {
+    await db.$queryRaw`SELECT 1`
+    return { ok: true, latencyMs: Date.now() - start }
+  } catch {
+    return { ok: false, latencyMs: null }
+  }
+}
+
+export function checkEnvConfig() {
+  // Booleans only — never values.
+  const envKeys = [
+    'NEXTAUTH_SECRET',
+    'DATABASE_URL',
+    'WHOP_API_KEY',
+    'WHOP_COMPANY_ID',
+    'WHOP_WEBHOOK_SECRET',
+    'GITHUB_ID',
+    'GITHUB_SECRET',
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET',
+    'BLOB_READ_WRITE_TOKEN',
+    'ZAI_API_KEY',
+  ]
+  return envKeys.map((k) => ({ key: k, present: Boolean(process.env[k]) }))
+}
+
+// ---------------------------------------------------------------------------
+// SEARCH
+// ---------------------------------------------------------------------------
+
+export type SearchResult =
+  | { kind: 'customer'; id: string; label: string; sublabel: string }
+  | { kind: 'organization'; id: string; label: string; sublabel: string }
+  | { kind: 'subscription'; id: string; label: string; sublabel: string }
+  | { kind: 'payment'; id: string; label: string; sublabel: string }
+  | { kind: 'event'; id: string; label: string; sublabel: string }
+
+export async function adminSearch(query: string, limit = 12): Promise<SearchResult[]> {
+  const q = query.trim()
+  if (!q) return []
+  const results: SearchResult[] = []
+
+  const [users, orgs, subs, payments, events] = await Promise.all([
+    db.user.findMany({
+      where: { OR: [{ name: { contains: q } }, { email: { contains: q } }] },
+      take: limit,
+      select: { id: true, name: true, email: true },
+    }),
+    db.organization.findMany({
+      where: { name: { contains: q } },
+      take: limit,
+      select: { id: true, name: true, contactEmail: true },
+    }),
+    db.subscription.findMany({
+      where: { OR: [{ whopMembershipId: { contains: q } }, { planKey: { contains: q } }] },
+      take: limit,
+      select: { id: true, whopMembershipId: true, planKey: true, tier: true, organization: { select: { name: true } } },
+    }),
+    db.payment.findMany({
+      where: { OR: [{ whopPaymentId: { contains: q } }, { whopEventId: { contains: q } }] },
+      take: limit,
+      select: { id: true, whopPaymentId: true, amount: true, currency: true, organization: { select: { name: true } } },
+    }),
+    db.systemEvent.findMany({
+      where: { OR: [{ eventType: { contains: q.toUpperCase() } }, { requestId: { contains: q } }] },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, eventType: true, createdAt: true, severity: true },
+    }),
+  ])
+
+  for (const u of users) results.push({ kind: 'customer', id: u.id, label: u.name ?? u.email ?? 'Customer', sublabel: u.email ?? '' })
+  for (const o of orgs) results.push({ kind: 'organization', id: o.id, label: o.name, sublabel: o.contactEmail ?? 'Organization' })
+  for (const s of subs) results.push({ kind: 'subscription', id: s.id, label: `${s.tier} · ${s.organization.name}`, sublabel: s.whopMembershipId ?? s.planKey })
+  for (const p of payments) results.push({ kind: 'payment', id: p.id, label: `${formatCurrency(p.amount)} ${p.currency} · ${p.organization.name}`, sublabel: p.whopPaymentId })
+  for (const e of events) results.push({ kind: 'event', id: e.id, label: e.eventType, sublabel: e.createdAt.toISOString() })
+
+  return results.slice(0, limit)
+}
+
+// ---------------------------------------------------------------------------
+// helpers
+// ---------------------------------------------------------------------------
+
+function daysAgo(n: number): Date {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d
+}
+
+function dayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function bucketByDay(days: number): { key: string; label: string; value: number }[] {
+  const out: { key: string; label: string; value: number }[] = []
+  const now = new Date()
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    out.push({ key: dayKey(d), label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: 0 })
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// Re-exported for the existing /api/admin/system/health route.
+// Recent webhook errors (metadata selected — operational only).
+// ---------------------------------------------------------------------------
+export async function getRecentWebhookErrors(limit = 20) {
   return db.systemEvent.findMany({
-    select: {
-      id: true,
-      eventType: true,
-      organizationId: true,
-      severity: true,
-      metadata: true, // WEBHOOK_ERROR metadata is operational only (reason, planId)
-      createdAt: true,
-    },
     where: { eventType: 'WEBHOOK_ERROR' },
     orderBy: { createdAt: 'desc' },
     take: limit,
-  });
-}
-
-// ── AuditLog (read-only — AuditLog is append-only per §9.1) ───────
-
-/**
- * List AuditLog rows. Filterable by action / actorUserId / targetType.
- * Read-only — the AuditLog write path is logAuditAction() only.
- */
-export async function listAuditLogForAdmin(opts: {
-  action?: string;
-  actorUserId?: string;
-  targetType?: string;
-  limit?: number;
-} = {}) {
-  const where: Prisma.AuditLogWhereInput = {};
-  if (opts.action) where.action = opts.action;
-  if (opts.actorUserId) where.actorUserId = opts.actorUserId;
-  if (opts.targetType) where.targetType = opts.targetType;
-  return db.auditLog.findMany({
     select: {
       id: true,
-      actorUserId: true,
-      actorRole: true,
-      action: true,
-      targetType: true,
-      targetId: true,
-      reason: true,
-      metadata: true, // operational action metadata, not customer content
+      eventType: true,
+      severity: true,
+      organizationId: true,
+      metadata: true,
       createdAt: true,
+      requestId: true,
     },
-    where,
-    orderBy: { createdAt: 'desc' },
-    take: opts.limit ?? 100,
-  });
-}
-
-// ── Health-check (operational, no content) ─────────────────────────
-
-/**
- * Check whether required env vars are configured (never their values —
- * just presence). Used by /api/admin/system/health.
- */
-export function checkEnvConfig(): {
-  ZAI_API_KEY: boolean;
-  WHOP_WEBHOOK_SECRET: boolean;
-  BLOB_READ_WRITE_TOKEN: boolean;
-  NEXTAUTH_SECRET: boolean;
-  DATABASE_URL: boolean;
-  DIRECT_URL: boolean;
-  GITHUB_ID: boolean;
-} {
-  return {
-    ZAI_API_KEY: !!process.env.ZAI_API_KEY,
-    WHOP_WEBHOOK_SECRET: !!process.env.WHOP_WEBHOOK_SECRET,
-    BLOB_READ_WRITE_TOKEN: !!process.env.BLOB_READ_WRITE_TOKEN,
-    NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
-    DATABASE_URL: !!process.env.DATABASE_URL,
-    DIRECT_URL: !!process.env.DIRECT_URL,
-    GITHUB_ID: !!process.env.GITHUB_ID,
-  };
-}
-
-/**
- * Lightweight DB connectivity check. Throws if the DB is unreachable.
- * Uses a trivial SELECT 1 — never touches customer content.
- */
-export async function checkDbConnectivity(): Promise<void> {
-  await db.$queryRaw`SELECT 1`;
+  })
 }
