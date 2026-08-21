@@ -1,18 +1,20 @@
 /**
  * POST /api/projects/[id]/proposal — generate + store the proposal PDF.
  *
- * Entitlement: `proposal` (Pro+). Superadmin bypasses via
- * getEffectiveEntitlement.
+ * Entitlement (canonical two-tier model):
+ *   Starter ($0) — can generate, but the PDF is watermarked "for evaluation".
+ *   Pro ($49)    — clean, unwatermarked PDF + agency branding when configured.
+ *   Superadmin   — bypasses via getEffectiveEntitlement (returns Pro).
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, AuthError } from '@/lib/session';
 import { tenant } from '@/lib/tenant';
 import { getEffectiveEntitlement } from '@/lib/entitlement-session';
-import { has } from '@/lib/entitlement';
 import { calculateAllScenarios } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
 import { storePdf } from '@/lib/storage';
 import { Proposal } from '@/lib/pdf/proposal';
+import { shouldWatermark } from '@/lib/pdf/watermark';
 import type { CalculatorInputs } from '@/lib/calculations/engine';
 import { renderToBuffer } from '@react-pdf/renderer';
 import * as React from 'react';
@@ -26,12 +28,6 @@ export async function POST(
   try {
     const org = await requireOrg();
     const entitlement = await getEffectiveEntitlement(org.id);
-    if (!has(entitlement, 'proposal')) {
-      return NextResponse.json(
-        { error: 'Proposal generation requires Pro or higher.', requiredTier: 'pro' },
-        { status: 403 }
-      );
-    }
 
     const { id: projectId } = await params;
     const project = await tenant(org.id).projects.findUnique({ id: projectId });
@@ -45,8 +41,10 @@ export async function POST(
 
     const canBrand = entitlement.capabilities.agency_branding;
     const branding = canBrand
-      ? { name: org.name, logoUrl: org.logoUrl ?? undefined, brandColorHex: org.brandColorHex ?? undefined }
+      ? { name: org.name, website: org.website ?? undefined, contactEmail: org.contactEmail ?? undefined, phone: org.phone ?? undefined, logoUrl: org.logoUrl ?? undefined, brandColorHex: org.brandColorHex ?? undefined }
       : null;
+
+    const watermarked = shouldWatermark(entitlement.tier);
 
     const fileName = `proposal-${projectId}-${Date.now()}.pdf`;
 
@@ -60,6 +58,7 @@ export async function POST(
         generatedAt={new Date()}
         implementationApproach="Iterative delivery with weekly checkpoints."
         nextSteps={['Review the business case.', 'Confirm scope.', 'Schedule the kickoff.']}
+        watermark={watermarked}
       />
     );
 
@@ -73,7 +72,7 @@ export async function POST(
       projectId,
     });
 
-    return NextResponse.json({ pdfUrl: stored.url });
+    return NextResponse.json({ pdfUrl: stored.url, watermarked });
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

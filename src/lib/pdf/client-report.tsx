@@ -32,6 +32,7 @@ import {
 } from './shared';
 import { PdfVerdictStamp } from './verdict-stamp';
 import { PdfBarChart } from './pdf-bar-chart';
+import { PdfWatermark } from './watermark';
 import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine';
 import type { ScenarioName } from '@/lib/calculations/scenarios';
 import { SCENARIO_ORDER, SCENARIO_LABELS } from '@/lib/calculations/scenarios';
@@ -63,6 +64,8 @@ interface ClientReportProps {
   branding: Branding | null;
   agencyTierCanBrand: boolean;
   generatedAt: Date;
+  /** When true, renders the Starter-tier "for evaluation" watermark on every page. */
+  watermark?: boolean;
 }
 
 export function ClientReport({
@@ -72,6 +75,7 @@ export function ClientReport({
   branding,
   agencyTierCanBrand,
   generatedAt,
+  watermark = false,
 }: ClientReportProps) {
   const expected = results.expected;
   const brand = agencyTierCanBrand && branding ? brandColor(branding) : PDF_COLORS.brand;
@@ -96,6 +100,7 @@ export function ClientReport({
     >
       {/* Page 1 — Cover */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <View style={{ marginBottom: 24 }}>
           {agencyTierCanBrand && branding?.logoUrl ? (
             <PdfLogo src={branding.logoUrl} />
@@ -133,6 +138,7 @@ export function ClientReport({
       {/* Page 2 — Executive Summary (pyramid principle) */}
       <PageHeader brand={brand} agency={agencyName} logoUrl={agencyTierCanBrand ? branding?.logoUrl : undefined} title="Executive Summary" />
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Executive Summary</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 11, color: PDF_COLORS.inkMuted, marginBottom: 16 }}>
           Conclusion first, support after.
@@ -162,6 +168,7 @@ export function ClientReport({
 
       {/* Page 3 — Current State */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Current State</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.inkMuted, marginBottom: 12 }}>
           Business and revenue baseline before automation.
@@ -192,6 +199,7 @@ export function ClientReport({
 
       {/* Page 4 — Proposed Automation */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Proposed Automation</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.inkMuted, marginBottom: 12 }}>
           Expected performance and cost assumptions.
@@ -213,6 +221,7 @@ export function ClientReport({
 
       {/* Page 5 — Financial Impact (Exhibit 1) */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.exhibitTitle}>Exhibit 1 — Labor savings drive the first-year benefit</Text>
         <Text style={styles.caption}>
           Source: client-provided inputs and the Viableo calculation engine. Figures reflect the Expected scenario unless noted.
@@ -240,6 +249,7 @@ export function ClientReport({
 
       {/* Page 6 — Scenario Analysis (Exhibit 2) */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.exhibitTitle}>Exhibit 2 — Expected scenario carries the strongest benefit</Text>
         <Text style={styles.caption}>
           Source: client-provided inputs and the Viableo calculation engine. Costs are held constant; only benefit assumptions vary.
@@ -285,6 +295,7 @@ export function ClientReport({
 
       {/* Page 7 — Recommendation (full-page verdict) */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Recommendation</Text>
         <View style={{ marginTop: 24, marginBottom: 24, alignItems: 'flex-start' }}>
           <PdfVerdictStamp
@@ -311,6 +322,7 @@ export function ClientReport({
 
       {/* Page 8 — Recommended Next Steps (Phase 2.3) */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Recommended Next Steps</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.inkMuted, marginBottom: 16 }}>
           Actionable guidance based on the Viableo Decision.
@@ -321,6 +333,7 @@ export function ClientReport({
 
       {/* Page 9 — Assumptions + Disclaimer */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Assumptions</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 10, color: PDF_COLORS.inkMuted, marginBottom: 12 }}>
           Every input that feeds the calculation, grouped by step. Context fields do not affect the dollar math.

@@ -1,23 +1,25 @@
 /**
  * POST /api/projects/[id]/report — generate + store the client business-case PDF.
  *
- * Entitlement: `client_report` (Pro+). Superadmin bypasses via
- * getEffectiveEntitlement.
+ * Entitlement (canonical two-tier model):
+ *   Starter ($0) — can generate, but the PDF is watermarked "for evaluation".
+ *   Pro ($49)    — clean, unwatermarked PDF + agency branding when configured.
+ *   Superadmin   — bypasses via getEffectiveEntitlement (returns Pro).
  *
  * Re-derives the results from the stored inputs (never trusts stored
  * results — single source of truth via the calculation engine), renders
  * the PDF via @react-pdf/renderer, stores it via storePdf(), creates a
- * Report record, and returns { pdfUrl }.
+ * Report record, and returns { pdfUrl, watermarked }.
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireOrg, AuthError } from '@/lib/session';
 import { tenant } from '@/lib/tenant';
 import { getEffectiveEntitlement } from '@/lib/entitlement-session';
-import { has } from '@/lib/entitlement';
 import { calculateAllScenarios } from '@/lib/calculations/engine';
 import { recommend } from '@/lib/calculations/recommendation';
 import { storePdf } from '@/lib/storage';
 import { ClientReport } from '@/lib/pdf/client-report';
+import { shouldWatermark } from '@/lib/pdf/watermark';
 import type { CalculatorInputs } from '@/lib/calculations/engine';
 import { renderToBuffer } from '@react-pdf/renderer';
 import * as React from 'react';
@@ -31,12 +33,6 @@ export async function POST(
   try {
     const org = await requireOrg();
     const entitlement = await getEffectiveEntitlement(org.id);
-    if (!has(entitlement, 'client_report')) {
-      return NextResponse.json(
-        { error: 'Client report requires Pro or higher.', requiredTier: 'pro' },
-        { status: 403 }
-      );
-    }
 
     const { id: projectId } = await params;
     const project = await tenant(org.id).projects.findUnique({ id: projectId });
@@ -49,11 +45,14 @@ export async function POST(
     const results = calculateAllScenarios(inputs);
     const recommendation = recommend(results.expected);
 
-    // Branding: Agency+ can use org branding; Pro gets unwatermarked Viableo.
+    // Branding: Pro (or superadmin) can use org branding; Starter gets Viableo default.
     const canBrand = entitlement.capabilities.agency_branding;
     const branding = canBrand
-      ? { name: org.name, logoUrl: org.logoUrl ?? undefined, brandColorHex: org.brandColorHex ?? undefined }
+      ? { name: org.name, website: org.website ?? undefined, contactEmail: org.contactEmail ?? undefined, phone: org.phone ?? undefined, logoUrl: org.logoUrl ?? undefined, brandColorHex: org.brandColorHex ?? undefined }
       : null;
+
+    // Watermark: Starter-tier PDFs are watermarked "for evaluation"; Pro is clean.
+    const watermarked = shouldWatermark(entitlement.tier);
 
     const fileName = `client-report-${projectId}-${Date.now()}.pdf`;
 
@@ -65,6 +64,7 @@ export async function POST(
         branding={branding}
         agencyTierCanBrand={canBrand}
         generatedAt={new Date()}
+        watermark={watermarked}
       />
     );
 
@@ -79,7 +79,7 @@ export async function POST(
       projectId,
     });
 
-    return NextResponse.json({ pdfUrl: stored.url });
+    return NextResponse.json({ pdfUrl: stored.url, watermarked });
   } catch (err) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

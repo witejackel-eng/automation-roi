@@ -29,6 +29,7 @@ import {
   pdfCount,
 } from './shared';
 import { PdfVerdictStamp } from './verdict-stamp';
+import { PdfWatermark } from './watermark';
 import type { CalculatorInputs, ScenarioResult } from '@/lib/calculations/engine';
 import type { Branding } from './shared';
 import { recommend } from '@/lib/calculations/recommendation';
@@ -50,6 +51,8 @@ interface ProposalProps {
   generatedAt: Date;
   implementationApproach?: string;
   nextSteps?: string[];
+  /** When true, renders the Starter-tier "for evaluation" watermark on every page. */
+  watermark?: boolean;
 }
 
 export function Proposal({
@@ -61,6 +64,7 @@ export function Proposal({
   generatedAt,
   implementationApproach,
   nextSteps,
+  watermark = false,
 }: ProposalProps) {
   const expected = results.expected;
   const brand = agencyTierCanBrand && branding ? brandColor(branding) : PDF_COLORS.brand;
@@ -93,6 +97,7 @@ export function Proposal({
     >
       {/* Page 1 — Cover */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <View style={{ marginBottom: 24 }}>
           <Text style={{ fontFamily: PDF_DISPLAY, fontWeight: 700, fontSize: 16, color: PDF_COLORS.ink }}>
             {agencyName}
@@ -123,6 +128,7 @@ export function Proposal({
 
       {/* Page 2 — Challenge / Solution / Outcome / Investment / ROI */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Business Challenge</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 11, color: PDF_COLORS.ink, lineHeight: 1.55, marginBottom: 14 }}>
           {inputs.clientName} currently operates the target task with {pdfCount(inputs.employeesAffected)} employees spending {inputs.hoursPerWeek} hours per week each, at {pdfCurrency(inputs.hourlyCost)}/hr. The annual labor cost of this task is {pdfCurrency(expected.annualLaborCost)}. Conversion improvement and error reduction are additional levers the proposed automation is expected to influence.
@@ -184,6 +190,7 @@ export function Proposal({
 
       {/* Page 3 — Implementation Approach + Next Steps */}
       <Page size="LETTER" style={styles.page}>
+        {watermark ? <PdfWatermark /> : null}
         <Text style={styles.sectionTitle}>Implementation Approach</Text>
         <Text style={{ fontFamily: PDF_SANS, fontSize: 11, color: PDF_COLORS.ink, lineHeight: 1.6, marginBottom: 16 }}>
           {approachText}
