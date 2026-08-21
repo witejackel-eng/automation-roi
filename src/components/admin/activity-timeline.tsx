@@ -15,7 +15,7 @@ import {
 
 type EventMeta = { icon: LucideIcon; color: string; bg: string }
 
-function getEventMeta(eventType: string): EventMeta {
+export function getEventMeta(eventType: string): EventMeta {
   const t = eventType.toUpperCase()
   // AUTH
   if (t === 'USER_SIGNED_IN') return { icon: User, color: 'var(--vcp-info)', bg: 'var(--vcp-info-bg)' }

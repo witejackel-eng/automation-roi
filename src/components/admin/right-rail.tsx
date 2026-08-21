@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { StatusDot, StatusPill } from './ui'
 import { timeAgo } from '@/lib/format'
 import { ArrowUpRight } from 'lucide-react'
+import { getEventMeta } from './activity-timeline'
 
 export function RightRail({
   systemStatus,
@@ -34,15 +35,26 @@ export function RightRail({
       {/* Critical events */}
       <RailCard title="Recent critical events" action={<Link href="/admin/events?severity=error" className="text-[11px] text-[var(--vcp-ink-muted)] hover:text-[var(--vcp-coral)] vcp-focus rounded">All</Link>}>
         {criticalEvents && criticalEvents.length > 0 ? (
-          <ul className="flex flex-col gap-2.5">
+          <ul className="flex flex-col gap-3">
             {criticalEvents.map((e) => {
               const sev = (e.severity as 'warn' | 'error') ?? 'warn'
+              const meta = getEventMeta(e.eventType)
+              const Icon = meta.icon
               return (
                 <li key={e.id} className="flex items-start gap-2.5">
-                  <StatusDot variant={sev === 'error' ? 'error' : 'warning'} />
+                  <span
+                    className="w-5 h-5 rounded-[5px] flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: meta.bg, color: meta.color }}
+                    aria-hidden
+                  >
+                    <Icon size={11} strokeWidth={2} />
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[12.5px] font-medium text-[var(--vcp-ink)] truncate vcp-mono">{e.eventType}</div>
-                    <div className="text-[11px] text-[var(--vcp-ink-muted)]">{timeAgo(e.createdAt)}</div>
+                    <div className="text-[12px] font-medium text-[var(--vcp-ink)] truncate vcp-mono">{e.eventType}</div>
+                    <div className="text-[11px] text-[var(--vcp-ink-muted)] flex items-center gap-1.5">
+                      <span className={`vcp-dot vcp-dot-${sev === 'error' ? 'error' : 'warning'}`} style={{ boxShadow: 'none', width: 5, height: 5 }} />
+                      {timeAgo(e.createdAt)}
+                    </div>
                   </div>
                 </li>
               )

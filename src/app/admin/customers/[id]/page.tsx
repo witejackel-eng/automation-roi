@@ -78,6 +78,13 @@ export default async function CustomerDetailPage({ params }: { params: Params })
 
         {/* Side column */}
         <div className="flex flex-col gap-4">
+          <RiskIndicatorsCard
+            subscription={subscription}
+            hasOrg={!!organization}
+            entitlementActive={entitlement.active}
+            tier={entitlement.tier}
+            recentEvents={recentEvents}
+          />
           <AdminActionsCard recentAudit={recentAudit} />
           <PrivacyNoteCard />
         </div>
@@ -306,6 +313,114 @@ function PrivacyNoteCard() {
       <p className="text-[12px] text-[var(--vcp-ink-muted)] leading-relaxed">
         Customer business-case content is hidden by default. Access is recorded.
       </p>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Risk Indicators — visual summary of attention signals
+// ---------------------------------------------------------------------------
+
+type RiskIndicator = {
+  label: string
+  severity: 'error' | 'warning' | 'info' | 'success'
+  detail: string
+}
+
+function RiskIndicatorsCard({
+  subscription,
+  hasOrg,
+  entitlementActive,
+  tier,
+  recentEvents,
+}: {
+  subscription: Subscription
+  hasOrg: boolean
+  entitlementActive: boolean
+  tier: Tier
+  recentEvents: { severity: string }[]
+}) {
+  const indicators: RiskIndicator[] = []
+
+  // Subscription risks
+  if (subscription) {
+    if (subscription.status === 'past_due') {
+      indicators.push({ label: 'Past due', severity: 'error', detail: 'Subscription payment is past due' })
+    }
+    if (subscription.status === 'canceled') {
+      indicators.push({ label: 'Canceled', severity: 'error', detail: 'Subscription has been canceled' })
+    }
+    if (subscription.cancelAtPeriodEnd && subscription.currentPeriodEnd) {
+      const daysLeft = Math.ceil((subscription.currentPeriodEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      if (daysLeft > 0) {
+        indicators.push({ label: `Canceling in ${daysLeft}d`, severity: 'warning', detail: 'Cancel at period end is set' })
+      }
+    }
+    if (subscription.status === 'trialing') {
+      indicators.push({ label: 'Trialing', severity: 'info', detail: 'On a trial subscription' })
+    }
+  }
+
+  // Organization risk
+  if (!hasOrg) {
+    indicators.push({ label: 'No organization', severity: 'warning', detail: 'User has no organization attached' })
+  }
+
+  // Entitlement risk
+  if (!entitlementActive) {
+    indicators.push({ label: 'Inactive entitlement', severity: 'warning', detail: 'Entitlement is not currently active' })
+  }
+
+  // Upgrade opportunity
+  if (tier === 'free' && subscription?.status === 'active') {
+    indicators.push({ label: 'Active but Starter', severity: 'info', detail: 'On the free Starter plan — upgrade opportunity' })
+  }
+
+  // Recent errors
+  const errorCount = recentEvents.filter((e) => e.severity === 'error').length
+  if (errorCount > 0) {
+    indicators.push({ label: `${errorCount} recent error${errorCount === 1 ? '' : 's'}`, severity: 'error', detail: 'Error-level events in recent activity' })
+  }
+
+  // Healthy state
+  const isHealthy = indicators.length === 0
+
+  return (
+    <div className="vcp-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--vcp-ink-muted)]">Risk indicators</h3>
+        {isHealthy ? (
+          <span className="vcp-pill vcp-pill-success">
+            <span className="vcp-dot vcp-dot-success" style={{ boxShadow: 'none', width: 5, height: 5 }} />
+            Healthy
+          </span>
+        ) : (
+          <span className="vcp-pill vcp-pill-warning">
+            <span className="vcp-dot vcp-dot-warning" style={{ boxShadow: 'none', width: 5, height: 5 }} />
+            {indicators.length} signal{indicators.length === 1 ? '' : 's'}
+          </span>
+        )}
+      </div>
+      {isHealthy ? (
+        <p className="text-[13px] text-[var(--vcp-ink-muted)] py-2">
+          No risk signals detected. Subscription active, organization present, no recent errors.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-2.5">
+          {indicators.map((ind, i) => {
+            const dotClass = ind.severity === 'error' ? 'vcp-dot-error' : ind.severity === 'warning' ? 'vcp-dot-warning' : 'vcp-dot-info'
+            return (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className={`vcp-dot ${dotClass} mt-1.5`} style={{ boxShadow: 'none', width: 6, height: 6 }} aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[12.5px] font-medium text-[var(--vcp-ink)]">{ind.label}</div>
+                  <div className="text-[11px] text-[var(--vcp-ink-muted)] mt-0.5">{ind.detail}</div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

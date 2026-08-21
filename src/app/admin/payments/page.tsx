@@ -6,6 +6,7 @@ import {
   KpiCard, SectionHeader, PageContainer,
   EmptyState, Pagination, StatusPill, type StatusVariant,
 } from '@/components/admin/ui'
+import { Sparkline } from '@/components/admin/sparkline'
 import { PaymentFilters } from './_components/payment-filters'
 import { PaymentExportButton } from './_components/payment-export-button'
 import { formatCurrency, formatDateTime, shortId } from '@/lib/format'
@@ -61,6 +62,20 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
   const refundedCount = succeededRows.filter((p) => (p.refundedAmount ?? 0) > 0).length
   const refundedApproximated = succeededRows.length >= 100 && totals[1].total > 100
 
+  // Build a 7-day revenue sparkline from successful payments
+  const revenueByDay: number[] = Array(7).fill(0)
+  const now = new Date()
+  const dayMs = 24 * 60 * 60 * 1000
+  for (const p of allPayments.rows) {
+    if (p.status !== 'succeeded') continue
+    const dayDiff = Math.floor((now.getTime() - p.createdAt.getTime()) / dayMs)
+    if (dayDiff >= 0 && dayDiff < 7) {
+      const idx = 6 - dayDiff // 0 = oldest, 6 = today
+      const amt = typeof p.amount === 'number' ? p.amount : Number(p.amount)
+      revenueByDay[idx] += amt
+    }
+  }
+
   return (
     <PageContainer>
       <SectionHeader
@@ -72,7 +87,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Sea
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label="Total payments" value={totals[0].total} sub="All captured events" />
-        <KpiCard label="Successful" value={totals[1].total} variant="success" />
+        <KpiCard label="Successful" value={totals[1].total} variant="success" sparkline={<Sparkline data={revenueByDay} color="var(--vcp-success)" />} />
         <KpiCard label="Failed" value={totals[2].total} variant={totals[2].total > 0 ? 'error' : 'neutral'} />
         <KpiCard
           label="Refunded"
